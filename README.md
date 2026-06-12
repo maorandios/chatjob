@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobChat — UX Prototype
 
-## Getting Started
+Mobile-first UI prototype for validating the manager–worker communication workflow. No backend, authentication, or real translation.
 
-First, run the development server:
+## Quick start
 
 ```bash
+npm install
+cp .env.example .env.local
+# Add your OPENAI_API_KEY to .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) — redirects to `/demo`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Requires `OPENAI_API_KEY`** in `.env.local` for message translation and voice transcription.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stakeholder test script
 
-## Learn More
+### Single-device end-to-end test
 
-To learn more about Next.js, take a look at the following resources:
+1. Open `/demo` and tap **כניסה כמנהל**
+2. Tap **+** and add a worker (name + phone)
+3. Copy the invite link from the success sheet
+4. Open the invite link in a new tab (or use **פתיחת הזמנת עובד** for the seeded demo worker)
+5. Pick a language (e.g. Thai) and enter chat
+6. Send typed or **voice** messages (hold mic, release to send)
+7. Verify translated text appears for the other party
+8. Try worker quick-reply chips on an empty thread
+9. Tap manager avatar in worker chat → change language
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Pre-seeded demo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Demo worker: **סומצ'אי** (Thai, active)
+- Invite token: `demo1234` → `/invite/demo1234`
+- Includes sample conversation in Hebrew ↔ Thai
 
-## Deploy on Vercel
+### Reset
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Use **איפוס נתוני דמו** on `/demo` to restore seed data.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/demo` | Prototype entry — manager / worker / reset |
+| `/manager` | Manager chat list (Hebrew, RTL) |
+| `/manager/chat/[workerId]` | Manager thread |
+| `/invite/[token]` | Worker welcome + language selection |
+| `/invite/[token]/chat` | Worker thread |
+
+## What's real vs mocked
+
+| Feature | Status |
+|---------|--------|
+| Typed messages | OpenAI translation via `/api/messages/text` |
+| Voice messages | Whisper transcription + OpenAI translation via `/api/messages/voice` |
+| Hold mic to record | Browser `MediaRecorder` (release to send) |
+| Chat persistence | Zustand + localStorage (prototype) |
+| Auth, push, real-time | Not implemented |
+
+## Tech stack
+
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- Zustand (persist)
+- Lucide icons
