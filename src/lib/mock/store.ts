@@ -315,8 +315,50 @@ export const useJobChatStore = create<JobChatState>()(
     }),
     {
       name: "jobchat-prototype",
-      onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+      partialize: (state) => ({
+        workers: state.workers,
+        messages: state.messages,
+        invites: state.invites,
+        managerName: state.managerName,
+        managerPhone: state.managerPhone,
+        companyName: state.companyName,
+        contactAliases: state.contactAliases,
+      }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<JobChatState> | undefined;
+        if (!persisted) return currentState;
+
+        return {
+          ...currentState,
+          ...persisted,
+          managerPhone:
+            persisted.managerPhone ?? currentState.managerPhone,
+          contactAliases: persisted.contactAliases ?? {
+            manager: {},
+            worker: {},
+          },
+          invites: (persisted.invites ?? currentState.invites).map(
+            (invite) => ({
+              ...invite,
+              managerPhone:
+                invite.managerPhone ??
+                persisted.managerPhone ??
+                currentState.managerPhone,
+            })
+          ),
+          hydrated: false,
+        };
+      },
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.warn("[JobChat] Failed to load saved data", error);
+          try {
+            localStorage.removeItem("jobchat-prototype");
+          } catch {
+            // localStorage may be unavailable in strict private mode
+          }
+        }
+        (state ?? useJobChatStore.getState()).setHydrated(true);
       },
     }
   )
