@@ -1,7 +1,6 @@
 "use client";
 
 import { Portal } from "@/components/ui/Portal";
-import { useBodyScrollLock } from "@/lib/hooks/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
@@ -15,8 +14,6 @@ type SheetProps = {
 };
 
 export function Sheet({ open, onClose, title, children, className }: SheetProps) {
-  useBodyScrollLock(open);
-
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -30,24 +27,23 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
 
   return (
     <Portal>
-      <div
-        className="fixed inset-0 z-[300] flex items-end justify-center"
-        role="presentation"
-      >
+      <div className="fixed inset-0 z-[9999]">
         <button
           type="button"
-          className="absolute inset-0 touch-none bg-black/50"
+          className="absolute inset-0 bg-black/50"
           onClick={onClose}
           aria-label="Close"
         />
         <div
-          className={cn(
-            "relative z-10 w-full max-w-[430px] max-h-[min(92dvh,92vh)] touch-auto overflow-y-auto overscroll-contain rounded-t-[28px] bg-white px-5 pb-8 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.15)]",
-            "pb-[calc(2rem+env(safe-area-inset-bottom,0px))]",
-            className
-          )}
           role="dialog"
           aria-modal="true"
+          className={cn(
+            "absolute inset-x-0 bottom-0 mx-auto w-full max-w-[430px]",
+            "max-h-[90dvh] overflow-y-auto overscroll-contain rounded-t-[28px] bg-white",
+            "px-5 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.15)]",
+            "pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]",
+            className
+          )}
         >
           <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-gray-200" />
           {title && (

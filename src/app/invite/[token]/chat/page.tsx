@@ -55,16 +55,15 @@ export default function WorkerChatPage({ params }: PageProps) {
 
   return (
     <MobileFrame dir={dir}>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ChatHeader
-          name={displayName}
-          subtitle={invite.managerPhone || managerPhone}
-          backHref={`/invite/${token}`}
-          dir={dir}
-          showOnline={false}
-          onProfileClick={() => setShowContactSheet(true)}
-        />
-        <ChatThread
+      <ChatHeader
+        name={displayName}
+        subtitle={invite.managerPhone || managerPhone}
+        backHref={`/invite/${token}`}
+        dir={dir}
+        showOnline={false}
+        onProfileClick={() => setShowContactSheet(true)}
+      />
+      <ChatThread
           workerId={worker.id}
           viewerRole="worker"
           workerLanguage={lang}
@@ -90,8 +89,7 @@ export default function WorkerChatPage({ params }: PageProps) {
           imageSendFailedLabel={ui.imageSendFailed}
           dir={dir}
           largeComposer
-        />
-      </div>
+      />
 
       <ContactNameSheet
         open={showContactSheet}

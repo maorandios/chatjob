@@ -1,7 +1,6 @@
 "use client";
 
 import { Portal } from "@/components/ui/Portal";
-import { useBodyScrollLock } from "@/lib/hooks/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
@@ -39,14 +38,13 @@ export function RecordingOverlay({
   onDelete,
   dir = "rtl",
 }: RecordingOverlayProps) {
-  useBodyScrollLock(true);
   const isAnalyzing = phase === "analyzing";
   const progress = Math.min(elapsedMs / (maxSec * 1000), 1);
 
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[250] flex items-center justify-center bg-black/50"
+        className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/50"
         role="dialog"
         aria-modal="true"
         aria-label={isAnalyzing ? analyzingLabel : label}

@@ -1,6 +1,5 @@
 import { LazyStoreSync } from "@/components/LazyStoreSync";
 import { PersistRehydrator } from "@/components/PersistRehydrator";
-import { ViewportSync } from "@/components/ViewportSync";
 import { ToastProvider } from "@/components/ui/Toast";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
@@ -42,13 +41,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" className="h-full">
-      <body className="min-h-full">
+      <body className="min-h-dvh">
         <ToastProvider>
-          <ViewportSync />
           {children}
           <PersistRehydrator />
           <LazyStoreSync />
         </ToastProvider>
+        <div id="jobchat-overlays" />
       </body>
     </html>
   );

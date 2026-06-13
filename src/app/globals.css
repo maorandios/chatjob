@@ -7,9 +7,6 @@
   --jobchat-accent-light: #eef2ff;
   --jobchat-surface: #f5f6f8;
   --jobchat-border: #e5e7eb;
-  --keyboard-inset: 0px;
-  --composer-height: 5.5rem;
-  --viewport-height: 100dvh;
 }
 
 @theme inline {
@@ -26,7 +23,6 @@
 html,
 body {
   height: 100%;
-  overflow-x: hidden;
 }
 
 body {
@@ -34,18 +30,6 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
-  overscroll-behavior: none;
-}
-
-.mobile-shell {
-  height: 100dvh;
-  height: var(--viewport-height, 100dvh);
-}
-
-.composer-bar {
-  bottom: calc(var(--keyboard-inset, 0px));
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
 }
 
 .safe-top {

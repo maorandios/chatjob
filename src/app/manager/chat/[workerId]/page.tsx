@@ -1,5 +1,6 @@
 "use client";
 
+import { AppShell } from "@/components/ui/AppShell";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
@@ -29,7 +30,7 @@ export default function ManagerChatPage({ params }: PageProps) {
   if (!worker) notFound();
 
   return (
-    <div className="mobile-shell flex flex-col overflow-hidden">
+    <AppShell dir="rtl">
       <ChatHeader
         name={displayName}
         subtitle={
@@ -69,6 +70,6 @@ export default function ManagerChatPage({ params }: PageProps) {
         saveLabel="שמור"
         dir="rtl"
       />
-    </div>
+    </AppShell>
   );
 }
