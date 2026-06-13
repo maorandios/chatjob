@@ -79,6 +79,7 @@ export function ChatThread({
   const sendImageMessage = useJobChatStore((s) => s.sendImageMessage);
   const commitProcessedMessage = useJobChatStore((s) => s.commitProcessedMessage);
   const markManagerMessagesRead = useJobChatStore((s) => s.markManagerMessagesRead);
+  const markWorkerMessagesRead = useJobChatStore((s) => s.markWorkerMessagesRead);
   const { showToast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [voicePreview, setVoicePreview] = useState<VoiceTranscription | null>(null);
@@ -86,6 +87,9 @@ export function ChatThread({
 
   const hasUnreadManagerMessages = messages.some(
     (m) => m.senderRole === "manager" && m.status === "sent"
+  );
+  const hasUnreadWorkerMessages = messages.some(
+    (m) => m.senderRole === "worker" && m.status === "sent"
   );
 
   useEffect(() => {
@@ -96,6 +100,11 @@ export function ChatThread({
     if (viewerRole !== "worker" || !hasUnreadManagerMessages) return;
     markManagerMessagesRead(workerId);
   }, [viewerRole, workerId, hasUnreadManagerMessages, markManagerMessagesRead]);
+
+  useEffect(() => {
+    if (viewerRole !== "manager" || !hasUnreadWorkerMessages) return;
+    markWorkerMessagesRead(workerId);
+  }, [viewerRole, workerId, hasUnreadWorkerMessages, markWorkerMessagesRead]);
 
   const getContext = () => buildTranslationContext(messages);
 
@@ -176,7 +185,7 @@ export function ChatThread({
                 message={message}
                 displayText={displayText}
                 isOwn={isOwn}
-                showStatus={viewerRole === "manager"}
+                showStatus={isOwn}
               />
             );
           })}

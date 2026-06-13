@@ -5,11 +5,10 @@ import { useEffect, type ReactNode } from "react";
 
 export function StoreHydration({ children }: { children: ReactNode }) {
   const hydrated = useJobChatStore((s) => s.hydrated);
-  const setHydrated = useJobChatStore((s) => s.setHydrated);
 
   useEffect(() => {
-    setHydrated(true);
-  }, [setHydrated]);
+    void useJobChatStore.persist.rehydrate();
+  }, []);
 
   if (!hydrated) {
     return (

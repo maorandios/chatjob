@@ -49,6 +49,7 @@ type JobChatState = {
     result: ProcessedMessage
   ) => Message;
   markManagerMessagesRead: (workerId: string) => void;
+  markWorkerMessagesRead: (workerId: string) => void;
   setContactAlias: (
     viewerRole: "manager" | "worker",
     workerId: string,
@@ -242,6 +243,25 @@ export const useJobChatStore = create<JobChatState>()(
             if (
               m.workerId === workerId &&
               m.senderRole === "manager" &&
+              m.status === "sent"
+            ) {
+              changed = true;
+              return { ...m, status: "delivered" as const };
+            }
+            return m;
+          });
+          if (!changed) return state;
+          return { messages };
+        });
+      },
+
+      markWorkerMessagesRead: (workerId) => {
+        set((state) => {
+          let changed = false;
+          const messages = state.messages.map((m) => {
+            if (
+              m.workerId === workerId &&
+              m.senderRole === "worker" &&
               m.status === "sent"
             ) {
               changed = true;
