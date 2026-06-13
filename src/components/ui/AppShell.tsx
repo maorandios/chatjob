@@ -17,7 +17,7 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <div className={cn("app-root", centered && "app-root--centered", className)}>
-      <div dir={dir} className="flex h-full min-h-0 flex-col">
+      <div dir={dir} className="flex min-h-0 flex-1 flex-col">
         {children}
       </div>
     </div>

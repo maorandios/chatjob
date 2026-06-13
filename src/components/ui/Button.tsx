@@ -30,7 +30,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-base font-medium transition-colors",
+        "inline-flex min-h-12 touch-manipulation items-center justify-center rounded-xl px-5 text-base font-medium transition-colors",
         variants[variant],
         fullWidth && "w-full",
         className

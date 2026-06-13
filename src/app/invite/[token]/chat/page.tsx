@@ -18,7 +18,8 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function WorkerChatPage() {
-  const { token } = useParams<{ token: string }>();
+  const params = useParams<{ token: string }>();
+  const token = params?.token ?? "";
   const router = useRouter();
   const worker = useWorkerByToken(token);
   const invite = useInviteByToken(token);
@@ -37,7 +38,7 @@ export default function WorkerChatPage() {
     }
   }, [worker, token, router]);
 
-  if (!worker || !invite) notFound();
+  if (!token || !worker || !invite) notFound();
 
   if (!worker.language) {
     return null;

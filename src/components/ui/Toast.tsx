@@ -28,18 +28,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="pointer-events-none fixed bottom-24 left-0 right-0 z-[100] flex flex-col items-center gap-2 px-4">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={cn(
-              "rounded-full bg-gray-900/90 px-4 py-2.5 text-sm text-white shadow-lg"
-            )}
-          >
-            {toast.text}
-          </div>
-        ))}
-      </div>
+      {toasts.length > 0 && (
+        <div className="pointer-events-none fixed bottom-24 left-1/2 z-[100] flex w-fit max-w-[min(430px,90vw)] -translate-x-1/2 flex-col items-center gap-2 px-4">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={cn(
+                "rounded-full bg-gray-900/90 px-4 py-2.5 text-sm text-white shadow-lg"
+              )}
+            >
+              {toast.text}
+            </div>
+          ))}
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }

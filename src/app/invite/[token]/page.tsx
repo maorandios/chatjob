@@ -19,7 +19,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function InvitePage() {
-  const { token } = useParams<{ token: string }>();
+  const params = useParams<{ token: string }>();
+  const token = params?.token ?? "";
+
+  if (!token) return null;
 
   return <InvitePageContent token={token} />;
 }

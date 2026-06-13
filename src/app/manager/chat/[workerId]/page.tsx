@@ -13,8 +13,9 @@ import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 
 export default function ManagerChatPage() {
-  const { workerId } = useParams<{ workerId: string }>();
-  const worker = useWorkerById(workerId);
+  const params = useParams<{ workerId: string }>();
+  const workerId = params?.workerId;
+  const worker = useWorkerById(workerId ?? "");
   const setContactAlias = useJobChatStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);
   const displayName = useContactDisplayName(
@@ -23,7 +24,7 @@ export default function ManagerChatPage() {
     worker?.name ?? ""
   );
 
-  if (!worker) notFound();
+  if (!workerId || !worker) notFound();
 
   return (
     <AppShell dir="rtl">

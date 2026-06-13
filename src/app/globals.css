@@ -29,17 +29,27 @@ html {
 body {
   height: 100%;
   height: -webkit-fill-available;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   overscroll-behavior: none;
   background: var(--jobchat-surface);
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
-  touch-action: manipulation;
+}
+
+button,
+a,
+[role="button"] {
+  cursor: pointer;
 }
 
 .app-root {
   display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
   height: -webkit-fill-available;
   width: 100%;
@@ -63,6 +73,9 @@ body {
 }
 
 .composer-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
   flex-shrink: 0;
   border-top: 1px solid var(--jobchat-border);
   background: white;
@@ -91,6 +104,7 @@ body {
   border: 0;
   background: rgb(0 0 0 / 0.5);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .jobchat-sheet-panel {
