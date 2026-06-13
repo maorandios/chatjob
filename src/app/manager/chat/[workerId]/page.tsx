@@ -9,15 +9,11 @@ import {
   useJobChatStore,
   useWorkerById,
 } from "@/lib/mock/store";
-import { notFound } from "next/navigation";
-import { use, useState } from "react";
+import { notFound, useParams } from "next/navigation";
+import { useState } from "react";
 
-type PageProps = {
-  params: Promise<{ workerId: string }>;
-};
-
-export default function ManagerChatPage({ params }: PageProps) {
-  const { workerId } = use(params);
+export default function ManagerChatPage() {
+  const { workerId } = useParams<{ workerId: string }>();
   const worker = useWorkerById(workerId);
   const setContactAlias = useJobChatStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);

@@ -15,12 +15,14 @@ import {
 } from "@/lib/mock/store";
 import type { LanguageCode } from "@/types";
 import { Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
-type PageProps = {
-  params: Promise<{ token: string }>;
-};
+export default function InvitePage() {
+  const { token } = useParams<{ token: string }>();
+
+  return <InvitePageContent token={token} />;
+}
 
 function WorkerHome({
   token,
@@ -180,10 +182,4 @@ function InvitePageContent({ token }: { token: string }) {
   }
 
   return <InviteOnboarding token={token} />;
-}
-
-export default function InvitePage({ params }: PageProps) {
-  const { token } = use(params);
-
-  return <InvitePageContent token={token} />;
 }

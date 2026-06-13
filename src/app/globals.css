@@ -38,17 +38,6 @@ body {
   touch-action: manipulation;
 }
 
-#jobchat-overlays {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  pointer-events: none;
-}
-
-#jobchat-overlays > * {
-  pointer-events: auto;
-}
-
 .app-root {
   display: flex;
   height: 100%;

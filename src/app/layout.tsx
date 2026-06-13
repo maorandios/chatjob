@@ -41,7 +41,6 @@ export default function RootLayout({
   return (
     <html lang="he" className="h-full">
       <body className="h-full">
-        <div id="jobchat-overlays" aria-hidden="true" />
         <ToastProvider>
           <div className="h-full">{children}</div>
           <PersistRehydrator />

@@ -30,6 +30,8 @@
   "browserslist": [
     "iOS >= 12",
     "Safari >= 12",
-    "last 2 Chrome versions"
+    "Android >= 5",
+    "last 2 Chrome versions",
+    "last 2 Firefox versions"
   ]
 }

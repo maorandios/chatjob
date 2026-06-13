@@ -14,15 +14,11 @@ import {
   useWorkerByToken,
 } from "@/lib/mock/store";
 import type { LanguageCode } from "@/types";
-import { notFound, useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { notFound, useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-type PageProps = {
-  params: Promise<{ token: string }>;
-};
-
-export default function WorkerChatPage({ params }: PageProps) {
-  const { token } = use(params);
+export default function WorkerChatPage() {
+  const { token } = useParams<{ token: string }>();
   const router = useRouter();
   const worker = useWorkerByToken(token);
   const invite = useInviteByToken(token);
