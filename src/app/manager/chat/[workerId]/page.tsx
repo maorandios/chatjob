@@ -29,7 +29,7 @@ export default function ManagerChatPage({ params }: PageProps) {
   if (!worker) notFound();
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="mobile-shell flex flex-col overflow-hidden">
       <ChatHeader
         name={displayName}
         subtitle={

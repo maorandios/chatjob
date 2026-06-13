@@ -46,7 +46,7 @@ export function VoiceConfirmSheet({
     <Sheet
       open={open}
       onClose={onRerecord}
-      className="rounded-t-[28px] px-6 pb-2 pt-3 safe-bottom"
+      className="rounded-t-[28px] px-6 pb-2 pt-3"
     >
       <div dir={dir}>
         <div dir="ltr" className="mb-6 flex items-center justify-between">

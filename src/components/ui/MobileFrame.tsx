@@ -17,7 +17,7 @@ export function MobileFrame({
       <div
         dir={dir}
         className={cn(
-          "relative flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white shadow-xl",
+          "mobile-shell relative flex w-full max-w-[430px] flex-col overflow-hidden bg-white shadow-xl",
           className
         )}
       >

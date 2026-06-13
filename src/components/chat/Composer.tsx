@@ -2,11 +2,11 @@
 
 import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
 import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
+import { Portal } from "@/components/ui/Portal";
 import { useToast } from "@/components/ui/Toast";
-import { useKeyboardInset } from "@/lib/hooks/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 import { ImagePlus, Loader2, Send } from "lucide-react";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 type ComposerProps = {
   onSend: (text: string) => Promise<void>;
@@ -52,14 +52,29 @@ export function Composer({
   disabled = false,
 }: ComposerProps) {
   const { showToast } = useToast();
-  const keyboardInset = useKeyboardInset();
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showImageSheet, setShowImageSheet] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const composerRef = useRef<HTMLDivElement>(null);
-  const hasText = Boolean(text.trim());
-  const keyboardOpen = keyboardInset > 0;
+  const barRef = useRef<HTMLDivElement>(null);
+  const hasText = text.trim().length > 0;
+
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+
+    const syncHeight = () => {
+      document.documentElement.style.setProperty(
+        "--composer-height",
+        `${bar.offsetHeight}px`
+      );
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [hasText]);
 
   const handleSend = async () => {
     const trimmed = text.trim();
@@ -102,97 +117,90 @@ export function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   };
 
-  const handleFocus = () => {
-    requestAnimationFrame(() => {
-      composerRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    });
-  };
-
   return (
     <>
-      <div
-        ref={composerRef}
-        className={cn(
-          "z-20 shrink-0 border-t border-[var(--jobchat-border)] bg-white px-3 pt-2.5 transition-transform duration-75",
-          keyboardOpen ? "pb-2" : "safe-bottom"
-        )}
-        style={
-          keyboardOpen
-            ? { transform: `translateY(-${keyboardInset}px)` }
-            : undefined
-        }
-      >
-        <div dir="ltr" className="flex items-end gap-2">
-          <div
-            dir={dir}
-            className={cn(
-              "flex min-h-[48px] min-w-0 flex-1 items-end rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-4 py-3 transition-colors focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
-            )}
-          >
-            <textarea
-              ref={textareaRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onInput={handleInput}
-              onKeyDown={handleKeyDown}
-              onFocus={handleFocus}
-              rows={1}
-              disabled={disabled || isSending}
-              placeholder={placeholder}
-              enterKeyHint="send"
-              className={cn(
-                "max-h-[120px] w-full min-w-0 flex-1 resize-none bg-transparent text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
-                large ? "text-[17px] leading-relaxed" : "text-[15px] leading-normal"
+      <Portal>
+        <div
+          ref={barRef}
+          className="composer-bar fixed inset-x-0 z-[40] border-t border-[var(--jobchat-border)] bg-white"
+        >
+          <div className="mx-auto w-full max-w-[430px] px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] pt-2.5">
+            <div dir="ltr" className="flex items-end gap-2">
+              <div
+                dir={dir}
+                className="flex min-h-[48px] min-w-0 flex-1 items-end rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-4 py-3 transition-colors focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
+              >
+                <textarea
+                  ref={textareaRef}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onInput={handleInput}
+                  onKeyDown={handleKeyDown}
+                  rows={1}
+                  disabled={disabled || isSending}
+                  placeholder={placeholder}
+                  enterKeyHint="send"
+                  autoComplete="off"
+                  autoCorrect="on"
+                  className={cn(
+                    "max-h-[120px] w-full min-w-0 flex-1 resize-none bg-transparent text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
+                    large
+                      ? "text-[17px] leading-relaxed"
+                      : "text-[16px] leading-normal"
+                  )}
+                />
+              </div>
+
+              {!hasText && onImageSend && (
+                <button
+                  type="button"
+                  disabled={disabled || isSending}
+                  onClick={() => setShowImageSheet(true)}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 active:bg-gray-100 disabled:opacity-40"
+                  aria-label={attachImageTitle}
+                >
+                  <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
+                </button>
               )}
-            />
-          </div>
 
-          {onImageSend && (
-            <button
-              type="button"
-              disabled={disabled || isSending}
-              onClick={() => setShowImageSheet(true)}
-              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
-              aria-label={attachImageTitle}
-            >
-              <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
-            </button>
-          )}
-
-          {hasText ? (
-            <button
-              type="button"
-              onClick={() => void handleSend()}
-              disabled={disabled || isSending}
-              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40"
-              aria-label="Send"
-            >
-              {isSending ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+              {hasText ? (
+                <button
+                  type="button"
+                  onClick={() => void handleSend()}
+                  disabled={disabled || isSending}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
+                  aria-label="Send"
+                >
+                  {isSending ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </button>
+              ) : onVoiceSend ? (
+                <div className="shrink-0">
+                  <VoiceRecorder
+                    onRecorded={onVoiceSend}
+                    disabled={disabled || isSending}
+                    processingLabel={processingLabel}
+                    analyzingLabel={analyzingLabel}
+                    recordingLabel={recordingLabel}
+                    finishRecordingLabel={finishRecordingLabel}
+                    deleteRecordingLabel={deleteRecordingLabel}
+                    maxDurationLabel={maxDurationLabel}
+                    errorLabel={micErrorLabel}
+                    tooShortLabel={tooShortLabel}
+                    prominent
+                    dir={dir}
+                  />
+                </div>
               ) : (
-                <Send className="h-5 w-5" />
+                <div className="h-11 w-11 shrink-0" />
               )}
-            </button>
-          ) : onVoiceSend ? (
-            <VoiceRecorder
-              onRecorded={onVoiceSend}
-              disabled={disabled || isSending}
-              processingLabel={processingLabel}
-              analyzingLabel={analyzingLabel}
-              recordingLabel={recordingLabel}
-              finishRecordingLabel={finishRecordingLabel}
-              deleteRecordingLabel={deleteRecordingLabel}
-              maxDurationLabel={maxDurationLabel}
-              errorLabel={micErrorLabel}
-              tooShortLabel={tooShortLabel}
-              prominent
-              dir={dir}
-            />
-          ) : (
-            <div className="h-11 w-11 shrink-0" />
-          )}
+            </div>
+          </div>
         </div>
-      </div>
+      </Portal>
 
       {onImageSend && (
         <ImageAttachSheet

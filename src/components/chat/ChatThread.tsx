@@ -4,6 +4,7 @@ import { Composer } from "@/components/chat/Composer";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { QuickReplies } from "@/components/chat/QuickReplies";
 import { VoiceConfirmSheet } from "@/components/chat/VoiceConfirmSheet";
+import { Portal } from "@/components/ui/Portal";
 import { useToast } from "@/components/ui/Toast";
 import {
   sendTextMessage,
@@ -162,9 +163,19 @@ export function ChatThread({
   const showQuickReplies =
     viewerRole === "worker" && messages.length === 0 && quickReplies?.length;
 
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--quick-replies-height",
+      showQuickReplies ? "3.5rem" : "0px"
+    );
+    return () => {
+      document.documentElement.style.setProperty("--quick-replies-height", "0px");
+    };
+  }, [showQuickReplies]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="chat-scrollbar flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-4">
+      <div className="chat-scrollbar flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-4 pb-[calc(var(--composer-height,5.5rem)+var(--quick-replies-height,0px))]">
         {messages.length === 0 && emptyHint && (
           <div className="flex h-full min-h-[200px] flex-col items-center justify-center px-6 text-center">
             <p className="text-sm text-gray-500">{emptyHint}</p>
@@ -194,10 +205,22 @@ export function ChatThread({
       </div>
 
       {showQuickReplies && (
-        <QuickReplies
-          replies={quickReplies!}
-          onSelect={(text) => void handleSend(text)}
-        />
+        <Portal>
+          <div
+            className="fixed inset-x-0 z-[39] border-t border-[var(--jobchat-border)] bg-white"
+            style={{
+              bottom:
+                "calc(var(--composer-height, 5.5rem) + var(--keyboard-inset, 0px))",
+            }}
+          >
+            <div className="mx-auto w-full max-w-[430px]">
+              <QuickReplies
+                replies={quickReplies!}
+                onSelect={(text) => void handleSend(text)}
+              />
+            </div>
+          </div>
+        </Portal>
       )}
 
       <Composer

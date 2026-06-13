@@ -33,7 +33,7 @@ export function ImageAttachSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} className="rounded-t-[28px] px-6 pb-2 pt-3 safe-bottom">
+    <Sheet open={open} onClose={onClose} className="rounded-t-[28px] px-6 pb-2 pt-3">
       <div dir={dir} className="space-y-2 pb-2">
         <p className="mb-4 text-center text-[17px] font-semibold text-gray-900">
           {title}
