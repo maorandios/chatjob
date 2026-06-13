@@ -1,5 +1,6 @@
 "use client";
 
+import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
@@ -41,12 +42,13 @@ export function RecordingOverlay({
   const progress = Math.min(elapsedMs / (maxSec * 1000), 1);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex animate-in fade-in items-center justify-center bg-black/50 backdrop-blur-sm duration-200"
-      role="dialog"
-      aria-modal="true"
-      aria-label={isAnalyzing ? analyzingLabel : label}
-    >
+    <Portal>
+      <div
+        className="fixed inset-0 z-[250] flex animate-in fade-in items-center justify-center bg-black/50 duration-200 motion-reduce:animate-none"
+        role="dialog"
+        aria-modal="true"
+        aria-label={isAnalyzing ? analyzingLabel : label}
+      >
       <div dir={dir} className="flex flex-col items-center gap-8 px-8">
         <div className="relative flex h-32 w-32 items-center justify-center">
           {isAnalyzing ? (
@@ -134,6 +136,7 @@ export function RecordingOverlay({
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </Portal>
   );
 }
