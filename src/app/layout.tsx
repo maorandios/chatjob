@@ -1,5 +1,5 @@
-import { StoreHydration } from "@/components/StoreHydration";
-import { StoreSync } from "@/components/StoreSync";
+import { LazyStoreSync } from "@/components/LazyStoreSync";
+import { PersistRehydrator } from "@/components/PersistRehydrator";
 import { ToastProvider } from "@/components/ui/Toast";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
@@ -42,10 +42,9 @@ export default function RootLayout({
     <html lang="he" className="h-full">
       <body className="min-h-full">
         <ToastProvider>
-          <StoreHydration>
-            <StoreSync />
-            {children}
-          </StoreHydration>
+          {children}
+          <PersistRehydrator />
+          <LazyStoreSync />
         </ToastProvider>
       </body>
     </html>
