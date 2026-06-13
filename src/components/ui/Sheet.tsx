@@ -32,19 +32,19 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <button
         type="button"
-        className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
+        className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
         aria-label="Close"
       />
       <div
         className={cn(
-          "relative z-10 w-full max-w-[430px] rounded-t-2xl bg-white px-5 pb-8 pt-4 shadow-xl animate-in slide-in-from-bottom duration-300",
+          "relative z-10 w-full max-w-[430px] rounded-t-[28px] bg-white px-5 pb-8 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom duration-300",
           className
         )}
         role="dialog"
         aria-modal
       >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-300" />
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-gray-200" />
         {title && (
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

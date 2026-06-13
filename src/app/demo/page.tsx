@@ -20,7 +20,7 @@ export default function DemoPage() {
     <MobileFrame>
       <div className="flex flex-1 flex-col px-6 py-10">
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#25D366] text-2xl font-bold text-white">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--jobchat-accent)] text-2xl font-bold text-white">
             JC
           </div>
           <h1 className="text-2xl font-bold text-gray-900">JobChat</h1>
@@ -43,7 +43,7 @@ export default function DemoPage() {
           </Link>
 
           {workers.length > 1 && (
-            <div className="rounded-xl bg-gray-50 p-4">
+            <div className="rounded-xl bg-[var(--jobchat-surface)] p-4">
               <p className="mb-2 text-sm font-medium text-gray-700">
                 הזמנות פעילות:
               </p>
@@ -52,7 +52,7 @@ export default function DemoPage() {
                   <li key={w.id}>
                     <Link
                       href={`/invite/${w.inviteToken}`}
-                      className="block truncate text-sm text-[#075E54] underline"
+                      className="block truncate text-sm text-[var(--jobchat-accent)] underline"
                       dir="ltr"
                     >
                       /invite/{w.inviteToken} — {w.name}

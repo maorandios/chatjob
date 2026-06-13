@@ -55,15 +55,15 @@ export function InviteReadySheet({
   return (
     <Sheet open={open} onClose={onClose}>
       <div className="flex flex-col items-center text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#25D366]/15 animate-in zoom-in duration-300">
-          <Check className="h-8 w-8 text-[#25D366]" />
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)] animate-in zoom-in duration-300">
+          <Check className="h-8 w-8 text-[var(--jobchat-accent)]" />
         </div>
         <h2 className="text-xl font-semibold text-gray-900">ההזמנה נוצרה!</h2>
         <p className="mt-2 text-sm text-gray-500">
           שלח ל{workerName} בוואטסאפ או SMS
         </p>
 
-        <div className="mt-6 w-full rounded-xl bg-gray-50 p-4">
+        <div className="mt-6 w-full rounded-xl bg-[var(--jobchat-surface)] p-4">
           <p className="break-all text-sm text-gray-700" dir="ltr">
             {inviteUrl}
           </p>

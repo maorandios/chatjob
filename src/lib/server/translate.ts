@@ -18,7 +18,7 @@ function detectLanguageFromText(
   if (!text) return workerLanguage ?? "en";
   if (/[\u0590-\u05FF]/.test(text)) return "he";
   if (/[\u0E00-\u0E7F]/.test(text)) return "th";
-  if (/[\u4E00-\u9FFF]/.test(text)) return "zh";
+  if (/[\u0D80-\u0DFF]/.test(text)) return "si";
   if (/[\u0900-\u097F]/.test(text)) return "hi";
   if (/[\u0600-\u06FF]/.test(text)) return "ar";
   if (/[\u0400-\u04FF]/.test(text)) return "ru";

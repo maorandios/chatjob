@@ -9,17 +9,55 @@ type MessageBubbleProps = {
   message: Message;
   displayText: string;
   isOwn: boolean;
-  translationCaption?: string;
   showStatus?: boolean;
 };
+
+function StatusRow({
+  message,
+  isOwn,
+  showStatus,
+  className,
+}: {
+  message: Message;
+  isOwn: boolean;
+  showStatus: boolean;
+  className?: string;
+}) {
+  const isVoice = message.inputType === "voice";
+
+  return (
+    <div className={cn("flex items-center justify-end gap-1 leading-none", className)}>
+      {isVoice && (
+        <Mic className="h-3 w-3 shrink-0" strokeWidth={2} />
+      )}
+      <span className="text-[11px] tabular-nums">
+        {formatTime(message.createdAt)}
+      </span>
+      {showStatus && isOwn && (
+        <span className="flex items-center">
+          {message.status === "sending" ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : message.status === "failed" ? (
+            <span className="text-[10px] font-bold text-red-200">!</span>
+          ) : message.status === "delivered" ? (
+            <CheckCheck className="h-3 w-3" strokeWidth={2.5} />
+          ) : (
+            <Check className="h-3 w-3 opacity-80" strokeWidth={2.5} />
+          )}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function MessageBubble({
   message,
   displayText,
   isOwn,
-  translationCaption,
   showStatus = false,
 }: MessageBubbleProps) {
+  const isImage = message.inputType === "image" && message.imageUrl;
+
   return (
     <div
       className={cn(
@@ -27,47 +65,54 @@ export function MessageBubble({
         isOwn ? "justify-end" : "justify-start"
       )}
     >
-      <div className={cn("max-w-[82%]", isOwn ? "items-end" : "items-start")}>
-        <div
-          className={cn(
-            "rounded-2xl px-3.5 py-2 text-[15px] leading-relaxed shadow-sm",
-            isOwn
-              ? "rounded-br-md bg-[#DCF8C6] text-gray-900"
-              : "rounded-bl-md bg-white text-gray-900"
-          )}
-        >
-          <div className="flex items-start gap-1.5">
-            {message.inputType === "voice" && (
-              <Mic className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" />
-            )}
-            <p className="whitespace-pre-wrap break-words">{displayText}</p>
-          </div>
+      <div className={cn("max-w-[85%]", isOwn ? "items-end" : "items-start")}>
+        {isImage ? (
           <div
             className={cn(
-              "mt-1 flex items-center gap-1 text-[11px] text-gray-500",
-              isOwn ? "justify-end" : "justify-start"
+              "relative overflow-hidden rounded-2xl",
+              isOwn ? "rounded-br-sm" : "rounded-bl-sm"
             )}
           >
-            <span>{formatTime(message.createdAt)}</span>
-            {showStatus && isOwn && (
-              <span className="text-[#53BDEB]">
-                {message.status === "sending" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : message.status === "delivered" ? (
-                  <CheckCheck className="h-3.5 w-3.5" />
-                ) : message.status === "failed" ? (
-                  <span className="text-red-400">!</span>
-                ) : (
-                  <Check className="h-3.5 w-3.5" />
-                )}
-              </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={message.imageUrl}
+              alt=""
+              className="block max-h-72 min-h-[120px] w-full min-w-[180px] object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 pb-1.5 pt-6">
+              <StatusRow
+                message={message}
+                isOwn={isOwn}
+                showStatus={showStatus}
+                className="text-white/90"
+              />
+            </div>
+            {message.status === "sending" && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+              </div>
             )}
           </div>
-        </div>
-        {translationCaption && !isOwn && (
-          <p className="mt-1 px-1 text-[11px] text-gray-400">
-            {translationCaption}
-          </p>
+        ) : (
+          <div
+            className={cn(
+              "rounded-2xl px-3 py-2 text-[15px] leading-snug",
+              isOwn
+                ? "rounded-br-sm bg-[var(--jobchat-accent)] text-white"
+                : "rounded-bl-sm border border-gray-200 bg-white text-gray-900"
+            )}
+          >
+            <p className="whitespace-pre-wrap break-words">{displayText}</p>
+            <StatusRow
+              message={message}
+              isOwn={isOwn}
+              showStatus={showStatus}
+              className={cn(
+                "mt-1",
+                isOwn ? "text-white/70" : "text-gray-400"
+              )}
+            />
+          </div>
         )}
       </div>
     </div>

@@ -4,15 +4,18 @@ import {
   sendTextMessage,
   type ProcessedMessage,
 } from "@/lib/api/messages";
+import { compressImageFile } from "@/lib/images/compress";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { mockTranslate } from "@/lib/mock/translations";
+import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import {
   createSeedData,
   DEFAULT_COMPANY_NAME,
   DEFAULT_MANAGER_NAME,
+  DEFAULT_MANAGER_PHONE,
 } from "@/lib/mock/seed";
 import { generateId, generateToken, normalizePhone } from "@/lib/utils";
-import type { Invite, LanguageCode, Message, Worker } from "@/types";
+import type { ContactAliases, Invite, LanguageCode, Message, Worker } from "@/types";
 import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -22,7 +25,9 @@ type JobChatState = {
   messages: Message[];
   invites: Invite[];
   managerName: string;
+  managerPhone: string;
   companyName: string;
+  contactAliases: ContactAliases;
   hydrated: boolean;
   addWorker: (name: string, phone: string) => Worker;
   setWorkerLanguage: (workerId: string, language: LanguageCode) => void;
@@ -33,12 +38,22 @@ type JobChatState = {
     workerLanguage?: LanguageCode,
     context?: TranslationContextMessage[]
   ) => Promise<Message>;
+  sendImageMessage: (
+    workerId: string,
+    senderRole: "manager" | "worker",
+    file: File
+  ) => Promise<Message>;
   commitProcessedMessage: (
     workerId: string,
     senderRole: "manager" | "worker",
     result: ProcessedMessage
   ) => Message;
-  markMessageDelivered: (messageId: string) => void;
+  markManagerMessagesRead: (workerId: string) => void;
+  setContactAlias: (
+    viewerRole: "manager" | "worker",
+    workerId: string,
+    name: string
+  ) => void;
   getWorkerByToken: (token: string) => Worker | undefined;
   getInviteByToken: (token: string) => Invite | undefined;
   getMessagesForWorker: (workerId: string) => Message[];
@@ -54,7 +69,9 @@ function seedState() {
     messages: seed.messages,
     invites: seed.invites,
     managerName: DEFAULT_MANAGER_NAME,
+    managerPhone: DEFAULT_MANAGER_PHONE,
     companyName: DEFAULT_COMPANY_NAME,
+    contactAliases: { manager: {}, worker: {} },
     hydrated: false,
   };
 }
@@ -63,7 +80,7 @@ function createPendingMessage(
   workerId: string,
   senderRole: "manager" | "worker",
   text: string,
-  inputType: "text" | "voice"
+  inputType: "text" | "voice" | "image"
 ): Message {
   return {
     id: generateId(),
@@ -97,6 +114,7 @@ export const useJobChatStore = create<JobChatState>()(
           token,
           workerId: worker.id,
           managerName: get().managerName,
+          managerPhone: get().managerPhone,
           companyName: get().companyName,
         };
         set((state) => ({
@@ -107,10 +125,11 @@ export const useJobChatStore = create<JobChatState>()(
       },
 
       setWorkerLanguage: (workerId, language) => {
+        const normalized = normalizeWorkerLanguage(language);
         set((state) => ({
           workers: state.workers.map((w) =>
             w.id === workerId
-              ? { ...w, language, status: "active" as const }
+              ? { ...w, language: normalized, status: "active" as const }
               : w
           ),
         }));
@@ -148,7 +167,7 @@ export const useJobChatStore = create<JobChatState>()(
             translatedText: result.translatedText,
             targetLang: result.targetLang,
             inputType: result.inputType,
-            status: "delivered",
+            status: "sent",
           };
           set((state) => ({
             messages: state.messages.map((m) =>
@@ -167,6 +186,36 @@ export const useJobChatStore = create<JobChatState>()(
         }
       },
 
+      sendImageMessage: async (workerId, senderRole, file) => {
+        const pending = createPendingMessage(workerId, senderRole, "", "image");
+        set((state) => ({
+          messages: [...state.messages, pending],
+        }));
+
+        try {
+          const imageUrl = await compressImageFile(file);
+          const updated: Message = {
+            ...pending,
+            imageUrl,
+            status: "sent",
+          };
+          set((state) => ({
+            messages: state.messages.map((m) =>
+              m.id === pending.id ? updated : m
+            ),
+          }));
+          return updated;
+        } catch {
+          const failed = { ...pending, status: "failed" as const };
+          set((state) => ({
+            messages: state.messages.map((m) =>
+              m.id === pending.id ? failed : m
+            ),
+          }));
+          throw new Error("Failed to send image");
+        }
+      },
+
       commitProcessedMessage: (workerId, senderRole, result) => {
         const message: Message = {
           id: generateId(),
@@ -178,7 +227,7 @@ export const useJobChatStore = create<JobChatState>()(
           targetLang: result.targetLang,
           inputType: result.inputType,
           createdAt: new Date().toISOString(),
-          status: "delivered",
+          status: "sent",
         };
         set((state) => ({
           messages: [...state.messages, message],
@@ -186,12 +235,41 @@ export const useJobChatStore = create<JobChatState>()(
         return message;
       },
 
-      markMessageDelivered: (messageId) => {
-        set((state) => ({
-          messages: state.messages.map((m) =>
-            m.id === messageId ? { ...m, status: "delivered" } : m
-          ),
-        }));
+      markManagerMessagesRead: (workerId) => {
+        set((state) => {
+          let changed = false;
+          const messages = state.messages.map((m) => {
+            if (
+              m.workerId === workerId &&
+              m.senderRole === "manager" &&
+              m.status === "sent"
+            ) {
+              changed = true;
+              return { ...m, status: "delivered" as const };
+            }
+            return m;
+          });
+          if (!changed) return state;
+          return { messages };
+        });
+      },
+
+      setContactAlias: (viewerRole, workerId, name) => {
+        const trimmed = name.trim();
+        set((state) => {
+          const roleAliases = { ...state.contactAliases[viewerRole] };
+          if (trimmed) {
+            roleAliases[workerId] = trimmed;
+          } else {
+            delete roleAliases[workerId];
+          }
+          return {
+            contactAliases: {
+              ...state.contactAliases,
+              [viewerRole]: roleAliases,
+            },
+          };
+        });
       },
 
       getWorkerByToken: (token) =>
@@ -241,6 +319,9 @@ export function getMessageDisplayText(
   viewerRole: "manager" | "worker",
   workerLanguage?: LanguageCode
 ): string {
+  if (message.inputType === "image") {
+    return "📷 תמונה";
+  }
   if (message.senderRole === viewerRole) {
     return message.originalText;
   }
@@ -272,6 +353,27 @@ export function useInviteByToken(token: string): Invite | undefined {
 
 export function useWorkerById(workerId: string): Worker | undefined {
   return useJobChatStore((s) => s.workers.find((w) => w.id === workerId));
+}
+
+export function getContactDisplayName(
+  contactAliases: ContactAliases,
+  viewerRole: "manager" | "worker",
+  workerId: string,
+  defaultName: string
+): string {
+  const alias = contactAliases?.[viewerRole]?.[workerId]?.trim();
+  return alias || defaultName;
+}
+
+export function useContactDisplayName(
+  viewerRole: "manager" | "worker",
+  workerId: string,
+  defaultName: string
+): string {
+  const alias = useJobChatStore(
+    (s) => s.contactAliases?.[viewerRole]?.[workerId]
+  );
+  return alias?.trim() || defaultName;
 }
 
 export function useLastMessage(workerId: string): Message | undefined {

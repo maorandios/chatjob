@@ -22,7 +22,7 @@ export function Avatar({ name, size = "md", className }: AvatarProps) {
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-[#25D366]/15 font-semibold text-[#128C7E]",
+        "flex shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)] font-semibold text-[var(--jobchat-accent)]",
         sizes[size],
         className
       )}

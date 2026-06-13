@@ -2,12 +2,17 @@
 
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
+import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
 import { MobileFrame } from "@/components/ui/MobileFrame";
-import { WorkerSettingsSheet } from "@/components/worker/WorkerSettingsSheet";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
 import { getQuickReplyPhrases } from "@/lib/mock/translations";
-import { useInviteByToken, useWorkerByToken } from "@/lib/mock/store";
+import {
+  useContactDisplayName,
+  useInviteByToken,
+  useJobChatStore,
+  useWorkerByToken,
+} from "@/lib/mock/store";
 import type { LanguageCode } from "@/types";
 import { notFound, useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -21,7 +26,14 @@ export default function WorkerChatPage({ params }: PageProps) {
   const router = useRouter();
   const worker = useWorkerByToken(token);
   const invite = useInviteByToken(token);
-  const [showSettings, setShowSettings] = useState(false);
+  const managerPhone = useJobChatStore((s) => s.managerPhone);
+  const setContactAlias = useJobChatStore((s) => s.setContactAlias);
+  const [showContactSheet, setShowContactSheet] = useState(false);
+  const displayName = useContactDisplayName(
+    "worker",
+    worker?.id ?? "",
+    invite?.managerName ?? ""
+  );
 
   useEffect(() => {
     if (worker && !worker.language) {
@@ -39,50 +51,59 @@ export default function WorkerChatPage({ params }: PageProps) {
   const ui = getWorkerUi(lang);
   const dir = getLanguageDir(lang);
   const quickReplies = getQuickReplyPhrases(lang);
+  const managerDefaultName = invite.managerName;
 
   return (
     <MobileFrame dir={dir}>
-      <div className="flex min-h-dvh flex-col">
+      <div className="flex h-full flex-col overflow-hidden">
         <ChatHeader
-          name={invite.managerName}
-          subtitle={ui.active}
-          onAvatarClick={() => setShowSettings(true)}
+          name={displayName}
+          subtitle={invite.managerPhone || managerPhone}
+          backHref={`/invite/${token}`}
           dir={dir}
-          hideBack
+          showOnline={false}
+          onProfileClick={() => setShowContactSheet(true)}
         />
         <ChatThread
           workerId={worker.id}
           viewerRole="worker"
           workerLanguage={lang}
-          translationCaption={ui.translatedFromHebrew}
-          emptyHint={`${ui.sendMessageTo} ${invite.managerName}`}
+          emptyHint={`${ui.sendMessageTo} ${displayName}`}
           quickReplies={quickReplies}
           composerPlaceholder={ui.messagePlaceholder}
           processingLabel={ui.sending}
+          analyzingLabel={ui.analyzingVoice}
           recordingLabel={ui.recording}
+          finishRecordingLabel={ui.finishRecording}
+          deleteRecordingLabel={ui.deleteRecording}
+          maxDurationLabel={ui.maxDurationRecording}
           micErrorLabel={ui.micError}
           sendFailedLabel={ui.sendFailed}
           voiceConfirmTitle={ui.voiceConfirmTitle}
           voiceConfirmYouSaid={ui.voiceConfirmYouSaid}
-          voiceConfirmEditHint={ui.voiceConfirmEditHint}
           voiceConfirmSend={ui.voiceConfirmSend}
           voiceConfirmRerecord={ui.voiceConfirmRerecord}
           recordingTooShortLabel={ui.recordingTooShort}
+          attachImageTitle={ui.attachImageTitle}
+          takePhotoLabel={ui.takePhotoLabel}
+          chooseGalleryLabel={ui.chooseGalleryLabel}
+          imageSendFailedLabel={ui.imageSendFailed}
           dir={dir}
           largeComposer
         />
       </div>
 
-      <WorkerSettingsSheet
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        workerName={worker.name}
-        language={lang}
+      <ContactNameSheet
+        open={showContactSheet}
+        onClose={() => setShowContactSheet(false)}
+        originalName={managerDefaultName}
+        displayName={displayName}
+        onSave={(name) => setContactAlias("worker", worker.id, name)}
+        title={ui.contactNameTitle}
+        originalLabel={ui.contactNameOriginal}
+        placeholder={ui.contactNamePlaceholder}
+        saveLabel={ui.contactNameSave}
         dir={dir}
-        onChangeLanguage={() => {
-          setShowSettings(false);
-          router.push(`/invite/${token}?changeLang=1`);
-        }}
       />
     </MobileFrame>
   );

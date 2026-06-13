@@ -3,11 +3,10 @@ import type { LanguageCode } from "@/types";
 export const LANGUAGE_LABELS: Record<string, string> = {
   he: "Hebrew",
   th: "Thai",
-  zh: "Chinese",
   hi: "Hindi",
-  fil: "Filipino",
-  tl: "Filipino",
   en: "English",
+  si: "Sinhala",
+  ro: "Romanian",
   ar: "Arabic",
   ru: "Russian",
 };
@@ -18,7 +17,7 @@ export const TRANSCRIPTION_CONTEXT =
 
 export function normalizeDetectedLang(code: string): string {
   const lower = code.toLowerCase().split("-")[0];
-  if (lower === "tl") return "fil";
+  if (lower === "md") return "ro";
   return lower;
 }
 

@@ -13,11 +13,11 @@ export function MobileFrame({
   className,
 }: MobileFrameProps) {
   return (
-    <div className="flex min-h-dvh justify-center bg-[#ECE5DD]">
+    <div className="flex min-h-dvh justify-center bg-[var(--jobchat-surface)]">
       <div
         dir={dir}
         className={cn(
-          "relative flex min-h-dvh w-full max-w-[430px] flex-col bg-white shadow-xl",
+          "relative flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white shadow-xl",
           className
         )}
       >

@@ -23,20 +23,26 @@ type ChatThreadProps = {
   workerId: string;
   viewerRole: "manager" | "worker";
   workerLanguage?: LanguageCode;
-  translationCaption?: string;
   emptyHint?: string;
   quickReplies?: string[];
   composerPlaceholder?: string;
   processingLabel?: string;
+  analyzingLabel?: string;
   recordingLabel?: string;
+  finishRecordingLabel?: string;
+  deleteRecordingLabel?: string;
+  maxDurationLabel?: string;
   micErrorLabel?: string;
   sendFailedLabel?: string;
   voiceConfirmTitle?: string;
   voiceConfirmYouSaid?: string;
-  voiceConfirmEditHint?: string;
   voiceConfirmSend?: string;
   voiceConfirmRerecord?: string;
   recordingTooShortLabel?: string;
+  attachImageTitle?: string;
+  takePhotoLabel?: string;
+  chooseGalleryLabel?: string;
+  imageSendFailedLabel?: string;
   dir?: "ltr" | "rtl";
   largeComposer?: boolean;
 };
@@ -45,34 +51,51 @@ export function ChatThread({
   workerId,
   viewerRole,
   workerLanguage,
-  translationCaption,
   emptyHint,
   quickReplies,
-  composerPlaceholder,
+  composerPlaceholder = "כתוב הודעה",
   processingLabel,
+  analyzingLabel,
   recordingLabel,
+  finishRecordingLabel,
+  deleteRecordingLabel,
+  maxDurationLabel,
   micErrorLabel,
   sendFailedLabel,
   voiceConfirmTitle = "אישור הודעה קולית",
-  voiceConfirmYouSaid = "אמרת:",
-  voiceConfirmEditHint = "ניתן לערוך אם משהו לא מדויק",
-  voiceConfirmSend = "שלח",
-  voiceConfirmRerecord = "הקלט שוב",
-  recordingTooShortLabel = "הקלטה קצרה מדי — החזק עוד קצת",
+  voiceConfirmYouSaid = "המרת הקלטה לטקסט",
+  voiceConfirmSend = "שלח הודעה",
+  voiceConfirmRerecord = "הקלטה חוזרת",
+  recordingTooShortLabel = "הקלטה קצרה מדי — נסה שוב",
+  attachImageTitle = "שליחת תמונה",
+  takePhotoLabel = "צלם תמונה",
+  chooseGalleryLabel = "בחר מהגלריה",
+  imageSendFailedLabel = "שליחת התמונה נכשלה",
   dir = "rtl",
   largeComposer = false,
 }: ChatThreadProps) {
   const messages = useWorkerMessages(workerId);
   const sendMessage = useJobChatStore((s) => s.sendMessage);
+  const sendImageMessage = useJobChatStore((s) => s.sendImageMessage);
   const commitProcessedMessage = useJobChatStore((s) => s.commitProcessedMessage);
+  const markManagerMessagesRead = useJobChatStore((s) => s.markManagerMessagesRead);
   const { showToast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [voicePreview, setVoicePreview] = useState<VoiceTranscription | null>(null);
   const [isConfirmingVoice, setIsConfirmingVoice] = useState(false);
 
+  const hasUnreadManagerMessages = messages.some(
+    (m) => m.senderRole === "manager" && m.status === "sent"
+  );
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (viewerRole !== "worker" || !hasUnreadManagerMessages) return;
+    markManagerMessagesRead(workerId);
+  }, [viewerRole, workerId, hasUnreadManagerMessages, markManagerMessagesRead]);
 
   const getContext = () => buildTranslationContext(messages);
 
@@ -87,6 +110,14 @@ export function ChatThread({
       );
     } catch {
       showToast(sendFailedLabel ?? "שליחה נכשלה");
+    }
+  };
+
+  const handleImageSend = async (file: File) => {
+    try {
+      await sendImageMessage(workerId, viewerRole, file);
+    } catch {
+      showToast(imageSendFailedLabel);
     }
   };
 
@@ -123,20 +154,14 @@ export function ChatThread({
     viewerRole === "worker" && messages.length === 0 && quickReplies?.length;
 
   return (
-    <>
-      <div
-        className="flex-1 overflow-y-auto bg-[#ECE5DD] px-3 py-4"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cdc4' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-        }}
-      >
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="chat-scrollbar flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-4">
         {messages.length === 0 && emptyHint && (
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+          <div className="flex h-full min-h-[200px] flex-col items-center justify-center px-6 text-center">
             <p className="text-sm text-gray-500">{emptyHint}</p>
           </div>
         )}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {messages.map((message: Message) => {
             const isOwn = message.senderRole === viewerRole;
             const displayText = getMessageDisplayText(
@@ -144,12 +169,6 @@ export function ChatThread({
               viewerRole,
               workerLanguage
             );
-            const recipientLang =
-              viewerRole === "manager" ? "he" : workerLanguage;
-            const showCaption =
-              !isOwn &&
-              message.originalLang !== recipientLang &&
-              message.status !== "sending";
 
             return (
               <MessageBubble
@@ -157,7 +176,6 @@ export function ChatThread({
                 message={message}
                 displayText={displayText}
                 isOwn={isOwn}
-                translationCaption={showCaption ? translationCaption : undefined}
                 showStatus={viewerRole === "manager"}
               />
             );
@@ -176,11 +194,20 @@ export function ChatThread({
       <Composer
         onSend={handleSend}
         onVoiceSend={handleVoiceRecorded}
+        onImageSend={handleImageSend}
         placeholder={composerPlaceholder}
         processingLabel={processingLabel}
+        analyzingLabel={analyzingLabel}
         recordingLabel={recordingLabel}
+        finishRecordingLabel={finishRecordingLabel}
+        deleteRecordingLabel={deleteRecordingLabel}
+        maxDurationLabel={maxDurationLabel}
         micErrorLabel={micErrorLabel}
         tooShortLabel={recordingTooShortLabel}
+        attachImageTitle={attachImageTitle}
+        takePhotoLabel={takePhotoLabel}
+        chooseGalleryLabel={chooseGalleryLabel}
+        imageSendFailedLabel={imageSendFailedLabel}
         large={largeComposer}
         dir={dir}
         disabled={!!voicePreview || isConfirmingVoice}
@@ -191,7 +218,6 @@ export function ChatThread({
         transcript={voicePreview?.originalText ?? ""}
         title={voiceConfirmTitle}
         youSaidLabel={voiceConfirmYouSaid}
-        editHintLabel={voiceConfirmEditHint}
         sendLabel={voiceConfirmSend}
         rerecordLabel={voiceConfirmRerecord}
         isSending={isConfirmingVoice}
@@ -199,6 +225,6 @@ export function ChatThread({
         onRerecord={() => setVoicePreview(null)}
         dir={dir}
       />
-    </>
+    </div>
   );
 }

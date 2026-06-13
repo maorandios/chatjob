@@ -1,6 +1,7 @@
 import type { Invite, Message, Worker } from "@/types";
 
 export const DEFAULT_MANAGER_NAME = "דוד כהן";
+export const DEFAULT_MANAGER_PHONE = "0509876543";
 export const DEFAULT_COMPANY_NAME = "כהן בנייה";
 
 export const DEMO_WORKER_ID = "demo-worker-1";
@@ -27,6 +28,7 @@ export function createSeedData(): {
       token: DEMO_INVITE_TOKEN,
       workerId: DEMO_WORKER_ID,
       managerName: DEFAULT_MANAGER_NAME,
+      managerPhone: DEFAULT_MANAGER_PHONE,
       companyName: DEFAULT_COMPANY_NAME,
     },
   ];

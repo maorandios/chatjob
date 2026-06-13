@@ -12,11 +12,12 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#25D366] text-white hover:bg-[#1fb855] active:bg-[#1aa34d] disabled:bg-gray-300 disabled:text-gray-500",
-  secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300",
-  ghost: "bg-transparent text-gray-700 hover:bg-gray-100",
+    "bg-[var(--jobchat-accent)] text-white hover:opacity-90 active:opacity-80 disabled:bg-gray-300 disabled:text-gray-500",
+  secondary:
+    "bg-[var(--jobchat-surface)] text-gray-900 hover:bg-gray-200 active:bg-gray-300",
+  ghost: "bg-transparent text-gray-700 hover:bg-[var(--jobchat-surface)]",
   outline:
-    "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 active:bg-gray-100",
+    "border border-[var(--jobchat-border)] bg-white text-gray-900 hover:bg-[var(--jobchat-surface)] active:bg-gray-100",
 };
 
 export function Button({
