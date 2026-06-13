@@ -7,6 +7,7 @@ import { WorkerChatListItem } from "@/components/worker/WorkerChatListItem";
 import { WorkerSettingsSheet } from "@/components/worker/WorkerSettingsSheet";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
+import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
 import {
   useInviteByToken,
   useJobChatStore,
@@ -14,8 +15,8 @@ import {
 } from "@/lib/mock/store";
 import type { LanguageCode } from "@/types";
 import { Settings } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, use, useState } from "react";
+import { useRouter } from "next/navigation";
+import { use, useState } from "react";
 
 type PageProps = {
   params: Promise<{ token: string }>;
@@ -83,8 +84,7 @@ function WorkerHome({
 
 function InviteOnboarding({ token }: { token: string }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isChangingLanguage = searchParams.get("changeLang") === "1";
+  const isChangingLanguage = useClientSearchParam("changeLang");
   const setWorkerLanguage = useJobChatStore((s) => s.setWorkerLanguage);
   const worker = useWorkerByToken(token);
   const invite = useInviteByToken(token);
@@ -152,8 +152,7 @@ function InviteOnboarding({ token }: { token: string }) {
 }
 
 function InvitePageContent({ token }: { token: string }) {
-  const searchParams = useSearchParams();
-  const isChangingLanguage = searchParams.get("changeLang") === "1";
+  const isChangingLanguage = useClientSearchParam("changeLang");
   const worker = useWorkerByToken(token);
   const invite = useInviteByToken(token);
 
@@ -188,17 +187,5 @@ function InvitePageContent({ token }: { token: string }) {
 export default function InvitePage({ params }: PageProps) {
   const { token } = use(params);
 
-  return (
-    <Suspense
-      fallback={
-        <MobileFrame>
-          <div className="flex min-h-dvh items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--jobchat-accent)] border-t-transparent" />
-          </div>
-        </MobileFrame>
-      }
-    >
-      <InvitePageContent token={token} />
-    </Suspense>
-  );
+  return <InvitePageContent token={token} />;
 }

@@ -14,6 +14,7 @@ import {
   DEFAULT_MANAGER_NAME,
   DEFAULT_MANAGER_PHONE,
 } from "@/lib/mock/seed";
+import { jobChatPersistStorage } from "@/lib/mock/safe-storage";
 import { generateId, generateToken, normalizePhone } from "@/lib/utils";
 import type { ContactAliases, Invite, LanguageCode, Message, Worker } from "@/types";
 import { useMemo } from "react";
@@ -62,6 +63,21 @@ type JobChatState = {
   reset: () => void;
   setHydrated: (value: boolean) => void;
 };
+
+function stripMessagesForPersist(messages: Message[]): Message[] {
+  return messages.slice(-150).map(({ imageUrl: _imageUrl, ...message }) => message);
+}
+
+function migratePersistedState(persistedState: unknown): Partial<JobChatState> {
+  const persisted = persistedState as Partial<JobChatState> | undefined;
+  if (!persisted) return {};
+
+  return {
+    ...persisted,
+    messages: stripMessagesForPersist(persisted.messages ?? []),
+    contactAliases: persisted.contactAliases ?? { manager: {}, worker: {} },
+  };
+}
 
 function seedState() {
   const seed = createSeedData();
@@ -315,15 +331,19 @@ export const useJobChatStore = create<JobChatState>()(
     }),
     {
       name: "jobchat-prototype",
+      version: 2,
+      storage: jobChatPersistStorage,
+      skipHydration: true,
       partialize: (state) => ({
         workers: state.workers,
-        messages: state.messages,
+        messages: stripMessagesForPersist(state.messages),
         invites: state.invites,
         managerName: state.managerName,
         managerPhone: state.managerPhone,
         companyName: state.companyName,
         contactAliases: state.contactAliases,
       }),
+      migrate: (persistedState) => migratePersistedState(persistedState),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<JobChatState> | undefined;
         if (!persisted) return currentState;
