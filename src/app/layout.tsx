@@ -5,8 +5,23 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "JobChat",
+  title: {
+    default: "JobChat",
+    template: "%s | JobChat",
+  },
   description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
+  applicationName: "JobChat",
+  appleWebApp: {
+    capable: true,
+    title: "JobChat",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -15,6 +30,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#003CFF",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
