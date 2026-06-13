@@ -61,7 +61,8 @@ body {
 
 .app-root--centered {
   max-width: var(--app-max-width);
-  margin-inline: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .safe-top {
@@ -80,34 +81,42 @@ body {
   padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0px));
 }
 
-/* Native bottom sheet via <dialog> */
-.jobchat-sheet {
+/* Bottom sheet overlay — div-based for iOS 12+ (no <dialog>) */
+.jobchat-sheet-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.jobchat-sheet-backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   margin: 0;
   padding: 0;
   border: 0;
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  max-height: 100%;
-  background: transparent;
-  overflow: hidden;
-}
-
-.jobchat-sheet::backdrop {
   background: rgb(0 0 0 / 0.5);
+  cursor: pointer;
 }
 
 .jobchat-sheet-panel {
-  position: fixed;
-  inset-inline: 0;
+  position: absolute;
+  right: 0;
   bottom: 0;
+  left: 0;
   z-index: 1;
-  margin-inline: auto;
+  margin-left: auto;
+  margin-right: auto;
   width: 100%;
   max-width: var(--app-max-width);
   max-height: 90vh;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: 28px 28px 0 0;
   background: white;
   padding: 0.75rem 1.25rem;

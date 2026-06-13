@@ -3,7 +3,7 @@
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 type SheetProps = {
   open: boolean;
@@ -13,66 +13,76 @@ type SheetProps = {
   className?: string;
 };
 
+function SheetPanel({
+  title,
+  children,
+  className,
+  onClose,
+}: {
+  title?: string;
+  children: ReactNode;
+  className?: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className={cn("jobchat-sheet-panel", className)}
+    >
+      <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-gray-200" />
+      {title && (
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
 export function Sheet({ open, onClose, title, children, className }: SheetProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useLayoutEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (open) {
-      if (!dialog.open) dialog.showModal();
-      return;
-    }
-
-    if (dialog.open) dialog.close();
-  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const handleCancel = (event: Event) => {
-      event.preventDefault();
-      onClose();
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
     };
-
-    dialog.addEventListener("cancel", handleCancel);
-    return () => dialog.removeEventListener("cancel", handleCancel);
-  }, [onClose]);
+  }, [open]);
 
   if (!open) return null;
 
   return (
     <Portal>
-      <dialog
-        ref={dialogRef}
-        className="jobchat-sheet"
-        onClick={(event) => {
-          if (event.target === dialogRef.current) onClose();
-        }}
-      >
-        <div
-          className={cn("jobchat-sheet-panel", className)}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-gray-200" />
-          {title && (
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          )}
+      <div className="jobchat-sheet-overlay" role="presentation">
+        <button
+          type="button"
+          className="jobchat-sheet-backdrop"
+          onClick={onClose}
+          aria-label="Close"
+        />
+        <SheetPanel title={title} className={className} onClose={onClose}>
           {children}
-        </div>
-      </dialog>
+        </SheetPanel>
+      </div>
     </Portal>
   );
 }
