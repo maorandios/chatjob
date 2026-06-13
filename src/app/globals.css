@@ -7,6 +7,7 @@
   --jobchat-accent-light: #eef2ff;
   --jobchat-surface: #f5f6f8;
   --jobchat-border: #e5e7eb;
+  --app-max-width: 430px;
 }
 
 @theme inline {
@@ -20,16 +21,47 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html,
-body {
+html {
   height: 100%;
+  height: -webkit-fill-available;
 }
 
 body {
+  height: 100%;
+  height: -webkit-fill-available;
+  overflow: hidden;
+  overscroll-behavior: none;
   background: var(--jobchat-surface);
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
+  touch-action: manipulation;
+}
+
+#jobchat-overlays {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+
+#jobchat-overlays > * {
+  pointer-events: auto;
+}
+
+.app-root {
+  display: flex;
+  height: 100%;
+  height: -webkit-fill-available;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+}
+
+.app-root--centered {
+  max-width: var(--app-max-width);
+  margin-inline: auto;
 }
 
 .safe-top {
@@ -37,7 +69,50 @@ body {
 }
 
 .safe-bottom {
-  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.composer-dock {
+  flex-shrink: 0;
+  border-top: 1px solid var(--jobchat-border);
+  background: white;
+  padding: 0.625rem 0.75rem;
+  padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Native bottom sheet via <dialog> */
+.jobchat-sheet {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+.jobchat-sheet::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+.jobchat-sheet-panel {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1;
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--app-max-width);
+  max-height: 90vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 28px 28px 0 0;
+  background: white;
+  padding: 0.75rem 1.25rem;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 40px rgb(0 0 0 / 0.15);
 }
 
 .chat-scrollbar {
@@ -57,82 +132,6 @@ body {
   background: rgb(0 0 0 / 0.2);
   border: none;
   border-radius: 9999px;
-}
-
-.chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgb(0 0 0 / 0.28);
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-from-bottom {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-in-from-bottom-1 {
-  from {
-    transform: translateY(4px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes zoom-in {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animate-in {
-  animation-fill-mode: forwards;
-}
-
-.fade-in {
-  animation-name: fade-in;
-}
-
-.slide-in-from-bottom {
-  animation-name: slide-in-from-bottom;
-}
-
-.slide-in-from-bottom-1 {
-  animation-name: slide-in-from-bottom-1;
-}
-
-.slide-in-from-bottom-2 {
-  animation-name: slide-in-from-bottom-1;
-}
-
-.zoom-in {
-  animation-name: zoom-in;
-}
-
-.duration-200 {
-  animation-duration: 200ms;
-}
-
-.duration-300 {
-  animation-duration: 300ms;
 }
 
 @keyframes recording-pulse {

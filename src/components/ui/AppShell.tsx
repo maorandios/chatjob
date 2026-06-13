@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -10,7 +8,7 @@ type AppShellProps = {
   centered?: boolean;
 };
 
-/** Standard mobile/PWA page shell: full-height column with safe areas. */
+/** Mobile-first full-height page shell for PWA. */
 export function AppShell({
   children,
   dir = "ltr",
@@ -18,16 +16,8 @@ export function AppShell({
   centered = true,
 }: AppShellProps) {
   return (
-    <div
-      className={cn(
-        "flex h-dvh flex-col bg-white",
-        centered && "mx-auto w-full max-w-[430px]"
-      )}
-    >
-      <div
-        dir={dir}
-        className={cn("flex min-h-0 flex-1 flex-col", className)}
-      >
+    <div className={cn("app-root", centered && "app-root--centered", className)}>
+      <div dir={dir} className="flex min-h-0 flex-1 flex-col">
         {children}
       </div>
     </div>

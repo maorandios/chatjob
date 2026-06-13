@@ -4,6 +4,7 @@ import { AddWorkerSheet } from "@/components/manager/AddWorkerSheet";
 import { ChatListItem } from "@/components/manager/ChatListItem";
 import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
 import { ManagerSettingsSheet } from "@/components/manager/ManagerSettingsSheet";
+import { AppShell } from "@/components/ui/AppShell";
 import { useJobChatStore } from "@/lib/mock/store";
 import { MessageCircle, Plus, Settings } from "lucide-react";
 import { useState } from "react";
@@ -28,14 +29,14 @@ export default function ManagerPage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3 safe-top">
+    <AppShell dir="rtl">
+      <header className="safe-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">JobChat</h1>
           <button
             type="button"
             onClick={() => setShowSettings(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
+            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-700 active:bg-[var(--jobchat-surface)]"
             aria-label="Settings"
           >
             <Settings className="h-5 w-5" />
@@ -56,25 +57,25 @@ export default function ManagerPage() {
           </p>
         </div>
       ) : (
-        <div className="chat-scrollbar flex-1 overflow-y-auto bg-[var(--jobchat-surface)]">
+        <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] pb-24">
           {workers.map((worker) => (
             <ChatListItem key={worker.id} worker={worker} />
           ))}
         </div>
       )}
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex justify-center safe-bottom">
-        <div className="pointer-events-auto relative w-full max-w-[430px]">
-          <button
-            type="button"
-            onClick={() => setShowAdd(true)}
-            className="absolute bottom-6 start-6 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_4px_20px_rgba(0,60,255,0.35)] transition-transform hover:scale-105 active:scale-95"
-            aria-label="Add worker"
-          >
-            <Plus className="h-6 w-6" />
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={() => setShowAdd(true)}
+        className="fixed z-30 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_4px_20px_rgba(0,60,255,0.35)] active:scale-95"
+        style={{
+          bottom: "max(1.5rem, env(safe-area-inset-bottom))",
+          left: "max(1.5rem, calc((100vw - var(--app-max-width)) / 2 + 1.5rem))",
+        }}
+        aria-label="Add worker"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       <AddWorkerSheet
         open={showAdd}
@@ -95,6 +96,6 @@ export default function ManagerPage() {
         open={showSettings}
         onClose={() => setShowSettings(false)}
       />
-    </div>
+    </AppShell>
   );
 }

@@ -41,43 +41,41 @@ function WorkerHome({
 
   return (
     <MobileFrame dir={dir}>
-      <div className="flex min-h-dvh flex-col">
-        <header className="z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3 safe-top">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">JobChat</h1>
-            <button
-              type="button"
-              onClick={() => setShowSettings(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
-              aria-label={ui.settings}
-            >
-              <Settings className="h-5 w-5" />
-            </button>
-          </div>
-        </header>
-
-        <div className="chat-scrollbar flex-1 overflow-y-auto bg-[var(--jobchat-surface)]">
-          <WorkerChatListItem
-            inviteToken={token}
-            workerId={workerId}
-            managerName={managerName}
-            workerLanguage={language}
-            emptyPreview={ui.noMessagesYet}
-          />
+      <header className="safe-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">JobChat</h1>
+          <button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-700 active:bg-[var(--jobchat-surface)]"
+            aria-label={ui.settings}
+          >
+            <Settings className="h-5 w-5" />
+          </button>
         </div>
+      </header>
 
-        <WorkerSettingsSheet
-          open={showSettings}
-          onClose={() => setShowSettings(false)}
-          workerName={worker?.name ?? ""}
-          language={language}
-          dir={dir}
-          onChangeLanguage={() => {
-            setShowSettings(false);
-            router.push(`/invite/${token}?changeLang=1`);
-          }}
+      <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)]">
+        <WorkerChatListItem
+          inviteToken={token}
+          workerId={workerId}
+          managerName={managerName}
+          workerLanguage={language}
+          emptyPreview={ui.noMessagesYet}
         />
       </div>
+
+      <WorkerSettingsSheet
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        workerName={worker?.name ?? ""}
+        language={language}
+        dir={dir}
+        onChangeLanguage={() => {
+          setShowSettings(false);
+          router.push(`/invite/${token}?changeLang=1`);
+        }}
+      />
     </MobileFrame>
   );
 }
@@ -116,7 +114,7 @@ function InviteOnboarding({ token }: { token: string }) {
 
   return (
     <MobileFrame dir={dir}>
-      <div className="flex min-h-dvh flex-col px-5 pb-6 pt-10 safe-top">
+      <div className="safe-top flex min-h-0 flex-1 flex-col px-5 pb-6 pt-6">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--jobchat-accent)] text-lg font-bold text-white">
             JC
@@ -137,11 +135,11 @@ function InviteOnboarding({ token }: { token: string }) {
           </p>
         </div>
 
-        <div className="chat-scrollbar flex-1 overflow-y-auto">
+        <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto">
           <LanguagePicker selected={selectedLang} onSelect={setSelectedLang} />
         </div>
 
-        <div className="mt-6 safe-bottom">
+        <div className="mt-6 shrink-0 pb-[env(safe-area-inset-bottom,0px)]">
           <Button fullWidth disabled={!selectedLang} onClick={handleContinue}>
             {selectedLang ? ui.joinChat : ui.continue}
           </Button>

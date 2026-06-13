@@ -14,7 +14,7 @@ export function MobileFrame({
   className,
 }: MobileFrameProps) {
   return (
-    <div className="flex min-h-dvh justify-center bg-[var(--jobchat-surface)]">
+    <div className="flex h-full justify-center bg-[var(--jobchat-surface)]">
       <AppShell dir={dir} className={cn("shadow-xl", className)}>
         {children}
       </AppShell>

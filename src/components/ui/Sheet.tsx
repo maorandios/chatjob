@@ -3,7 +3,7 @@
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 
 type SheetProps = {
   open: boolean;
@@ -14,36 +14,47 @@ type SheetProps = {
 };
 
 export function Sheet({ open, onClose, title, children, className }: SheetProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (open) {
+      if (!dialog.open) dialog.showModal();
+      return;
+    }
+
+    if (dialog.open) dialog.close();
+  }, [open]);
+
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const handleCancel = (event: Event) => {
+      event.preventDefault();
+      onClose();
     };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+
+    dialog.addEventListener("cancel", handleCancel);
+    return () => dialog.removeEventListener("cancel", handleCancel);
+  }, [onClose]);
 
   if (!open) return null;
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-[9999]">
-        <button
-          type="button"
-          className="absolute inset-0 bg-black/50"
-          onClick={onClose}
-          aria-label="Close"
-        />
+      <dialog
+        ref={dialogRef}
+        className="jobchat-sheet"
+        onClick={(event) => {
+          if (event.target === dialogRef.current) onClose();
+        }}
+      >
         <div
-          role="dialog"
-          aria-modal="true"
-          className={cn(
-            "absolute inset-x-0 bottom-0 mx-auto w-full max-w-[430px]",
-            "max-h-[90dvh] overflow-y-auto overscroll-contain rounded-t-[28px] bg-white",
-            "px-5 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.15)]",
-            "pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]",
-            className
-          )}
+          className={cn("jobchat-sheet-panel", className)}
+          onClick={(event) => event.stopPropagation()}
         >
           <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-gray-200" />
           {title && (
@@ -52,7 +63,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
+                className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
@@ -61,7 +72,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           )}
           {children}
         </div>
-      </div>
+      </dialog>
     </Portal>
   );
 }

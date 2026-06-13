@@ -29,6 +29,9 @@ type ComposerProps = {
   disabled?: boolean;
 };
 
+const actionBtn =
+  "flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full";
+
 export function Composer({
   onSend,
   onVoiceSend,
@@ -100,8 +103,23 @@ export function Composer({
 
   return (
     <>
-      <div className="shrink-0 border-t border-[var(--jobchat-border)] bg-white px-3 pt-2.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
+      <div className="composer-dock">
         <div dir="ltr" className="flex items-end gap-2">
+          {onImageSend && (
+            <button
+              type="button"
+              disabled={disabled || isSending}
+              onClick={() => setShowImageSheet(true)}
+              className={cn(
+                actionBtn,
+                "border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 active:bg-gray-100 disabled:opacity-40"
+              )}
+              aria-label={attachImageTitle}
+            >
+              <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
+            </button>
+          )}
+
           <div
             dir={dir}
             className="flex min-h-[48px] min-w-0 flex-1 items-end rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-4 py-3 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
@@ -123,24 +141,15 @@ export function Composer({
             />
           </div>
 
-          {!hasText && onImageSend && (
-            <button
-              type="button"
-              disabled={disabled || isSending}
-              onClick={() => setShowImageSheet(true)}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 active:bg-gray-100 disabled:opacity-40"
-              aria-label={attachImageTitle}
-            >
-              <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
-            </button>
-          )}
-
           {hasText ? (
             <button
               type="button"
               onClick={() => void handleSend()}
               disabled={disabled || isSending}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
+              className={cn(
+                actionBtn,
+                "bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
+              )}
               aria-label="Send"
             >
               {isSending ? (

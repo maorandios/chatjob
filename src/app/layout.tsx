@@ -31,7 +31,6 @@ export const viewport: Viewport = {
   userScalable: false,
   themeColor: "#003CFF",
   viewportFit: "cover",
-  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
@@ -41,13 +40,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" className="h-full">
-      <body className="min-h-dvh">
+      <body className="h-full">
+        <div id="jobchat-overlays" aria-hidden="true" />
         <ToastProvider>
-          {children}
+          <div className="h-full">{children}</div>
           <PersistRehydrator />
           <LazyStoreSync />
         </ToastProvider>
-        <div id="jobchat-overlays" />
       </body>
     </html>
   );

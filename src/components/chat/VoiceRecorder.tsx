@@ -225,7 +225,7 @@ export function VoiceRecorder({
         disabled={disabled || isBusy}
         onClick={handleMicClick}
         className={cn(
-          "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-95",
+          "flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full transition-all active:scale-95",
           isRecording
             ? "bg-red-500 text-white"
             : isBusy
