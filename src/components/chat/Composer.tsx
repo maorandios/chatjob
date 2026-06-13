@@ -3,6 +3,7 @@
 import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
 import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
 import { useToast } from "@/components/ui/Toast";
+import { useKeyboardInset } from "@/lib/hooks/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 import { ImagePlus, Loader2, Send } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -51,11 +52,14 @@ export function Composer({
   disabled = false,
 }: ComposerProps) {
   const { showToast } = useToast();
+  const keyboardInset = useKeyboardInset();
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showImageSheet, setShowImageSheet] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
   const hasText = Boolean(text.trim());
+  const keyboardOpen = keyboardInset > 0;
 
   const handleSend = async () => {
     const trimmed = text.trim();
@@ -98,43 +102,46 @@ export function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   };
 
+  const handleFocus = () => {
+    requestAnimationFrame(() => {
+      composerRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  };
+
   return (
     <>
-      <div className="sticky bottom-0 z-10 shrink-0 border-t border-[var(--jobchat-border)] bg-white px-4 pt-3.5 safe-bottom">
-        <div dir="ltr" className="flex items-center gap-2.5">
+      <div
+        ref={composerRef}
+        className={cn(
+          "z-20 shrink-0 border-t border-[var(--jobchat-border)] bg-white px-3 pt-2.5 transition-transform duration-75",
+          keyboardOpen ? "pb-2" : "safe-bottom"
+        )}
+        style={
+          keyboardOpen
+            ? { transform: `translateY(-${keyboardInset}px)` }
+            : undefined
+        }
+      >
+        <div dir="ltr" className="flex items-end gap-2">
           <div
             dir={dir}
             className={cn(
-              "flex min-h-[48px] flex-1 items-center rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] transition-colors focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white",
-              hasText ? "gap-2 pl-2 pr-4 py-2" : "px-4 py-3"
+              "flex min-h-[48px] min-w-0 flex-1 items-end rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-4 py-3 transition-colors focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
             )}
           >
-            {hasText && (
-              <button
-                type="button"
-                onClick={() => void handleSend()}
-                disabled={disabled || isSending}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-                aria-label="Send"
-              >
-                {isSending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </button>
-            )}
             <textarea
               ref={textareaRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onInput={handleInput}
               onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
               rows={1}
               disabled={disabled || isSending}
               placeholder={placeholder}
+              enterKeyHint="send"
               className={cn(
-                "max-h-[120px] w-full flex-1 resize-none bg-transparent text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
+                "max-h-[120px] w-full min-w-0 flex-1 resize-none bg-transparent text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
                 large ? "text-[17px] leading-relaxed" : "text-[15px] leading-normal"
               )}
             />
@@ -145,14 +152,28 @@ export function Composer({
               type="button"
               disabled={disabled || isSending}
               onClick={() => setShowImageSheet(true)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
               aria-label={attachImageTitle}
             >
               <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
             </button>
           )}
 
-          {onVoiceSend ? (
+          {hasText ? (
+            <button
+              type="button"
+              onClick={() => void handleSend()}
+              disabled={disabled || isSending}
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40"
+              aria-label="Send"
+            >
+              {isSending ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </button>
+          ) : onVoiceSend ? (
             <VoiceRecorder
               onRecorded={onVoiceSend}
               disabled={disabled || isSending}
@@ -168,7 +189,7 @@ export function Composer({
               dir={dir}
             />
           ) : (
-            <div className="h-10 w-10 shrink-0" />
+            <div className="h-11 w-11 shrink-0" />
           )}
         </div>
       </div>
