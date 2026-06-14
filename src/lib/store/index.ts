@@ -734,6 +734,15 @@ export function getMessageDisplayText(
     return message.originalText;
   }
   if (message.translatedText) {
+    if (
+      viewerRole === "worker" &&
+      workerLanguage &&
+      message.targetLang &&
+      message.targetLang.toLowerCase().split("-")[0] !==
+        workerLanguage.toLowerCase().split("-")[0]
+    ) {
+      return message.originalText;
+    }
     return message.translatedText;
   }
   return message.originalText;

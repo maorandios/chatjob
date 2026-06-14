@@ -7,6 +7,7 @@ import {
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { apiErrorResponse } from "@/lib/server/api-errors";
 import { translateText } from "@/lib/server/translate";
+import { resolveWorkerLanguageForTranslation } from "@/lib/supabase/company-access";
 import type { LanguageCode, MessageInputType } from "@/types";
 import { NextResponse } from "next/server";
 
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     const text = String(body.text ?? "").trim();
     const senderRole = body.senderRole as "manager" | "worker";
     const workerLanguage = body.workerLanguage as LanguageCode | undefined;
+    const workerId = body.workerId as string | undefined;
     const originalLang = body.originalLang as string | undefined;
     const lockSourceLang = Boolean(body.lockSourceLang);
     const context = body.context as TranslationContextMessage[] | undefined;
@@ -28,7 +30,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid senderRole" }, { status: 400 });
     }
 
-    const targetLang = getTranslationTarget(senderRole, workerLanguage);
+    const effectiveWorkerLanguage =
+      senderRole === "manager" && workerId
+        ? await resolveWorkerLanguageForTranslation(workerId, workerLanguage)
+        : workerLanguage;
+    const targetLang = getTranslationTarget(senderRole, effectiveWorkerLanguage);
     const hintedSource = getTranslationSourceHint(senderRole, originalLang);
     const shouldLock = shouldLockSourceLanguage(
       senderRole,

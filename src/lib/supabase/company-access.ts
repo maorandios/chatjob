@@ -1,4 +1,6 @@
+import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import type { LanguageCode } from "@/types";
 
 export async function getManagerCompanyId(managerId: string): Promise<string | null> {
   const supabase = getSupabaseAdmin();
@@ -53,4 +55,29 @@ export async function assertSameCompanyParticipants(
   }
 
   return managerCompanyId;
+}
+
+/** Prefer worker language from DB — manager clients often have a stale copy. */
+export async function resolveWorkerLanguageForTranslation(
+  workerId: string,
+  clientHint?: LanguageCode
+): Promise<LanguageCode | undefined> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("workers")
+    .select("language")
+    .eq("id", workerId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (data?.language) {
+    return normalizeWorkerLanguage(data.language);
+  }
+
+  if (clientHint) {
+    return normalizeWorkerLanguage(clientHint);
+  }
+
+  return undefined;
 }

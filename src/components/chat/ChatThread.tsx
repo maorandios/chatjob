@@ -151,6 +151,7 @@ export function ChatThread({
         viewerRole,
         workerLanguage,
         {
+          workerId,
           originalLang: voicePreview.originalLang,
           lockSourceLang: viewerRole === "manager",
           context: getContext(),

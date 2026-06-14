@@ -16,6 +16,7 @@ export type VoiceTranscription = {
 };
 
 export type TranslateMessageOptions = {
+  workerId?: string;
   originalLang?: string;
   lockSourceLang?: boolean;
   context?: TranslationContextMessage[];
@@ -43,6 +44,7 @@ export async function sendTextMessage(
     body: JSON.stringify({
       text,
       senderRole,
+      workerId: options?.workerId,
       workerLanguage,
       originalLang: options?.originalLang,
       lockSourceLang: options?.lockSourceLang,

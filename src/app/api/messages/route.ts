@@ -8,7 +8,10 @@ import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { apiErrorResponse } from "@/lib/server/api-errors";
 import { translateText } from "@/lib/server/translate";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { assertSameCompanyParticipants } from "@/lib/supabase/company-access";
+import {
+  assertSameCompanyParticipants,
+  resolveWorkerLanguageForTranslation,
+} from "@/lib/supabase/company-access";
 import { rowToMessage } from "@/lib/supabase/mappers";
 import type { LanguageCode, MessageInputType } from "@/types";
 import { NextResponse } from "next/server";
@@ -103,7 +106,14 @@ export async function POST(req: Request) {
         lockSourceLang,
         body.originalLang
       );
-      const translationTarget = getTranslationTarget(senderRole, workerLanguage);
+      const effectiveWorkerLanguage =
+        senderRole === "manager"
+          ? await resolveWorkerLanguageForTranslation(workerId, workerLanguage)
+          : workerLanguage;
+      const translationTarget = getTranslationTarget(
+        senderRole,
+        effectiveWorkerLanguage
+      );
 
       const result = await translateText(text, translationTarget, hintedSource, {
         lockSourceLang: shouldLock,
