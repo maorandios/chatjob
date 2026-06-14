@@ -22,6 +22,15 @@ export type TranslateMessageOptions = {
   inputType?: MessageInputType;
 };
 
+type ApiErrorBody = { error?: string; code?: string };
+
+function readApiError(data: ApiErrorBody, fallback: string): string {
+  if (data.code === "OPENAI_NOT_CONFIGURED") {
+    return "Voice requires OpenAI — add OPENAI_API_KEY in Vercel project settings.";
+  }
+  return data.error ?? fallback;
+}
+
 export async function sendTextMessage(
   text: string,
   senderRole: "manager" | "worker",
@@ -43,8 +52,8 @@ export async function sendTextMessage(
   });
 
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error ?? "Failed to send message");
+    const data = (await res.json().catch(() => ({}))) as ApiErrorBody;
+    throw new Error(readApiError(data, "Failed to send message"));
   }
 
   return res.json();
@@ -68,8 +77,8 @@ export async function transcribeVoiceMessage(
   });
 
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error ?? "Failed to transcribe voice message");
+    const data = (await res.json().catch(() => ({}))) as ApiErrorBody;
+    throw new Error(readApiError(data, "Failed to transcribe voice message"));
   }
 
   return res.json();

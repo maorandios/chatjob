@@ -5,7 +5,8 @@ import {
   normalizeDetectedLang,
 } from "@/lib/server/languages";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
-import { getOpenAI } from "@/lib/server/openai";
+import { mockTranslate } from "@/lib/mock/translations";
+import { getOpenAI, isOpenAIConfigured } from "@/lib/server/openai";
 import type { LanguageCode } from "@/types";
 
 const TRANSCRIBE_MODEL = "gpt-4o-mini-transcribe";
@@ -107,6 +108,16 @@ export async function translateText(
     };
   }
 
+  if (!isOpenAIConfigured()) {
+    const originalLang = lockedSource ?? detectLanguageFromText(trimmed);
+    return {
+      originalText: trimmed,
+      originalLang,
+      translatedText: mockTranslate(trimmed, originalLang, normalizedTarget),
+      targetLang: normalizedTarget,
+    };
+  }
+
   const openai = getOpenAI();
 
   const response = await openai.chat.completions.create({
@@ -200,6 +211,10 @@ export async function transcribeAudio(
   senderRole: "manager" | "worker",
   workerLanguage?: LanguageCode
 ): Promise<{ text: string; language: string }> {
+  if (!isOpenAIConfigured()) {
+    throw new Error("OPENAI_NOT_CONFIGURED");
+  }
+
   const openai = getOpenAI();
 
   const text = await transcribeWithModel(

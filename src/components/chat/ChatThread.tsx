@@ -117,8 +117,12 @@ export function ChatThread({
         workerLanguage,
         getContext()
       );
-    } catch {
-      showToast(sendFailedLabel ?? "שליחה נכשלה");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : (sendFailedLabel ?? "שליחה נכשלה")
+      );
     }
   };
 
@@ -152,8 +156,12 @@ export function ChatThread({
       );
       commitProcessedMessage(workerId, viewerRole, result);
       setVoicePreview(null);
-    } catch {
-      showToast(sendFailedLabel ?? "שליחה נכשלה");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : (sendFailedLabel ?? "שליחה נכשלה")
+      );
     } finally {
       setIsConfirmingVoice(false);
     }

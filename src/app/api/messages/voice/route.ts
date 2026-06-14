@@ -1,4 +1,5 @@
 import { normalizeDetectedLang } from "@/lib/server/languages";
+import { apiErrorResponse } from "@/lib/server/api-errors";
 import { transcribeVoiceMessage } from "@/lib/server/translate";
 import type { LanguageCode } from "@/types";
 import { NextResponse } from "next/server";
@@ -33,9 +34,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Voice message error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Voice processing failed" },
-      { status: 500 }
-    );
+    return apiErrorResponse(error, "Voice processing failed");
   }
 }

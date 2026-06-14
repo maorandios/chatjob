@@ -192,14 +192,16 @@ export const useJobChatStore = create<JobChatState>()(
             ),
           }));
           return updated;
-        } catch {
+        } catch (error) {
           const failed = { ...pending, status: "failed" as const };
           set((state) => ({
             messages: state.messages.map((m) =>
               m.id === pending.id ? failed : m
             ),
           }));
-          throw new Error("Failed to send message");
+          throw error instanceof Error
+            ? error
+            : new Error("Failed to send message");
         }
       },
 

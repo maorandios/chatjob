@@ -5,6 +5,7 @@ import {
   shouldLockSourceLanguage,
 } from "@/lib/server/languages";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
+import { apiErrorResponse } from "@/lib/server/api-errors";
 import { translateText } from "@/lib/server/translate";
 import type { LanguageCode, MessageInputType } from "@/types";
 import { NextResponse } from "next/server";
@@ -49,9 +50,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Text message error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Translation failed" },
-      { status: 500 }
-    );
+    return apiErrorResponse(error, "Translation failed");
   }
 }
