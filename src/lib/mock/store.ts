@@ -6,7 +6,6 @@ import {
 } from "@/lib/api/messages";
 import { compressImageFile } from "@/lib/images/compress";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
-import { mockTranslate } from "@/lib/mock/translations";
 import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import {
   createSeedData,
@@ -412,9 +411,7 @@ export function getMessageDisplayText(
   if (message.translatedText) {
     return message.translatedText;
   }
-  const targetLang =
-    viewerRole === "manager" ? "he" : (workerLanguage ?? "en");
-  return mockTranslate(message.originalText, message.originalLang, targetLang);
+  return message.originalText;
 }
 
 export function useWorkerMessages(workerId: string): Message[] {

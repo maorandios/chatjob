@@ -5,7 +5,6 @@ import {
   normalizeDetectedLang,
 } from "@/lib/server/languages";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
-import { mockTranslate } from "@/lib/mock/translations";
 import { getOpenAI, isOpenAIConfigured } from "@/lib/server/openai";
 import type { LanguageCode } from "@/types";
 
@@ -104,16 +103,6 @@ export async function translateText(
       originalText: trimmed,
       originalLang: lockedSource,
       translatedText: trimmed,
-      targetLang: normalizedTarget,
-    };
-  }
-
-  if (!isOpenAIConfigured()) {
-    const originalLang = lockedSource ?? detectLanguageFromText(trimmed);
-    return {
-      originalText: trimmed,
-      originalLang,
-      translatedText: mockTranslate(trimmed, originalLang, normalizedTarget),
       targetLang: normalizedTarget,
     };
   }
