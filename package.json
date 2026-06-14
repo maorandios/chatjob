@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
+    "postbuild": "node scripts/verify-legacy-bundle.js",
+    "verify:legacy": "node scripts/verify-legacy-bundle.js",
     "start": "next start",
     "lint": "eslint"
   },

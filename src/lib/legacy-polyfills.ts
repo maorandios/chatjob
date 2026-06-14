@@ -1,7 +1,5 @@
-import Script from "next/script";
-
-const LEGACY_POLYFILLS = `
-(function(){
+/** Inline polyfill snippet — must be ES5-safe (runs synchronously in <head>). */
+export const LEGACY_POLYFILL_SCRIPT = `(function(){
   if(typeof Object.hasOwn!=="function"){
     Object.hasOwn=function(o,k){return Object.prototype.hasOwnProperty.call(o,k);};
   }
@@ -14,13 +12,4 @@ const LEGACY_POLYFILLS = `
   if(typeof globalThis.structuredClone!=="function"){
     globalThis.structuredClone=function(v){return JSON.parse(JSON.stringify(v));};
   }
-})();
-`;
-
-export function LegacyPolyfills() {
-  return (
-    <Script id="legacy-polyfills" strategy="beforeInteractive">
-      {LEGACY_POLYFILLS}
-    </Script>
-  );
-}
+})();`;
