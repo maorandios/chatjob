@@ -1,8 +1,10 @@
 "use client";
 
 import { Portal } from "@/components/ui/Portal";
+import { addModalBackdrop, removeModalBackdrop } from "@/lib/modal-backdrop";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 const BAR_COUNT = 5;
 
@@ -41,10 +43,15 @@ export function RecordingOverlay({
   const isAnalyzing = phase === "analyzing";
   const progress = Math.min(elapsedMs / (maxSec * 1000), 1);
 
+  useEffect(() => {
+    addModalBackdrop();
+    return () => removeModalBackdrop();
+  }, []);
+
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/50"
+        className="jobchat-modal-backdrop fixed inset-0 z-[9998] flex items-center justify-center"
         role="dialog"
         aria-modal="true"
         aria-label={isAnalyzing ? analyzingLabel : label}

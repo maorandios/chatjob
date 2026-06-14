@@ -49,7 +49,7 @@ export default function ManagerPage() {
 
   return (
     <AppShell dir="rtl">
-      <header className="safe-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
+      <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">Slang</h1>
           <button

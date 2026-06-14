@@ -24,6 +24,8 @@
 html {
   height: 100%;
   height: -webkit-fill-available;
+  background-color: #ffffff;
+  color-scheme: light;
 }
 
 body {
@@ -34,7 +36,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: none;
-  background: var(--jobchat-surface);
+  background-color: #ffffff;
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
@@ -72,6 +74,19 @@ a,
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Extend white chrome into notch / home-indicator beyond the element box */
+.chrome-top {
+  padding-top: env(safe-area-inset-top, 0px);
+  background-color: #ffffff;
+  box-shadow: 0 calc(-1 * env(safe-area-inset-top, 0px)) 0 0 #ffffff;
+}
+
+.chrome-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: #ffffff;
+  box-shadow: 0 env(safe-area-inset-bottom, 0px) 0 0 #ffffff;
+}
+
 .composer-dock {
   position: sticky;
   bottom: 0;
@@ -81,6 +96,7 @@ a,
   background: white;
   padding: 0.625rem 0.75rem;
   padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 env(safe-area-inset-bottom, 0px) 0 0 #ffffff;
 }
 
 /* Bottom sheet overlay — div-based for iOS 12+ (no <dialog>) */
@@ -102,9 +118,27 @@ a,
   margin: 0;
   padding: 0;
   border: 0;
-  background: rgb(0 0 0 / 0.5);
+  background: rgb(0 0 0 / 0.35);
   cursor: pointer;
   touch-action: manipulation;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.jobchat-sheet-overlay--open .jobchat-sheet-backdrop {
+  opacity: 1;
+}
+
+/* Shared dim for full-screen modals (recording, etc.) */
+.jobchat-modal-backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+/* Blur page content behind sheets and recording overlay (reliable on iOS 15+) */
+html.modal-open .app-root {
+  filter: blur(12px);
+  -webkit-filter: blur(12px);
+  transition: filter 0.2s ease;
 }
 
 .jobchat-sheet-panel {
@@ -125,6 +159,161 @@ a,
   padding: 0.75rem 1.25rem;
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -8px 40px rgb(0 0 0 / 0.15);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+.jobchat-sheet-overlay--open .jobchat-sheet-panel {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Native-style push / pop between screens */
+.page-stack-host {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-stack-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+  will-change: transform;
+}
+
+.page-stack-rtl.page-forward-enter {
+  z-index: 2;
+  animation: page-rtl-forward-in 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  box-shadow: 4px 0 24px rgb(0 0 0 / 0.1);
+}
+
+.page-stack-rtl.page-forward-exit {
+  z-index: 1;
+  animation: page-rtl-forward-out 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.page-stack-rtl.page-back-enter {
+  z-index: 1;
+  animation: page-rtl-back-in 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.page-stack-rtl.page-back-exit {
+  z-index: 2;
+  animation: page-rtl-back-out 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  box-shadow: 4px 0 24px rgb(0 0 0 / 0.1);
+}
+
+.page-stack-ltr.page-forward-enter {
+  z-index: 2;
+  animation: page-ltr-forward-in 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  box-shadow: -4px 0 24px rgb(0 0 0 / 0.1);
+}
+
+.page-stack-ltr.page-forward-exit {
+  z-index: 1;
+  animation: page-ltr-forward-out 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.page-stack-ltr.page-back-enter {
+  z-index: 1;
+  animation: page-ltr-back-in 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.page-stack-ltr.page-back-exit {
+  z-index: 2;
+  animation: page-ltr-back-out 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  box-shadow: -4px 0 24px rgb(0 0 0 / 0.1);
+}
+
+@keyframes page-rtl-forward-in {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes page-rtl-forward-out {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(33%, 0, 0);
+  }
+}
+
+@keyframes page-rtl-back-in {
+  from {
+    transform: translate3d(33%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes page-rtl-back-out {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes page-ltr-forward-in {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes page-ltr-forward-out {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-33%, 0, 0);
+  }
+}
+
+@keyframes page-ltr-back-in {
+  from {
+    transform: translate3d(-33%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes page-ltr-back-out {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jobchat-sheet-panel,
+  .jobchat-sheet-backdrop {
+    transition: none !important;
+  }
+
+  .page-stack-layer[class*="page-"] {
+    animation: none !important;
+  }
 }
 
 .chat-scrollbar {

@@ -95,7 +95,7 @@ export function ChatHeader({
   );
 
   return (
-    <header className="z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white safe-top">
+    <header className="chrome-top z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white">
       <div dir="ltr" className="flex items-center gap-3 px-4 py-3">
         {isRtl ? (
           <>
