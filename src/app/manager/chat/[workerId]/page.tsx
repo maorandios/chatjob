@@ -16,6 +16,7 @@ import { useState } from "react";
 export default function ManagerChatPage() {
   const params = useParams<{ workerId: string }>();
   const workerId = params?.workerId;
+  const managerId = useSlangStore((s) => s.managerId);
   const ready = useSlangStore((s) => s.ready);
   const worker = useWorkerById(workerId ?? "");
   const setContactAlias = useSlangStore((s) => s.setContactAlias);
@@ -26,9 +27,9 @@ export default function ManagerChatPage() {
     worker?.name ?? ""
   );
 
-  useChatData(workerId);
+  useChatData(managerId ?? undefined, workerId);
 
-  if (!ready) {
+  if (!ready || !managerId) {
     return (
       <AppShell dir="rtl">
         <div className="flex flex-1 items-center justify-center">
@@ -48,11 +49,13 @@ export default function ManagerChatPage() {
           worker.status === "pending" ? "ממתין להצטרפות" : worker.phone
         }
         backHref="/manager"
+        settingsHref="/manager/settings"
         dir="rtl"
         showOnline={false}
         onProfileClick={() => setShowContactSheet(true)}
       />
       <ChatThread
+        managerId={managerId}
         workerId={workerId}
         viewerRole="manager"
         workerLanguage={worker.language}

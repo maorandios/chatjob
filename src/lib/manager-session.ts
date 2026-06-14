@@ -17,3 +17,12 @@ export function setStoredManagerId(id: string): void {
     // localStorage may be unavailable in strict private mode
   }
 }
+
+export function clearStoredManagerId(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(MANAGER_ID_KEY);
+  } catch {
+    // ignore
+  }
+}

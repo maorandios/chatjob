@@ -4,34 +4,60 @@ import type { ProcessedMessage } from "@/lib/api/messages";
 import { compressImageFile } from "@/lib/images/compress";
 import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import {
+  clearStoredManagerId,
   getStoredManagerId,
   setStoredManagerId,
 } from "@/lib/manager-session";
 import { jobChatPersistStorage } from "@/lib/mock/safe-storage";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { generateId, normalizePhone } from "@/lib/utils";
-import type { ContactAliases, Invite, LanguageCode, Message, Worker } from "@/types";
+import type {
+  ContactAliases,
+  Invite,
+  LanguageCode,
+  Manager,
+  Message,
+  Worker,
+  WorkerInvite,
+} from "@/types";
 import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
+let managerBootstrapPromise: Promise<void> | null = null;
 
 type SlangState = {
   managerId: string | null;
   managerName: string;
   managerPhone: string;
+  managerInviteToken: string;
+  isAdmin: boolean;
+  companyId: string;
   companyName: string;
+  managers: Manager[];
   workers: Worker[];
   messages: Message[];
   invites: Invite[];
   contactAliases: ContactAliases;
   ready: boolean;
-  bootstrapManager: () => Promise<void>;
+  bootstrapError: string | null;
+  bootstrapManager: (inviteToken?: string) => Promise<void>;
   loadWorkers: () => Promise<void>;
-  fetchInvite: (token: string) => Promise<{ worker: Worker; invite: Invite } | null>;
-  loadMessages: (workerId: string) => Promise<void>;
+  fetchInvite: (
+    token: string
+  ) => Promise<{
+    worker: Worker;
+    invite: WorkerInvite;
+    managers: Manager[];
+  } | null>;
+  loadMessages: (managerId: string, workerId: string) => Promise<void>;
+  addManager: (name: string, phone: string) => Promise<Manager>;
   addWorker: (name: string, phone: string) => Promise<Worker>;
+  removeManager: (managerId: string) => Promise<void>;
+  removeWorker: (workerId: string) => Promise<void>;
   setWorkerLanguage: (workerId: string, language: LanguageCode) => Promise<void>;
   sendMessage: (
+    managerId: string,
     workerId: string,
     senderRole: "manager" | "worker",
     text: string,
@@ -39,31 +65,36 @@ type SlangState = {
     context?: TranslationContextMessage[]
   ) => Promise<Message>;
   sendImageMessage: (
+    managerId: string,
     workerId: string,
     senderRole: "manager" | "worker",
     file: File
   ) => Promise<Message>;
   commitProcessedMessage: (
+    managerId: string,
     workerId: string,
     senderRole: "manager" | "worker",
     result: ProcessedMessage,
     workerLanguage?: LanguageCode,
     context?: TranslationContextMessage[]
   ) => Promise<Message>;
-  markManagerMessagesRead: (workerId: string) => Promise<void>;
-  markWorkerMessagesRead: (workerId: string) => Promise<void>;
+  markManagerMessagesRead: (managerId: string, workerId: string) => Promise<void>;
+  markWorkerMessagesRead: (managerId: string, workerId: string) => Promise<void>;
   setContactAlias: (
     viewerRole: "manager" | "worker",
-    workerId: string,
+    contactId: string,
     name: string
   ) => void;
   upsertMessage: (message: Message) => void;
   mergeMessages: (messages: Message[]) => void;
   upsertWorker: (worker: Worker) => void;
+  upsertManager: (manager: Manager) => void;
   upsertInvite: (invite: Invite) => void;
 };
 
 function createPendingMessage(
+  companyId: string,
+  managerId: string,
   workerId: string,
   senderRole: "manager" | "worker",
   text: string,
@@ -71,6 +102,8 @@ function createPendingMessage(
 ): Message {
   return {
     id: `pending-${generateId()}`,
+    companyId,
+    managerId,
     workerId,
     senderRole,
     originalText: text,
@@ -89,6 +122,14 @@ function mergeWorkerList(workers: Worker[], worker: Worker): Worker[] {
   return next;
 }
 
+function mergeManagerList(managers: Manager[], manager: Manager): Manager[] {
+  const index = managers.findIndex((m) => m.id === manager.id);
+  if (index === -1) return [manager, ...managers];
+  const next = [...managers];
+  next[index] = manager;
+  return next;
+}
+
 function mergeInviteList(invites: Invite[], invite: Invite): Invite[] {
   const index = invites.findIndex((i) => i.token === invite.token);
   if (index === -1) return [invite, ...invites];
@@ -97,40 +138,145 @@ function mergeInviteList(invites: Invite[], invite: Invite): Invite[] {
   return next;
 }
 
+function resolveCompanyId(
+  state: SlangState,
+  managerId: string,
+  workerId: string
+): string {
+  return (
+    state.companyId ||
+    state.workers.find((w) => w.id === workerId)?.companyId ||
+    state.managers.find((m) => m.id === managerId)?.companyId ||
+    ""
+  );
+}
+
 export const useSlangStore = create<SlangState>()(
   persist(
     (set, get) => ({
       managerId: null,
       managerName: "",
       managerPhone: "",
+      managerInviteToken: "",
+      isAdmin: false,
+      companyId: "",
       companyName: "",
+      managers: [],
       workers: [],
       messages: [],
       invites: [],
       contactAliases: { manager: {}, worker: {} },
       ready: false,
+      bootstrapError: null,
 
-      bootstrapManager: async () => {
+      bootstrapManager: async (inviteToken) => {
+        if (!inviteToken) {
+          if (get().ready) return;
+          if (managerBootstrapPromise) return managerBootstrapPromise;
+        }
+
+        const run = async () => {
+        const applyBootstrap = (data: {
+          manager: Manager;
+          company: { id: string; name: string };
+          managers?: Manager[];
+          workers?: Worker[];
+        }) => {
+          const manager = data.manager;
+          const teamManagers = data.managers ?? [];
+          const teamWorkers = data.workers ?? [];
+
+          setStoredManagerId(manager.id);
+          set({
+            managerId: manager.id,
+            managerName: manager.name,
+            managerPhone: manager.phone,
+            managerInviteToken: manager.inviteToken,
+            isAdmin: manager.isAdmin,
+            companyId: data.company.id,
+            companyName: data.company.name,
+            managers: teamManagers,
+            workers: teamWorkers,
+            invites: teamWorkers.map((worker) => ({
+              token: worker.inviteToken,
+              workerId: worker.id,
+              companyId: worker.companyId,
+              companyName: data.company.name,
+            })),
+            ready: true,
+            bootstrapError: null,
+          });
+        };
+
+        async function requestBootstrap(payload: {
+          managerId?: string;
+          inviteToken?: string;
+        }) {
+          const res = await fetch("/api/managers/bootstrap", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json().catch(() => ({}));
+          return { res, data };
+        }
+
+        if (inviteToken) {
+          const { res, data } = await requestBootstrap({ inviteToken });
+          if (!res.ok) {
+            const message =
+              typeof data.error === "string"
+                ? data.error
+                : "Failed to bootstrap manager";
+            set({ bootstrapError: message, ready: false });
+            throw new Error(message);
+          }
+          applyBootstrap(data);
+          return;
+        }
+
         const storedId = getStoredManagerId();
-        const res = await fetch("/api/managers/bootstrap", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ managerId: storedId }),
-        });
+        if (storedId) {
+          const { res, data } = await requestBootstrap({ managerId: storedId });
+          if (res.ok) {
+            applyBootstrap(data);
+            return;
+          }
+          clearStoredManagerId();
+        }
 
-        if (!res.ok) throw new Error("Failed to bootstrap manager");
+        const savedInviteToken = get().managerInviteToken;
+        if (savedInviteToken) {
+          const { res, data } = await requestBootstrap({
+            inviteToken: savedInviteToken,
+          });
+          if (res.ok) {
+            applyBootstrap(data);
+            return;
+          }
+        }
 
-        const data = await res.json();
-        setStoredManagerId(data.manager.id);
-        set({
-          managerId: data.manager.id,
-          managerName: data.manager.name,
-          managerPhone: data.manager.phone,
-          companyName: data.manager.companyName,
-          ready: true,
-        });
+        const { res, data } = await requestBootstrap({});
+        if (!res.ok) {
+          const message =
+            typeof data.error === "string"
+              ? data.error
+              : "Failed to bootstrap manager";
+          set({ bootstrapError: message, ready: false });
+          throw new Error(message);
+        }
 
-        await get().loadWorkers();
+        applyBootstrap(data);
+        };
+
+        if (!inviteToken) {
+          managerBootstrapPromise = run().finally(() => {
+            managerBootstrapPromise = null;
+          });
+          return managerBootstrapPromise;
+        }
+
+        return run();
       },
 
       loadWorkers: async () => {
@@ -143,16 +289,7 @@ export const useSlangStore = create<SlangState>()(
         if (!res.ok) throw new Error("Failed to load workers");
 
         const data = await res.json();
-        const workers = data.workers as Worker[];
-        const invites: Invite[] = workers.map((worker) => ({
-          token: worker.inviteToken,
-          workerId: worker.id,
-          managerName: get().managerName,
-          managerPhone: get().managerPhone,
-          companyName: get().companyName,
-        }));
-
-        set({ workers, invites });
+        set({ workers: data.workers as Worker[] });
       },
 
       fetchInvite: async (token) => {
@@ -161,22 +298,23 @@ export const useSlangStore = create<SlangState>()(
 
         const data = await res.json();
         const worker = data.worker as Worker;
-        const invite = data.invite as Invite;
+        const invite = data.invite as WorkerInvite;
+        const managers = data.managers as Manager[];
 
         set((state) => ({
           workers: mergeWorkerList(state.workers, worker),
           invites: mergeInviteList(state.invites, invite),
-          managerPhone: invite.managerPhone || state.managerPhone,
-          managerName: invite.managerName || state.managerName,
-          companyName: invite.companyName || state.companyName,
+          managers,
+          companyId: invite.companyId,
+          companyName: invite.companyName,
         }));
 
-        return { worker, invite };
+        return { worker, invite, managers };
       },
 
-      loadMessages: async (workerId) => {
+      loadMessages: async (managerId, workerId) => {
         const res = await fetch(
-          `/api/messages?workerId=${encodeURIComponent(workerId)}`
+          `/api/messages?managerId=${encodeURIComponent(managerId)}&workerId=${encodeURIComponent(workerId)}`
         );
         if (!res.ok) throw new Error("Failed to load messages");
 
@@ -184,9 +322,40 @@ export const useSlangStore = create<SlangState>()(
         get().mergeMessages(data.messages as Message[]);
       },
 
+      addManager: async (name, phone) => {
+        const managerId = get().managerId;
+        if (!managerId || !get().isAdmin) {
+          throw new Error("Only admin manager can add managers");
+        }
+
+        const res = await fetch("/api/managers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            managerId,
+            name: name.trim(),
+            phone: normalizePhone(phone),
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to add manager");
+        }
+
+        const data = await res.json();
+        const manager = data.manager as Manager;
+        set((state) => ({
+          managers: [manager, ...state.managers],
+        }));
+        return manager;
+      },
+
       addWorker: async (name, phone) => {
         const managerId = get().managerId;
-        if (!managerId) throw new Error("Manager not bootstrapped");
+        if (!managerId || !get().isAdmin) {
+          throw new Error("Only admin manager can add workers");
+        }
 
         const res = await fetch("/api/workers", {
           method: "POST",
@@ -198,11 +367,14 @@ export const useSlangStore = create<SlangState>()(
           }),
         });
 
-        if (!res.ok) throw new Error("Failed to add worker");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to add worker");
+        }
 
         const data = await res.json();
         const worker = data.worker as Worker;
-        const invite = data.invite as Invite;
+        const invite = data.invite as WorkerInvite;
 
         set((state) => ({
           workers: [worker, ...state.workers],
@@ -210,6 +382,41 @@ export const useSlangStore = create<SlangState>()(
         }));
 
         return worker;
+      },
+
+      removeManager: async (targetManagerId) => {
+        const managerId = get().managerId;
+        if (!managerId || !get().isAdmin) {
+          throw new Error("Only admin manager can remove managers");
+        }
+
+        const res = await fetch(
+          `/api/managers/${encodeURIComponent(targetManagerId)}?managerId=${encodeURIComponent(managerId)}`,
+          { method: "DELETE" }
+        );
+        if (!res.ok) throw new Error("Failed to remove manager");
+
+        set((state) => ({
+          managers: state.managers.filter((m) => m.id !== targetManagerId),
+        }));
+      },
+
+      removeWorker: async (workerId) => {
+        const managerId = get().managerId;
+        if (!managerId || !get().isAdmin) {
+          throw new Error("Only admin manager can remove workers");
+        }
+
+        const res = await fetch(
+          `/api/workers/${encodeURIComponent(workerId)}?managerId=${encodeURIComponent(managerId)}`,
+          { method: "DELETE" }
+        );
+        if (!res.ok) throw new Error("Failed to remove worker");
+
+        set((state) => ({
+          workers: state.workers.filter((w) => w.id !== workerId),
+          invites: state.invites.filter((i) => i.workerId !== workerId),
+        }));
       },
 
       setWorkerLanguage: async (workerId, language) => {
@@ -228,26 +435,32 @@ export const useSlangStore = create<SlangState>()(
       },
 
       sendMessage: async (
+        managerId,
         workerId,
         senderRole,
         text,
         workerLanguage,
         context
       ) => {
+        const state = get();
+        const companyId = resolveCompanyId(state, managerId, workerId);
         const trimmed = text.trim();
         const pending = createPendingMessage(
+          companyId,
+          managerId,
           workerId,
           senderRole,
           trimmed,
           "text"
         );
-        set((state) => ({ messages: [...state.messages, pending] }));
+        set((s) => ({ messages: [...s.messages, pending] }));
 
         try {
           const res = await fetch("/api/messages", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              managerId,
               workerId,
               senderRole,
               text: trimmed,
@@ -264,15 +477,15 @@ export const useSlangStore = create<SlangState>()(
 
           const data = await res.json();
           const message = data.message as Message;
-          set((state) => ({
-            messages: state.messages
+          set((s) => ({
+            messages: s.messages
               .filter((m) => m.id !== pending.id)
               .concat(message),
           }));
           return message;
         } catch (error) {
-          set((state) => ({
-            messages: state.messages.map((m) =>
+          set((s) => ({
+            messages: s.messages.map((m) =>
               m.id === pending.id ? { ...m, status: "failed" as const } : m
             ),
           }));
@@ -282,9 +495,18 @@ export const useSlangStore = create<SlangState>()(
         }
       },
 
-      sendImageMessage: async (workerId, senderRole, file) => {
-        const pending = createPendingMessage(workerId, senderRole, "", "image");
-        set((state) => ({ messages: [...state.messages, pending] }));
+      sendImageMessage: async (managerId, workerId, senderRole, file) => {
+        const state = get();
+        const companyId = resolveCompanyId(state, managerId, workerId);
+        const pending = createPendingMessage(
+          companyId,
+          managerId,
+          workerId,
+          senderRole,
+          "",
+          "image"
+        );
+        set((s) => ({ messages: [...s.messages, pending] }));
 
         try {
           const imageUrl = await compressImageFile(file);
@@ -292,6 +514,7 @@ export const useSlangStore = create<SlangState>()(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              managerId,
               workerId,
               senderRole,
               inputType: "image",
@@ -303,15 +526,15 @@ export const useSlangStore = create<SlangState>()(
 
           const data = await res.json();
           const message = data.message as Message;
-          set((state) => ({
-            messages: state.messages
+          set((s) => ({
+            messages: s.messages
               .filter((m) => m.id !== pending.id)
               .concat(message),
           }));
           return message;
         } catch {
-          set((state) => ({
-            messages: state.messages.map((m) =>
+          set((s) => ({
+            messages: s.messages.map((m) =>
               m.id === pending.id ? { ...m, status: "failed" as const } : m
             ),
           }));
@@ -320,25 +543,31 @@ export const useSlangStore = create<SlangState>()(
       },
 
       commitProcessedMessage: async (
+        managerId,
         workerId,
         senderRole,
         result,
         workerLanguage,
         context
       ) => {
+        const state = get();
+        const companyId = resolveCompanyId(state, managerId, workerId);
         const pending = createPendingMessage(
+          companyId,
+          managerId,
           workerId,
           senderRole,
           result.originalText,
           result.inputType
         );
-        set((state) => ({ messages: [...state.messages, pending] }));
+        set((s) => ({ messages: [...s.messages, pending] }));
 
         try {
           const res = await fetch("/api/messages", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              managerId,
               workerId,
               senderRole,
               workerLanguage,
@@ -352,15 +581,15 @@ export const useSlangStore = create<SlangState>()(
 
           const data = await res.json();
           const message = data.message as Message;
-          set((state) => ({
-            messages: state.messages
+          set((s) => ({
+            messages: s.messages
               .filter((m) => m.id !== pending.id)
               .concat(message),
           }));
           return message;
         } catch (error) {
-          set((state) => ({
-            messages: state.messages.map((m) =>
+          set((s) => ({
+            messages: s.messages.map((m) =>
               m.id === pending.id ? { ...m, status: "failed" as const } : m
             ),
           }));
@@ -370,11 +599,11 @@ export const useSlangStore = create<SlangState>()(
         }
       },
 
-      markManagerMessagesRead: async (workerId) => {
+      markManagerMessagesRead: async (managerId, workerId) => {
         const res = await fetch("/api/messages/read", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workerId, viewerRole: "worker" }),
+          body: JSON.stringify({ managerId, workerId, viewerRole: "worker" }),
         });
         if (!res.ok) return;
 
@@ -382,11 +611,11 @@ export const useSlangStore = create<SlangState>()(
         get().mergeMessages(data.messages as Message[]);
       },
 
-      markWorkerMessagesRead: async (workerId) => {
+      markWorkerMessagesRead: async (managerId, workerId) => {
         const res = await fetch("/api/messages/read", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workerId, viewerRole: "manager" }),
+          body: JSON.stringify({ managerId, workerId, viewerRole: "manager" }),
         });
         if (!res.ok) return;
 
@@ -394,14 +623,14 @@ export const useSlangStore = create<SlangState>()(
         get().mergeMessages(data.messages as Message[]);
       },
 
-      setContactAlias: (viewerRole, workerId, name) => {
+      setContactAlias: (viewerRole, contactId, name) => {
         const trimmed = name.trim();
         set((state) => {
           const roleAliases = { ...state.contactAliases[viewerRole] };
           if (trimmed) {
-            roleAliases[workerId] = trimmed;
+            roleAliases[contactId] = trimmed;
           } else {
-            delete roleAliases[workerId];
+            delete roleAliases[contactId];
           }
           return {
             contactAliases: {
@@ -440,6 +669,12 @@ export const useSlangStore = create<SlangState>()(
         }));
       },
 
+      upsertManager: (manager) => {
+        set((state) => ({
+          managers: mergeManagerList(state.managers, manager),
+        }));
+      },
+
       upsertInvite: (invite) => {
         set((state) => ({
           invites: mergeInviteList(state.invites, invite),
@@ -451,6 +686,7 @@ export const useSlangStore = create<SlangState>()(
       storage: jobChatPersistStorage,
       partialize: (state) => ({
         managerId: state.managerId,
+        managerInviteToken: state.managerInviteToken,
         contactAliases: state.contactAliases,
       }),
     }
@@ -460,6 +696,20 @@ export const useSlangStore = create<SlangState>()(
 /** @deprecated Use useSlangStore */
 export const useJobChatStore = useSlangStore;
 
+export function selectMessagesForConversation(
+  messages: Message[],
+  managerId: string,
+  workerId: string
+): Message[] {
+  return messages
+    .filter((m) => m.managerId === managerId && m.workerId === workerId)
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+}
+
+/** @deprecated Use selectMessagesForConversation */
 export function selectMessagesForWorker(
   messages: Message[],
   workerId: string
@@ -489,6 +739,18 @@ export function getMessageDisplayText(
   return message.originalText;
 }
 
+export function useConversationMessages(
+  managerId: string,
+  workerId: string
+): Message[] {
+  const messages = useSlangStore((s) => s.messages);
+  return useMemo(
+    () => selectMessagesForConversation(messages, managerId, workerId),
+    [messages, managerId, workerId]
+  );
+}
+
+/** @deprecated Use useConversationMessages */
 export function useWorkerMessages(workerId: string): Message[] {
   const messages = useSlangStore((s) => s.messages);
   return useMemo(
@@ -511,28 +773,35 @@ export function useWorkerById(workerId: string): Worker | undefined {
   return useSlangStore((s) => s.workers.find((w) => w.id === workerId));
 }
 
+export function useManagerById(managerId: string): Manager | undefined {
+  return useSlangStore((s) => s.managers.find((m) => m.id === managerId));
+}
+
 export function getContactDisplayName(
   contactAliases: ContactAliases,
   viewerRole: "manager" | "worker",
-  workerId: string,
+  contactId: string,
   defaultName: string
 ): string {
-  const alias = contactAliases?.[viewerRole]?.[workerId]?.trim();
+  const alias = contactAliases?.[viewerRole]?.[contactId]?.trim();
   return alias || defaultName;
 }
 
 export function useContactDisplayName(
   viewerRole: "manager" | "worker",
-  workerId: string,
+  contactId: string,
   defaultName: string
 ): string {
   const alias = useSlangStore(
-    (s) => s.contactAliases?.[viewerRole]?.[workerId]
+    (s) => s.contactAliases?.[viewerRole]?.[contactId]
   );
   return alias?.trim() || defaultName;
 }
 
-export function useLastMessage(workerId: string): Message | undefined {
-  const messages = useWorkerMessages(workerId);
+export function useLastMessage(
+  managerId: string,
+  workerId: string
+): Message | undefined {
+  const messages = useConversationMessages(managerId, workerId);
   return messages[messages.length - 1];
 }

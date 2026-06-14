@@ -3,39 +3,125 @@
 import { AddWorkerSheet } from "@/components/manager/AddWorkerSheet";
 import { ChatListItem } from "@/components/manager/ChatListItem";
 import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
-import { ManagerSettingsSheet } from "@/components/manager/ManagerSettingsSheet";
+import { AppListHeader } from "@/components/settings/AppListHeader";
 import { AppShell } from "@/components/ui/AppShell";
+import { useToast } from "@/components/ui/Toast";
+import {
+  MAX_MANAGERS_PER_COMPANY,
+  MAX_WORKERS_PER_COMPANY,
+} from "@/lib/constants/limits";
+import { clearStoredManagerId } from "@/lib/manager-session";
 import { useSlangStore } from "@/lib/store";
-import { MessageCircle, Plus, Settings } from "lucide-react";
+import { getInviteUrl, getManagerJoinUrl } from "@/lib/utils";
+import { MessageCircle, Plus } from "lucide-react";
 import { useState } from "react";
 
 export default function ManagerPage() {
   const ready = useSlangStore((s) => s.ready);
+  const bootstrapError = useSlangStore((s) => s.bootstrapError);
+  const bootstrapManager = useSlangStore((s) => s.bootstrapManager);
   const workers = useSlangStore((s) => s.workers);
+  const managers = useSlangStore((s) => s.managers);
+  const isAdmin = useSlangStore((s) => s.isAdmin);
+  const addManager = useSlangStore((s) => s.addManager);
   const addWorker = useSlangStore((s) => s.addWorker);
+  const { showToast } = useToast();
 
   const [showAdd, setShowAdd] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const [lastAdded, setLastAdded] = useState<{
+  const [retrying, setRetrying] = useState(false);
+  const [lastInvite, setLastInvite] = useState<{
     name: string;
-    token: string;
+    url: string;
+    kind: "manager" | "worker";
   } | null>(null);
 
-  const handleAddWorker = async (name: string, phone: string) => {
+  const canAddManager = managers.length < MAX_MANAGERS_PER_COMPANY;
+  const canAddWorker = workers.length < MAX_WORKERS_PER_COMPANY;
+  const canAddMember = isAdmin && (canAddManager || canAddWorker);
+
+  const handleAddMember = async (
+    name: string,
+    phone: string,
+    userType: "management" | "worker"
+  ) => {
     setIsAdding(true);
     try {
-      const worker = await addWorker(name, phone);
-      setLastAdded({ name: worker.name, token: worker.inviteToken });
+      if (userType === "management") {
+        if (!canAddManager) {
+          showToast(`ניתן להוסיף עד ${MAX_MANAGERS_PER_COMPANY} מנהלים`);
+          return;
+        }
+        const manager = await addManager(name, phone);
+        setLastInvite({
+          name: manager.name,
+          url: getManagerJoinUrl(manager.inviteToken),
+          kind: "manager",
+        });
+      } else {
+        if (!canAddWorker) {
+          showToast(`ניתן להוסיף עד ${MAX_WORKERS_PER_COMPANY} עובדים`);
+          return;
+        }
+        const worker = await addWorker(name, phone);
+        setLastInvite({
+          name: worker.name,
+          url: getInviteUrl(worker.inviteToken),
+          kind: "worker",
+        });
+      }
       setShowAdd(false);
       setShowInvite(true);
     } catch (error) {
-      console.error("[Slang] Failed to add worker", error);
+      showToast(
+        error instanceof Error ? error.message : "יצירת ההזמנה נכשלה"
+      );
     } finally {
       setIsAdding(false);
     }
   };
+
+  const handleRetryBootstrap = async () => {
+    setRetrying(true);
+    try {
+      clearStoredManagerId();
+      useSlangStore.setState({
+        ready: false,
+        bootstrapError: null,
+        managerId: null,
+        managerInviteToken: "",
+      });
+      await bootstrapManager();
+    } catch {
+      // error stored in bootstrapError
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  if (!ready && bootstrapError) {
+    return (
+      <AppShell dir="rtl">
+        <div className="flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)] px-8 text-center">
+          <h2 className="text-lg font-semibold text-gray-900">לא ניתן להתחבר</h2>
+          <p className="mt-2 text-sm text-gray-500">{bootstrapError}</p>
+          <p className="mt-2 text-xs text-gray-400">
+            אם נפתחתם ישירות ב-/manager, לחצו נסה שוב. מנהלים אחרים צריכים את קישור
+            ההזמנה מ-/manager/join/...
+          </p>
+          <button
+            type="button"
+            disabled={retrying}
+            onClick={() => void handleRetryBootstrap()}
+            className="mt-6 rounded-xl bg-[var(--jobchat-accent)] px-6 py-3 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {retrying ? "מתחבר..." : "נסה שוב"}
+          </button>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!ready) {
     return (
@@ -48,20 +134,8 @@ export default function ManagerPage() {
   }
 
   return (
-    <AppShell dir="rtl">
-      <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Slang</h1>
-          <button
-            type="button"
-            onClick={() => setShowSettings(true)}
-            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-700 active:bg-[var(--jobchat-surface)]"
-            aria-label="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
-        </div>
-      </header>
+    <AppShell dir="rtl" className="relative">
+      <AppListHeader settingsHref="/manager/settings" />
 
       {workers.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)] px-8 text-center">
@@ -69,10 +143,12 @@ export default function ManagerPage() {
             <MessageCircle className="h-10 w-10 text-[var(--jobchat-accent)]" />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">
-            הוסף עובד כדי להתחיל לשוחח
+            {isAdmin ? "הוסף עובד כדי להתחיל לשוחח" : "אין עובדים עדיין"}
           </h2>
           <p className="mt-2 text-sm text-gray-500">
-            שלח הזמנה לעובד והתחילו לדבר בשפה שלכם
+            {isAdmin
+              ? "לחצו + והזמינו עובד או מנהל לצוות"
+              : "מנהל הראשי יוסיף עובדים — לאחר מכן תוכלו לשוחח כאן"}
           </p>
         </div>
       ) : (
@@ -83,39 +159,44 @@ export default function ManagerPage() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setShowAdd(true)}
-        disabled={isAdding}
-        className="fixed z-30 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_4px_20px_rgba(0,60,255,0.35)] active:scale-95 disabled:opacity-60"
-        style={{
-          bottom: "max(1.5rem, env(safe-area-inset-bottom))",
-          left: "max(1.5rem, calc((100vw - var(--app-max-width)) / 2 + 1.5rem))",
-        }}
-        aria-label="Add worker"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
+      {canAddMember && (
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          disabled={isAdding}
+          className="absolute start-6 bottom-6 z-30 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_4px_20px_rgba(0,60,255,0.35)] active:scale-95 disabled:opacity-60"
+          style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+          aria-label="Add member"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
 
       <AddWorkerSheet
         open={showAdd}
+        loading={isAdding}
         onClose={() => setShowAdd(false)}
-        onSubmit={(name, phone) => void handleAddWorker(name, phone)}
+        onSubmit={(name, phone, userType) =>
+          void handleAddMember(name, phone, userType)
+        }
+        disableManagement={!canAddManager}
+        disableWorker={!canAddWorker}
       />
 
-      {lastAdded && (
+      {lastInvite && (
         <InviteReadySheet
           open={showInvite}
           onClose={() => setShowInvite(false)}
-          workerName={lastAdded.name}
-          inviteToken={lastAdded.token}
+          memberName={lastInvite.name}
+          inviteUrl={lastInvite.url}
+          kind={lastInvite.kind}
+          whatsappText={
+            lastInvite.kind === "manager"
+              ? `${lastInvite.name}, הוזמנת כמנהל ב-Slang: ${lastInvite.url}`
+              : `${lastInvite.name}, הוזמנת ל-Slang: ${lastInvite.url}`
+          }
         />
       )}
-
-      <ManagerSettingsSheet
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-      />
     </AppShell>
   );
 }

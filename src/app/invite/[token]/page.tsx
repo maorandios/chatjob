@@ -1,17 +1,16 @@
 "use client";
 
+import { AppListHeader } from "@/components/settings/AppListHeader";
 import { Button } from "@/components/ui/Button";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { LanguagePicker } from "@/components/worker/LanguagePicker";
-import { WorkerChatListItem } from "@/components/worker/WorkerChatListItem";
-import { WorkerSettingsSheet } from "@/components/worker/WorkerSettingsSheet";
+import { ManagerChatListItem } from "@/components/worker/ManagerChatListItem";
 import { useInviteBootstrap } from "@/lib/hooks/use-slang-data";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
 import { useSlangStore } from "@/lib/store";
 import type { LanguageCode } from "@/types";
-import { Settings } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -27,59 +26,43 @@ export default function InvitePage() {
 function WorkerHome({
   token,
   workerId,
-  managerName,
+  companyName,
   language,
 }: {
   token: string;
   workerId: string;
-  managerName: string;
+  companyName: string;
   language: LanguageCode;
 }) {
-  const router = useRouter();
-  const worker = useSlangStore((s) =>
-    s.workers.find((w) => w.inviteToken === token)
-  );
+  const managers = useSlangStore((s) => s.managers);
   const ui = getWorkerUi(language);
   const dir = getLanguageDir(language);
-  const [showSettings, setShowSettings] = useState(false);
 
   return (
     <MobileFrame dir={dir}>
-      <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Slang</h1>
-          <button
-            type="button"
-            onClick={() => setShowSettings(true)}
-            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-700 active:bg-[var(--jobchat-surface)]"
-            aria-label={ui.settings}
-          >
-            <Settings className="h-5 w-5" />
-          </button>
-        </div>
-      </header>
+      <AppListHeader settingsHref={`/invite/${token}/settings`} />
 
       <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)]">
-        <WorkerChatListItem
-          inviteToken={token}
-          workerId={workerId}
-          managerName={managerName}
-          workerLanguage={language}
-          emptyPreview={ui.noMessagesYet}
-        />
+        {managers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
+            <p className="text-sm text-gray-500">{companyName}</p>
+            <p className="mt-2 text-base font-medium text-gray-900">
+              אין מנהלים זמינים עדיין
+            </p>
+          </div>
+        ) : (
+          managers.map((manager) => (
+            <ManagerChatListItem
+              key={manager.id}
+              inviteToken={token}
+              workerId={workerId}
+              manager={manager}
+              workerLanguage={language}
+              emptyPreview={ui.noMessagesYet}
+            />
+          ))
+        )}
       </div>
-
-      <WorkerSettingsSheet
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        workerName={worker?.name ?? ""}
-        language={language}
-        dir={dir}
-        onChangeLanguage={() => {
-          setShowSettings(false);
-          router.push(`/invite/${token}?changeLang=1`);
-        }}
-      />
     </MobileFrame>
   );
 }
@@ -87,11 +70,11 @@ function WorkerHome({
 function InviteOnboarding({
   token,
   worker,
-  managerName,
+  companyName,
 }: {
   token: string;
   worker: { id: string; language?: LanguageCode };
-  managerName: string;
+  companyName: string;
 }) {
   const router = useRouter();
   const isChangingLanguage = useClientSearchParam("changeLang");
@@ -128,7 +111,7 @@ function InviteOnboarding({
           </div>
           <p className="text-sm text-gray-500">{ui.invitedBy}</p>
           <h1 className="mt-1 text-xl font-semibold text-gray-900">
-            {managerName}
+            {companyName}
           </h1>
           <p className="mt-1 text-sm text-gray-500">{ui.invitedToSlang}</p>
         </div>
@@ -193,7 +176,7 @@ function InvitePageContent({ token }: { token: string }) {
       <WorkerHome
         token={token}
         workerId={worker.id}
-        managerName={invite.managerName}
+        companyName={invite.companyName}
         language={worker.language as LanguageCode}
       />
     );
@@ -203,7 +186,7 @@ function InvitePageContent({ token }: { token: string }) {
     <InviteOnboarding
       token={token}
       worker={worker}
-      managerName={invite.managerName}
+      companyName={invite.companyName}
     />
   );
 }

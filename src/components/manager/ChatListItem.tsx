@@ -5,7 +5,8 @@ import {
   getMessageDisplayText,
   useContactDisplayName,
   useLastMessage,
-} from "@/lib/mock/store";
+  useSlangStore,
+} from "@/lib/store";
 import { formatListTime } from "@/lib/utils";
 import type { Worker } from "@/types";
 import Link from "next/link";
@@ -15,7 +16,8 @@ type ChatListItemProps = {
 };
 
 export function ChatListItem({ worker }: ChatListItemProps) {
-  const lastMessage = useLastMessage(worker.id);
+  const managerId = useSlangStore((s) => s.managerId) ?? "";
+  const lastMessage = useLastMessage(managerId, worker.id);
   const displayName = useContactDisplayName("manager", worker.id, worker.name);
 
   const preview = lastMessage

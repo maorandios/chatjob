@@ -9,26 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      managers: {
+      companies: {
         Row: {
           id: string;
           name: string;
-          phone: string;
-          company_name: string;
           created_at: string;
         };
         Insert: {
           id?: string;
-          name?: string;
-          phone?: string;
-          company_name?: string;
+          name: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      managers: {
+        Row: {
+          id: string;
+          company_id: string;
+          name: string;
+          phone: string;
+          invite_token: string;
+          is_admin: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          name: string;
+          phone: string;
+          invite_token: string;
+          is_admin?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          company_id?: string;
+          name?: string;
           phone?: string;
-          company_name?: string;
+          invite_token?: string;
+          is_admin?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -36,7 +60,7 @@ export type Database = {
       workers: {
         Row: {
           id: string;
-          manager_id: string;
+          company_id: string;
           name: string;
           phone: string;
           language: string | null;
@@ -46,7 +70,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          manager_id: string;
+          company_id: string;
           name: string;
           phone: string;
           language?: string | null;
@@ -56,7 +80,7 @@ export type Database = {
         };
         Update: {
           id?: string;
-          manager_id?: string;
+          company_id?: string;
           name?: string;
           phone?: string;
           language?: string | null;
@@ -69,6 +93,8 @@ export type Database = {
       messages: {
         Row: {
           id: string;
+          company_id: string;
+          manager_id: string;
           worker_id: string;
           sender_role: string;
           original_text: string;
@@ -82,6 +108,8 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          company_id: string;
+          manager_id: string;
           worker_id: string;
           sender_role: string;
           original_text?: string;
@@ -95,6 +123,8 @@ export type Database = {
         };
         Update: {
           id?: string;
+          company_id?: string;
+          manager_id?: string;
           worker_id?: string;
           sender_role?: string;
           original_text?: string;
@@ -110,7 +140,17 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      slang_bootstrap_admin: {
+        Args: {
+          p_company_name: string;
+          p_admin_name: string;
+          p_admin_phone: string;
+          p_invite_token: string;
+        };
+        Returns: string;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

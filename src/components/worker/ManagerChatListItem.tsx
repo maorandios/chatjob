@@ -1,28 +1,32 @@
 "use client";
 
 import { Avatar } from "@/components/ui/Avatar";
-import { getMessageDisplayText, useContactDisplayName, useLastMessage } from "@/lib/mock/store";
+import {
+  getMessageDisplayText,
+  useContactDisplayName,
+  useLastMessage,
+} from "@/lib/store";
 import { formatListTime } from "@/lib/utils";
-import type { LanguageCode } from "@/types";
+import type { LanguageCode, Manager } from "@/types";
 import Link from "next/link";
 
-type WorkerChatListItemProps = {
+type ManagerChatListItemProps = {
   inviteToken: string;
   workerId: string;
-  managerName: string;
+  manager: Manager;
   workerLanguage: LanguageCode;
   emptyPreview: string;
 };
 
-export function WorkerChatListItem({
+export function ManagerChatListItem({
   inviteToken,
   workerId,
-  managerName,
+  manager,
   workerLanguage,
   emptyPreview,
-}: WorkerChatListItemProps) {
-  const lastMessage = useLastMessage(workerId);
-  const displayName = useContactDisplayName("worker", workerId, managerName);
+}: ManagerChatListItemProps) {
+  const lastMessage = useLastMessage(manager.id, workerId);
+  const displayName = useContactDisplayName("worker", manager.id, manager.name);
 
   const preview = lastMessage
     ? getMessageDisplayText(lastMessage, "worker", workerLanguage)
@@ -32,7 +36,7 @@ export function WorkerChatListItem({
 
   return (
     <Link
-      href={`/invite/${inviteToken}/chat`}
+      href={`/invite/${inviteToken}/chat/${manager.id}`}
       className="flex items-center gap-3 border-b border-[var(--jobchat-border)] bg-white px-4 py-3.5 transition-colors hover:bg-[var(--jobchat-surface)] active:bg-gray-100"
     >
       <Avatar name={displayName} />

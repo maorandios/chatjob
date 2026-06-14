@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar } from "@/components/ui/Avatar";
+import { UserSettingsButton } from "@/components/settings/UserSettingsButton";
 import { cn } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -13,28 +14,36 @@ type ChatHeaderProps = {
   dir?: "ltr" | "rtl";
   showOnline?: boolean;
   onProfileClick?: () => void;
+  settingsHref?: string;
 };
 
 function ProfileContent({
   name,
   subtitle,
   showOnline,
+  isRtl,
 }: {
   name: string;
   subtitle?: string;
   showOnline: boolean;
+  isRtl: boolean;
 }) {
   return (
     <>
       <Avatar name={name} size="sm" />
-      <div className="min-w-0">
+      <div className={cn("min-w-0", isRtl ? "text-right" : "text-left")}>
         <p className="truncate text-base font-semibold text-gray-900">{name}</p>
         {subtitle && (
-          <p className="flex items-center gap-1.5 text-xs text-gray-500">
-            {showOnline && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--jobchat-accent)]" />
+          <p
+            className={cn(
+              "flex items-center gap-1.5 text-xs text-gray-500",
+              isRtl ? "justify-end" : "justify-start"
             )}
-            {subtitle}
+          >
+            {showOnline && (
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--jobchat-accent)]" />
+            )}
+            <span className="truncate">{subtitle}</span>
           </p>
         )}
       </div>
@@ -49,6 +58,7 @@ export function ChatHeader({
   dir = "rtl",
   showOnline = true,
   onProfileClick,
+  settingsHref,
 }: ChatHeaderProps) {
   const isRtl = dir === "rtl";
 
@@ -65,7 +75,12 @@ export function ChatHeader({
   );
 
   const profileInner = (
-    <ProfileContent name={name} subtitle={subtitle} showOnline={showOnline} />
+    <ProfileContent
+      name={name}
+      subtitle={subtitle}
+      showOnline={showOnline}
+      isRtl={isRtl}
+    />
   );
 
   const profileBlock: ReactNode = onProfileClick ? (
@@ -94,6 +109,12 @@ export function ChatHeader({
     </div>
   );
 
+  const settingsButton = settingsHref ? (
+    <UserSettingsButton href={settingsHref} className="h-10 w-10" />
+  ) : (
+    <div className="w-10 shrink-0" />
+  );
+
   return (
     <header className="chrome-top z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white">
       <div dir="ltr" className="flex items-center gap-3 px-4 py-3">
@@ -101,9 +122,11 @@ export function ChatHeader({
           <>
             {backButton}
             {profileWrapper}
+            {settingsButton}
           </>
         ) : (
           <>
+            {settingsButton}
             {profileWrapper}
             {backButton}
           </>

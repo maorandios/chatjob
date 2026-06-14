@@ -12,18 +12,21 @@ type SheetProps = {
   title?: string;
   children: ReactNode;
   className?: string;
+  dir?: "ltr" | "rtl";
 };
 
 function SheetPanel({
   title,
   children,
   className,
+  dir = "ltr",
   onClose,
   onTransitionEnd,
 }: {
   title?: string;
   children: ReactNode;
   className?: string;
+  dir?: "ltr" | "rtl";
   onClose: () => void;
   onTransitionEnd: (event: React.TransitionEvent<HTMLDivElement>) => void;
 }) {
@@ -31,6 +34,7 @@ function SheetPanel({
     <div
       role="dialog"
       aria-modal="true"
+      dir={dir}
       onTransitionEnd={onTransitionEnd}
       className={cn("jobchat-sheet-panel", className)}
     >
@@ -53,7 +57,14 @@ function SheetPanel({
   );
 }
 
-export function Sheet({ open, onClose, title, children, className }: SheetProps) {
+export function Sheet({
+  open,
+  onClose,
+  title,
+  children,
+  className,
+  dir = "ltr",
+}: SheetProps) {
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
 
@@ -113,6 +124,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
         <SheetPanel
           title={title}
           className={className}
+          dir={dir}
           onClose={onClose}
           onTransitionEnd={handlePanelTransitionEnd}
         >

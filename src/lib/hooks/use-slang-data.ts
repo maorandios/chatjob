@@ -1,62 +1,36 @@
 "use client";
 
-import { getSupabaseBrowser } from "@/lib/supabase/browser";
-import { rowToMessage } from "@/lib/supabase/mappers";
+import { subscribeToConversationMessages } from "@/lib/supabase/messages-realtime";
 import { useSlangStore } from "@/lib/store";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export function useMessagesRealtime(workerId: string | undefined) {
+export function useMessagesRealtime(
+  managerId: string | undefined,
+  workerId: string | undefined
+) {
   const upsertMessage = useSlangStore((s) => s.upsertMessage);
+  const upsertRef = useRef(upsertMessage);
+  upsertRef.current = upsertMessage;
 
   useEffect(() => {
-    if (!workerId) return;
+    if (!managerId || !workerId) return;
 
-    const supabase = getSupabaseBrowser();
-    if (!supabase) return;
-
-    const channel = supabase
-      .channel(`messages:${workerId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `worker_id=eq.${workerId}`,
-        },
-        (payload) => {
-          upsertMessage(rowToMessage(payload.new as never));
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "messages",
-          filter: `worker_id=eq.${workerId}`,
-        },
-        (payload) => {
-          upsertMessage(rowToMessage(payload.new as never));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [workerId, upsertMessage]);
+    return subscribeToConversationMessages(managerId, workerId, (message) => {
+      upsertRef.current(message);
+    });
+  }, [managerId, workerId]);
 }
 
-export function useChatData(workerId: string | undefined) {
-  const loadMessages = useSlangStore((s) => s.loadMessages);
-
+export function useChatData(
+  managerId: string | undefined,
+  workerId: string | undefined
+) {
   useEffect(() => {
-    if (!workerId) return;
-    void loadMessages(workerId);
-  }, [workerId, loadMessages]);
+    if (!managerId || !workerId) return;
+    void useSlangStore.getState().loadMessages(managerId, workerId);
+  }, [managerId, workerId]);
 
-  useMessagesRealtime(workerId);
+  useMessagesRealtime(managerId, workerId);
 }
 
 export function useManagerBootstrap() {
@@ -79,6 +53,7 @@ export function useInviteBootstrap(token: string | undefined) {
   const invite = useSlangStore((s) =>
     token ? s.invites.find((i) => i.token === token) : undefined
   );
+  const managers = useSlangStore((s) => s.managers);
   const [fetchState, setFetchState] = useState<
     "idle" | "loading" | "done"
   >("idle");
@@ -110,5 +85,6 @@ export function useInviteBootstrap(token: string | undefined) {
     loading: Boolean(token) && fetchState === "loading",
     worker,
     invite,
+    managers,
   };
 }

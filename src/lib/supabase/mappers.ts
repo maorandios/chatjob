@@ -1,13 +1,40 @@
 import type { Database } from "@/lib/supabase/database.types";
-import type { Invite, LanguageCode, Message, Worker } from "@/types";
+import type {
+  Company,
+  LanguageCode,
+  Manager,
+  Message,
+  Worker,
+  WorkerInvite,
+} from "@/types";
 
+type DbCompany = Database["public"]["Tables"]["companies"]["Row"];
 type DbManager = Database["public"]["Tables"]["managers"]["Row"];
 type DbWorker = Database["public"]["Tables"]["workers"]["Row"];
 type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
 
+export function companyFromRow(row: DbCompany): Company {
+  return {
+    id: row.id,
+    name: row.name,
+  };
+}
+
+export function rowToManager(row: DbManager): Manager {
+  return {
+    id: row.id,
+    companyId: row.company_id,
+    name: row.name,
+    phone: row.phone,
+    inviteToken: row.invite_token,
+    isAdmin: row.is_admin,
+  };
+}
+
 export function rowToWorker(row: DbWorker): Worker {
   return {
     id: row.id,
+    companyId: row.company_id,
     name: row.name,
     phone: row.phone,
     language: (row.language as LanguageCode | null) ?? undefined,
@@ -19,6 +46,8 @@ export function rowToWorker(row: DbWorker): Worker {
 export function rowToMessage(row: DbMessage): Message {
   return {
     id: row.id,
+    companyId: row.company_id,
+    managerId: row.manager_id,
     workerId: row.worker_id,
     senderRole: row.sender_role as Message["senderRole"],
     originalText: row.original_text,
@@ -32,21 +61,18 @@ export function rowToMessage(row: DbMessage): Message {
   };
 }
 
-export function rowToInvite(row: DbWorker, manager: DbManager): Invite {
+export function rowToWorkerInvite(row: DbWorker, company: DbCompany): WorkerInvite {
   return {
     token: row.invite_token,
     workerId: row.id,
-    managerName: manager.name,
-    managerPhone: manager.phone,
-    companyName: manager.company_name,
+    companyId: company.id,
+    companyName: company.name,
   };
 }
 
-export function managerFromRow(row: DbManager) {
-  return {
-    id: row.id,
-    name: row.name,
-    phone: row.phone,
-    companyName: row.company_name,
-  };
+export function getManagerInviteUrl(token: string): string {
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/manager/join/${token}`;
+  }
+  return `/manager/join/${token}`;
 }

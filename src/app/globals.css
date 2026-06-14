@@ -168,6 +168,24 @@ html.modal-open .app-root {
   transform: translate3d(0, 0, 0);
 }
 
+.jobchat-top-pill {
+  position: fixed;
+  top: max(0.875rem, env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(-50%, calc(-100% - 0.75rem), 0);
+  transition:
+    transform 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.28s ease;
+}
+
+.jobchat-top-pill--visible {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+}
+
 /* Native-style push / pop between screens */
 .page-stack-host {
   position: relative;
@@ -307,7 +325,8 @@ html.modal-open .app-root {
 
 @media (prefers-reduced-motion: reduce) {
   .jobchat-sheet-panel,
-  .jobchat-sheet-backdrop {
+  .jobchat-sheet-backdrop,
+  .jobchat-top-pill {
     transition: none !important;
   }
 

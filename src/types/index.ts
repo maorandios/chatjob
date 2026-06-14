@@ -11,14 +11,31 @@ export const LANGUAGE_CODES = [
 export type LanguageCode = (typeof LANGUAGE_CODES)[number];
 
 export type ContactAliases = {
+  /** Manager viewing a worker — keyed by worker id */
   manager: Record<string, string>;
+  /** Worker viewing a manager — keyed by manager id */
   worker: Record<string, string>;
 };
 
 export type WorkerStatus = "pending" | "active";
 
+export type Company = {
+  id: string;
+  name: string;
+};
+
+export type Manager = {
+  id: string;
+  companyId: string;
+  name: string;
+  phone: string;
+  inviteToken: string;
+  isAdmin: boolean;
+};
+
 export type Worker = {
   id: string;
+  companyId: string;
   name: string;
   phone: string;
   language?: LanguageCode;
@@ -32,6 +49,8 @@ export type MessageInputType = "text" | "voice" | "image";
 
 export type Message = {
   id: string;
+  companyId: string;
+  managerId: string;
   workerId: string;
   senderRole: "manager" | "worker";
   originalText: string;
@@ -44,11 +63,10 @@ export type Message = {
   status: MessageStatus;
 };
 
-export type Invite = {
+export type WorkerInvite = {
   token: string;
   workerId: string;
-  managerName: string;
-  managerPhone: string;
+  companyId: string;
   companyName: string;
 };
 
@@ -58,4 +76,12 @@ export type LanguageOption = {
   countryName: string;
   flag: string;
   dir: "ltr" | "rtl";
+};
+
+export type TeamMemberRole = "management" | "worker";
+
+/** @deprecated Use WorkerInvite */
+export type Invite = WorkerInvite & {
+  managerName?: string;
+  managerPhone?: string;
 };

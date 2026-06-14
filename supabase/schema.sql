@@ -1,19 +1,38 @@
--- Slang app schema — run in Supabase SQL Editor (https://supabase.com/dashboard)
--- Project: https://dwaibcythzftjofehezw.supabase.co
+-- Slang app schema v2 — run in Supabase SQL Editor
+-- Company → up to 3 managers (one is_admin) + 5 workers
+-- Messages are 1:1 between one manager and one worker (same company)
 
 create extension if not exists "pgcrypto";
 
-create table if not exists managers (
+-- ---------------------------------------------------------------------------
+-- Core tables
+-- ---------------------------------------------------------------------------
+
+create table if not exists companies (
   id uuid primary key default gen_random_uuid(),
-  name text not null default 'מנהל',
-  phone text not null default '',
-  company_name text not null default '',
+  name text not null,
   created_at timestamptz not null default now()
 );
 
+create table if not exists managers (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references companies(id) on delete cascade,
+  name text not null,
+  phone text not null,
+  invite_token text not null unique,
+  is_admin boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists managers_company_id_idx on managers(company_id);
+create index if not exists managers_invite_token_idx on managers(invite_token);
+create unique index if not exists managers_one_admin_per_company_idx
+  on managers(company_id)
+  where is_admin = true;
+
 create table if not exists workers (
   id uuid primary key default gen_random_uuid(),
-  manager_id uuid not null references managers(id) on delete cascade,
+  company_id uuid not null references companies(id) on delete cascade,
   name text not null,
   phone text not null,
   language text,
@@ -22,11 +41,13 @@ create table if not exists workers (
   created_at timestamptz not null default now()
 );
 
-create index if not exists workers_manager_id_idx on workers(manager_id);
+create index if not exists workers_company_id_idx on workers(company_id);
 create index if not exists workers_invite_token_idx on workers(invite_token);
 
 create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references companies(id) on delete cascade,
+  manager_id uuid not null references managers(id) on delete cascade,
   worker_id uuid not null references workers(id) on delete cascade,
   sender_role text not null check (sender_role in ('manager', 'worker')),
   original_text text not null default '',
@@ -36,37 +57,191 @@ create table if not exists messages (
   input_type text not null default 'text' check (input_type in ('text', 'voice', 'image')),
   image_url text,
   status text not null default 'sent' check (status in ('sending', 'sent', 'delivered', 'failed')),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint messages_same_company check (
+    company_id is not null and manager_id is not null and worker_id is not null
+  )
 );
 
-create index if not exists messages_worker_id_created_at_idx on messages(worker_id, created_at);
+create index if not exists messages_conversation_idx
+  on messages(company_id, manager_id, worker_id, created_at);
+create index if not exists messages_worker_id_idx on messages(worker_id);
+create index if not exists messages_manager_id_idx on messages(manager_id);
 
--- Realtime for cross-device message sync
+-- ---------------------------------------------------------------------------
+-- Limits: max 3 managers and 5 workers per company
+-- ---------------------------------------------------------------------------
+
+create or replace function slang_enforce_manager_limit()
+returns trigger
+language plpgsql
+as $$
+declare
+  manager_count integer;
+begin
+  select count(*) into manager_count
+  from managers
+  where company_id = NEW.company_id;
+
+  if manager_count >= 3 then
+    raise exception 'SLANG_MANAGER_LIMIT';
+  end if;
+
+  return NEW;
+end;
+$$;
+
+drop trigger if exists slang_manager_limit on managers;
+create trigger slang_manager_limit
+before insert on managers
+for each row execute function slang_enforce_manager_limit();
+
+create or replace function slang_enforce_worker_limit()
+returns trigger
+language plpgsql
+as $$
+declare
+  worker_count integer;
+begin
+  select count(*) into worker_count
+  from workers
+  where company_id = NEW.company_id;
+
+  if worker_count >= 5 then
+    raise exception 'SLANG_WORKER_LIMIT';
+  end if;
+
+  return NEW;
+end;
+$$;
+
+drop trigger if exists slang_worker_limit on workers;
+create trigger slang_worker_limit
+before insert on workers
+for each row execute function slang_enforce_worker_limit();
+
+create or replace function slang_enforce_message_company()
+returns trigger
+language plpgsql
+as $$
+declare
+  manager_company uuid;
+  worker_company uuid;
+begin
+  select company_id into manager_company from managers where id = NEW.manager_id;
+  select company_id into worker_company from workers where id = NEW.worker_id;
+
+  if manager_company is null or worker_company is null then
+    raise exception 'SLANG_INVALID_PARTICIPANTS';
+  end if;
+
+  if manager_company <> worker_company then
+    raise exception 'SLANG_CROSS_COMPANY_MESSAGE';
+  end if;
+
+  NEW.company_id := manager_company;
+  return NEW;
+end;
+$$;
+
+drop trigger if exists slang_message_company on messages;
+create trigger slang_message_company
+before insert or update on messages
+for each row execute function slang_enforce_message_company();
+
+-- ---------------------------------------------------------------------------
+-- Atomic bootstrap (prevents duplicate companies on concurrent requests)
+-- ---------------------------------------------------------------------------
+
+create or replace function slang_bootstrap_admin(
+  p_company_name text,
+  p_admin_name text,
+  p_admin_phone text,
+  p_invite_token text
+)
+returns uuid
+language plpgsql
+as $$
+declare
+  v_company_id uuid;
+  v_manager_id uuid;
+begin
+  perform pg_advisory_xact_lock(84937201);
+
+  select m.id
+  into v_manager_id
+  from companies c
+  join managers m on m.company_id = c.id
+  where m.is_admin = true
+  order by c.created_at asc, m.created_at asc
+  limit 1;
+
+  if v_manager_id is not null then
+    return v_manager_id;
+  end if;
+
+  select m.id
+  into v_manager_id
+  from companies c
+  join managers m on m.company_id = c.id
+  order by c.created_at asc, m.created_at asc
+  limit 1;
+
+  if v_manager_id is not null then
+    return v_manager_id;
+  end if;
+
+  insert into companies (name)
+  values (p_company_name)
+  returning id into v_company_id;
+
+  insert into managers (company_id, name, phone, invite_token, is_admin)
+  values (v_company_id, p_admin_name, p_admin_phone, p_invite_token, true)
+  returning id into v_manager_id;
+
+  return v_manager_id;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Realtime
+-- ---------------------------------------------------------------------------
+
 alter publication supabase_realtime add table messages;
 
--- Permissive policies for prototype (API uses service role; anon used for realtime reads)
+-- ---------------------------------------------------------------------------
+-- RLS (prototype — API uses service role)
+-- ---------------------------------------------------------------------------
+
+alter table companies enable row level security;
 alter table managers enable row level security;
 alter table workers enable row level security;
 alter table messages enable row level security;
 
+drop policy if exists "slang_read_companies" on companies;
+drop policy if exists "slang_insert_companies" on companies;
 drop policy if exists "slang_read_managers" on managers;
 drop policy if exists "slang_insert_managers" on managers;
 drop policy if exists "slang_update_managers" on managers;
+drop policy if exists "slang_delete_managers" on managers;
 drop policy if exists "slang_read_workers" on workers;
 drop policy if exists "slang_insert_workers" on workers;
 drop policy if exists "slang_update_workers" on workers;
+drop policy if exists "slang_delete_workers" on workers;
 drop policy if exists "slang_read_messages" on messages;
 drop policy if exists "slang_insert_messages" on messages;
 drop policy if exists "slang_update_messages" on messages;
 
+create policy "slang_read_companies" on companies for select using (true);
+create policy "slang_insert_companies" on companies for insert with check (true);
 create policy "slang_read_managers" on managers for select using (true);
 create policy "slang_insert_managers" on managers for insert with check (true);
 create policy "slang_update_managers" on managers for update using (true);
-
+create policy "slang_delete_managers" on managers for delete using (true);
 create policy "slang_read_workers" on workers for select using (true);
 create policy "slang_insert_workers" on workers for insert with check (true);
 create policy "slang_update_workers" on workers for update using (true);
-
+create policy "slang_delete_workers" on workers for delete using (true);
 create policy "slang_read_messages" on messages for select using (true);
 create policy "slang_insert_messages" on messages for insert with check (true);
 create policy "slang_update_messages" on messages for update using (true);

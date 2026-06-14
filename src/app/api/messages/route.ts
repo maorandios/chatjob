@@ -8,6 +8,7 @@ import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { apiErrorResponse } from "@/lib/server/api-errors";
 import { translateText } from "@/lib/server/translate";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { assertSameCompanyParticipants } from "@/lib/supabase/company-access";
 import { rowToMessage } from "@/lib/supabase/mappers";
 import type { LanguageCode, MessageInputType } from "@/types";
 import { NextResponse } from "next/server";
@@ -16,15 +17,25 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const workerId = searchParams.get("workerId");
+    const managerId = searchParams.get("managerId");
 
-    if (!workerId) {
-      return NextResponse.json({ error: "workerId required" }, { status: 400 });
+    if (!workerId || !managerId) {
+      return NextResponse.json(
+        { error: "workerId and managerId required" },
+        { status: 400 }
+      );
+    }
+
+    const companyId = await assertSameCompanyParticipants(managerId, workerId);
+    if (!companyId) {
+      return NextResponse.json({ error: "Invalid conversation" }, { status: 403 });
     }
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("messages")
       .select("*")
+      .eq("manager_id", managerId)
       .eq("worker_id", workerId)
       .order("created_at", { ascending: true });
 
@@ -43,16 +54,25 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const workerId = String(body.workerId ?? "");
+    const managerId = String(body.managerId ?? "");
     const senderRole = body.senderRole as "manager" | "worker";
     const workerLanguage = body.workerLanguage as LanguageCode | undefined;
     const inputType = (body.inputType as MessageInputType) ?? "text";
     const context = body.context as TranslationContextMessage[] | undefined;
 
-    if (!workerId) {
-      return NextResponse.json({ error: "workerId required" }, { status: 400 });
+    if (!workerId || !managerId) {
+      return NextResponse.json(
+        { error: "workerId and managerId required" },
+        { status: 400 }
+      );
     }
     if (senderRole !== "manager" && senderRole !== "worker") {
       return NextResponse.json({ error: "Invalid senderRole" }, { status: 400 });
+    }
+
+    const companyId = await assertSameCompanyParticipants(managerId, workerId);
+    if (!companyId) {
+      return NextResponse.json({ error: "Invalid conversation" }, { status: 403 });
     }
 
     let originalText = String(body.originalText ?? body.text ?? "").trim();
@@ -100,6 +120,8 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from("messages")
       .insert({
+        company_id: companyId,
+        manager_id: managerId,
         worker_id: workerId,
         sender_role: senderRole,
         original_text: originalText,

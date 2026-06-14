@@ -13,13 +13,14 @@ import {
 import {
   getMessageDisplayText,
   useSlangStore,
-  useWorkerMessages,
+  useConversationMessages,
 } from "@/lib/store";
 import { buildTranslationContext } from "@/lib/translation/context";
 import type { LanguageCode, Message } from "@/types";
 import { useEffect, useRef, useState } from "react";
 
 type ChatThreadProps = {
+  managerId: string;
   workerId: string;
   viewerRole: "manager" | "worker";
   workerLanguage?: LanguageCode;
@@ -48,6 +49,7 @@ type ChatThreadProps = {
 };
 
 export function ChatThread({
+  managerId,
   workerId,
   viewerRole,
   workerLanguage,
@@ -74,7 +76,7 @@ export function ChatThread({
   dir = "rtl",
   largeComposer = false,
 }: ChatThreadProps) {
-  const messages = useWorkerMessages(workerId);
+  const messages = useConversationMessages(managerId, workerId);
   const sendMessage = useSlangStore((s) => s.sendMessage);
   const sendImageMessage = useSlangStore((s) => s.sendImageMessage);
   const commitProcessedMessage = useSlangStore((s) => s.commitProcessedMessage);
@@ -98,19 +100,20 @@ export function ChatThread({
 
   useEffect(() => {
     if (viewerRole !== "worker" || !hasUnreadManagerMessages) return;
-    markManagerMessagesRead(workerId);
-  }, [viewerRole, workerId, hasUnreadManagerMessages, markManagerMessagesRead]);
+    markManagerMessagesRead(managerId, workerId);
+  }, [viewerRole, managerId, workerId, hasUnreadManagerMessages, markManagerMessagesRead]);
 
   useEffect(() => {
     if (viewerRole !== "manager" || !hasUnreadWorkerMessages) return;
-    markWorkerMessagesRead(workerId);
-  }, [viewerRole, workerId, hasUnreadWorkerMessages, markWorkerMessagesRead]);
+    markWorkerMessagesRead(managerId, workerId);
+  }, [viewerRole, managerId, workerId, hasUnreadWorkerMessages, markWorkerMessagesRead]);
 
   const getContext = () => buildTranslationContext(messages);
 
   const handleSend = async (text: string) => {
     try {
       await sendMessage(
+        managerId,
         workerId,
         viewerRole,
         text,
@@ -128,7 +131,7 @@ export function ChatThread({
 
   const handleImageSend = async (file: File) => {
     try {
-      await sendImageMessage(workerId, viewerRole, file);
+      await sendImageMessage(managerId, workerId, viewerRole, file);
     } catch {
       showToast(imageSendFailedLabel);
     }
@@ -155,6 +158,7 @@ export function ChatThread({
         }
       );
       await commitProcessedMessage(
+        managerId,
         workerId,
         viewerRole,
         result,

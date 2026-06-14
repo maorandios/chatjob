@@ -48,3 +48,10 @@ export function getInviteUrl(token: string): string {
   }
   return `https://chatjob.vercel.app/invite/${token}`;
 }
+
+export function getManagerJoinUrl(token: string): string {
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/manager/join/${token}`;
+  }
+  return `https://chatjob.vercel.app/manager/join/${token}`;
+}
