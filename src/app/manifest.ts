@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "JobChat",
     short_name: "JobChat",
     description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
-    start_url: "/demo?r=2",
+    start_url: "/demo",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

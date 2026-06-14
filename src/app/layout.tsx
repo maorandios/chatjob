@@ -1,9 +1,8 @@
 import { LazyStoreSync } from "@/components/LazyStoreSync";
-import { MobileBoot } from "@/components/MobileBoot";
+import { LegacyPolyfills } from "@/components/LegacyPolyfills";
 import { PersistRehydrator } from "@/components/PersistRehydrator";
 import { ToastProvider } from "@/components/ui/Toast";
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,10 +42,7 @@ export default function RootLayout({
   return (
     <html lang="he" className="h-full">
       <body className="flex h-full min-h-0 flex-col">
-        <Script id="jobchat-boot-cleanup" strategy="beforeInteractive">
-          {"(function(){try{var e=document.getElementById('jobchat-overlays');if(e)e.remove();}catch(x){}})();"}
-        </Script>
-        <MobileBoot />
+        <LegacyPolyfills />
         <ToastProvider>
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
           <PersistRehydrator />

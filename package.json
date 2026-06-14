@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
@@ -27,11 +27,15 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "browserslist": [
-    "iOS >= 12",
-    "Safari >= 12",
-    "Android >= 5",
-    "last 2 Chrome versions",
-    "last 2 Firefox versions"
-  ]
+  "browserslist": {
+    "production": [
+      "ios_saf >= 12",
+      "Safari >= 12",
+      "android >= 6"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 safari version"
+    ]
+  }
 }
