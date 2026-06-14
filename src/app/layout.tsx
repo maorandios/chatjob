@@ -1,5 +1,3 @@
-import { LazyStoreSync } from "@/components/LazyStoreSync";
-import { PersistRehydrator } from "@/components/PersistRehydrator";
 import { ToastProvider } from "@/components/ui/Toast";
 import { LEGACY_POLYFILL_SCRIPT } from "@/lib/legacy-polyfills";
 import type { Metadata, Viewport } from "next";
@@ -7,14 +5,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "JobChat",
-    template: "%s | JobChat",
+    default: "Slang",
+    template: "%s | Slang",
   },
   description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
-  applicationName: "JobChat",
+  applicationName: "Slang",
   appleWebApp: {
     capable: true,
-    title: "JobChat",
+    title: "Slang",
     statusBarStyle: "default",
   },
   formatDetection: {
@@ -48,8 +46,6 @@ export default function RootLayout({
       <body className="flex h-full min-h-0 flex-col">
         <ToastProvider>
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-          <PersistRehydrator />
-          <LazyStoreSync />
         </ToastProvider>
       </body>
     </html>

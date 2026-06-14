@@ -37,8 +37,8 @@ export function InviteReadySheet({
 
   const handleShare = async () => {
     const shareData = {
-      title: "JobChat",
-      text: `${workerName} הוזמן ל-JobChat`,
+      title: "Slang",
+      text: `${workerName} הוזמן ל-Slang`,
       url: inviteUrl,
     };
     if (navigator.share) {

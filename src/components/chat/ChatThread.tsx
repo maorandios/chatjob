@@ -12,9 +12,9 @@ import {
 } from "@/lib/api/messages";
 import {
   getMessageDisplayText,
-  useJobChatStore,
+  useSlangStore,
   useWorkerMessages,
-} from "@/lib/mock/store";
+} from "@/lib/store";
 import { buildTranslationContext } from "@/lib/translation/context";
 import type { LanguageCode, Message } from "@/types";
 import { useEffect, useRef, useState } from "react";
@@ -75,11 +75,11 @@ export function ChatThread({
   largeComposer = false,
 }: ChatThreadProps) {
   const messages = useWorkerMessages(workerId);
-  const sendMessage = useJobChatStore((s) => s.sendMessage);
-  const sendImageMessage = useJobChatStore((s) => s.sendImageMessage);
-  const commitProcessedMessage = useJobChatStore((s) => s.commitProcessedMessage);
-  const markManagerMessagesRead = useJobChatStore((s) => s.markManagerMessagesRead);
-  const markWorkerMessagesRead = useJobChatStore((s) => s.markWorkerMessagesRead);
+  const sendMessage = useSlangStore((s) => s.sendMessage);
+  const sendImageMessage = useSlangStore((s) => s.sendImageMessage);
+  const commitProcessedMessage = useSlangStore((s) => s.commitProcessedMessage);
+  const markManagerMessagesRead = useSlangStore((s) => s.markManagerMessagesRead);
+  const markWorkerMessagesRead = useSlangStore((s) => s.markWorkerMessagesRead);
   const { showToast } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [voicePreview, setVoicePreview] = useState<VoiceTranscription | null>(null);
@@ -154,7 +154,13 @@ export function ChatThread({
           inputType: "voice",
         }
       );
-      commitProcessedMessage(workerId, viewerRole, result);
+      await commitProcessedMessage(
+        workerId,
+        viewerRole,
+        result,
+        workerLanguage,
+        getContext()
+      );
       setVoicePreview(null);
     } catch (error) {
       showToast(

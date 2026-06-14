@@ -1,7 +1,7 @@
 "use client";
 
 import { Sheet } from "@/components/ui/Sheet";
-import { useJobChatStore } from "@/lib/mock/store";
+import { useSlangStore } from "@/lib/store";
 
 type ManagerSettingsSheetProps = {
   open: boolean;
@@ -12,8 +12,8 @@ export function ManagerSettingsSheet({
   open,
   onClose,
 }: ManagerSettingsSheetProps) {
-  const companyName = useJobChatStore((s) => s.companyName);
-  const managerName = useJobChatStore((s) => s.managerName);
+  const companyName = useSlangStore((s) => s.companyName);
+  const managerName = useSlangStore((s) => s.managerName);
 
   return (
     <Sheet open={open} onClose={onClose} title="הגדרות">
@@ -33,7 +33,7 @@ export function ManagerSettingsSheet({
         >
           התנתקות (בקרוב)
         </button>
-        <p className="text-center text-xs text-gray-400">JobChat Prototype</p>
+        <p className="text-center text-xs text-gray-400">Slang</p>
       </div>
     </Sheet>
   );

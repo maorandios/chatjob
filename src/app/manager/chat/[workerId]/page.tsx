@@ -4,25 +4,39 @@ import { AppShell } from "@/components/ui/AppShell";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
+import { useChatData } from "@/lib/hooks/use-slang-data";
 import {
   useContactDisplayName,
-  useJobChatStore,
+  useSlangStore,
   useWorkerById,
-} from "@/lib/mock/store";
+} from "@/lib/store";
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 
 export default function ManagerChatPage() {
   const params = useParams<{ workerId: string }>();
   const workerId = params?.workerId;
+  const ready = useSlangStore((s) => s.ready);
   const worker = useWorkerById(workerId ?? "");
-  const setContactAlias = useJobChatStore((s) => s.setContactAlias);
+  const setContactAlias = useSlangStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);
   const displayName = useContactDisplayName(
     "manager",
-    workerId,
+    workerId ?? "",
     worker?.name ?? ""
   );
+
+  useChatData(workerId);
+
+  if (!ready) {
+    return (
+      <AppShell dir="rtl">
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-gray-500">טוען...</p>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!workerId || !worker) notFound();
 

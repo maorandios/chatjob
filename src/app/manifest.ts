@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "JobChat",
-    short_name: "JobChat",
+    name: "Slang",
+    short_name: "Slang",
     description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
     start_url: "/demo",
     scope: "/",
