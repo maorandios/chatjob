@@ -2,6 +2,7 @@
 
 import type { ProcessedMessage } from "@/lib/api/messages";
 import { compressImageFile } from "@/lib/images/compress";
+import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
 import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import {
   clearStoredManagerId,
@@ -12,6 +13,8 @@ import { jobChatPersistStorage } from "@/lib/mock/safe-storage";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { generateId, normalizePhone } from "@/lib/utils";
 import type {
+  ContactAliasEntry,
+  ContactAliasValue,
   ContactAliases,
   Invite,
   LanguageCode,
@@ -50,7 +53,20 @@ type SlangState = {
     invite: WorkerInvite;
     managers: Manager[];
   } | null>;
-  loadMessages: (managerId: string, workerId: string) => Promise<void>;
+  loadMessages: (
+    managerId: string,
+    workerId: string,
+    options?: { before?: string; limit?: number }
+  ) => Promise<{ messages: Message[]; hasMore: boolean }>;
+  loadMessagePreviews: (options: {
+    managerId?: string;
+    workerId?: string;
+  }) => Promise<void>;
+  setConversationMessages: (
+    managerId: string,
+    workerId: string,
+    messages: Message[]
+  ) => void;
   addManager: (name: string, phone: string) => Promise<Manager>;
   addWorker: (name: string, phone: string) => Promise<Worker>;
   removeManager: (managerId: string) => Promise<void>;
@@ -83,14 +99,32 @@ type SlangState = {
   setContactAlias: (
     viewerRole: "manager" | "worker",
     contactId: string,
-    name: string
+    profile: ContactAliasEntry
   ) => void;
+  updateWorkerProfile: (
+    workerId: string,
+    profile: { name: string; phone: string }
+  ) => Promise<void>;
   upsertMessage: (message: Message) => void;
   mergeMessages: (messages: Message[]) => void;
   upsertWorker: (worker: Worker) => void;
   upsertManager: (manager: Manager) => void;
   upsertInvite: (invite: Invite) => void;
 };
+
+function normalizeContactAliasEntry(
+  value: ContactAliasValue | undefined
+): ContactAliasEntry {
+  if (!value) return {};
+  if (typeof value === "string") {
+    const name = value.trim();
+    return name ? { name } : {};
+  }
+  return {
+    name: value.name?.trim() || undefined,
+    phone: value.phone?.trim() || undefined,
+  };
+}
 
 function createPendingMessage(
   companyId: string,
@@ -206,6 +240,7 @@ export const useSlangStore = create<SlangState>()(
             ready: true,
             bootstrapError: null,
           });
+          void get().loadMessagePreviews({ managerId: manager.id });
         };
 
         async function requestBootstrap(payload: {
@@ -309,17 +344,60 @@ export const useSlangStore = create<SlangState>()(
           companyName: invite.companyName,
         }));
 
+        void get().loadMessagePreviews({ workerId: worker.id });
+
         return { worker, invite, managers };
       },
 
-      loadMessages: async (managerId, workerId) => {
-        const res = await fetch(
-          `/api/messages?managerId=${encodeURIComponent(managerId)}&workerId=${encodeURIComponent(workerId)}`
-        );
+      loadMessages: async (managerId, workerId, options) => {
+        const limit = options?.limit ?? MESSAGE_PAGE_SIZE;
+        const params = new URLSearchParams({
+          managerId,
+          workerId,
+          limit: String(limit),
+        });
+        if (options?.before) {
+          params.set("before", options.before);
+        }
+
+        const res = await fetch(`/api/messages?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to load messages");
 
         const data = await res.json();
-        get().mergeMessages(data.messages as Message[]);
+        return {
+          messages: data.messages as Message[],
+          hasMore: Boolean(data.hasMore),
+        };
+      },
+
+      loadMessagePreviews: async ({ managerId, workerId }) => {
+        const params = new URLSearchParams();
+        if (managerId) params.set("managerId", managerId);
+        if (workerId) params.set("workerId", workerId);
+
+        const res = await fetch(`/api/messages/previews?${params.toString()}`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const previews = data.previews as Message[];
+        if (previews.length > 0) {
+          get().mergeMessages(previews);
+        }
+      },
+
+      setConversationMessages: (managerId, workerId, messages) => {
+        set((state) => {
+          const pending = state.messages.filter(
+            (m) =>
+              m.managerId === managerId &&
+              m.workerId === workerId &&
+              m.status === "sending"
+          );
+          const other = state.messages.filter(
+            (m) => !(m.managerId === managerId && m.workerId === workerId)
+          );
+          return { messages: [...other, ...messages, ...pending] };
+        });
       },
 
       addManager: async (name, phone) => {
@@ -623,19 +701,61 @@ export const useSlangStore = create<SlangState>()(
         get().mergeMessages(data.messages as Message[]);
       },
 
-      setContactAlias: (viewerRole, contactId, name) => {
-        const trimmed = name.trim();
+      setContactAlias: (viewerRole, contactId, profile) => {
         set((state) => {
           const roleAliases = { ...state.contactAliases[viewerRole] };
-          if (trimmed) {
-            roleAliases[contactId] = trimmed;
-          } else {
-            delete roleAliases[contactId];
+          const existing = normalizeContactAliasEntry(roleAliases[contactId]);
+          const next: ContactAliasEntry = { ...existing };
+
+          if (profile.name !== undefined) {
+            next.name = profile.name.trim() || undefined;
           }
+          if (profile.phone !== undefined) {
+            next.phone = profile.phone.trim() || undefined;
+          }
+
+          if (!next.name && !next.phone) {
+            delete roleAliases[contactId];
+          } else {
+            roleAliases[contactId] = next;
+          }
+
           return {
             contactAliases: {
               ...state.contactAliases,
               [viewerRole]: roleAliases,
+            },
+          };
+        });
+      },
+
+      updateWorkerProfile: async (workerId, profile) => {
+        const managerId = get().managerId;
+        if (!managerId) throw new Error("Not authenticated");
+
+        const res = await fetch(`/api/workers/${encodeURIComponent(workerId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            managerId,
+            name: profile.name,
+            phone: normalizePhone(profile.phone),
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to update worker");
+
+        const data = await res.json();
+        const worker = data.worker as Worker;
+        get().upsertWorker(worker);
+
+        set((state) => {
+          const roleAliases = { ...state.contactAliases.manager };
+          delete roleAliases[workerId];
+          return {
+            contactAliases: {
+              ...state.contactAliases,
+              manager: roleAliases,
             },
           };
         });
@@ -792,8 +912,22 @@ export function getContactDisplayName(
   contactId: string,
   defaultName: string
 ): string {
-  const alias = contactAliases?.[viewerRole]?.[contactId]?.trim();
+  const alias = normalizeContactAliasEntry(
+    contactAliases?.[viewerRole]?.[contactId]
+  ).name;
   return alias || defaultName;
+}
+
+export function getContactDisplayPhone(
+  contactAliases: ContactAliases,
+  viewerRole: "manager" | "worker",
+  contactId: string,
+  defaultPhone: string
+): string {
+  const alias = normalizeContactAliasEntry(
+    contactAliases?.[viewerRole]?.[contactId]
+  ).phone;
+  return alias || defaultPhone;
 }
 
 export function useContactDisplayName(
@@ -801,10 +935,21 @@ export function useContactDisplayName(
   contactId: string,
   defaultName: string
 ): string {
-  const alias = useSlangStore(
-    (s) => s.contactAliases?.[viewerRole]?.[contactId]
+  const alias = useSlangStore((s) =>
+    normalizeContactAliasEntry(s.contactAliases?.[viewerRole]?.[contactId]).name
   );
-  return alias?.trim() || defaultName;
+  return alias || defaultName;
+}
+
+export function useContactDisplayPhone(
+  viewerRole: "manager" | "worker",
+  contactId: string,
+  defaultPhone: string
+): string {
+  const alias = useSlangStore((s) =>
+    normalizeContactAliasEntry(s.contactAliases?.[viewerRole]?.[contactId]).phone
+  );
+  return alias || defaultPhone;
 }
 
 export function useLastMessage(

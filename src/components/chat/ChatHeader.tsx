@@ -98,22 +98,9 @@ export function ChatHeader({
     </div>
   );
 
-  const profileWrapper = (
-    <div
-      className={cn(
-        "flex min-w-0 flex-1",
-        isRtl ? "justify-end" : "justify-start"
-      )}
-    >
-      {profileBlock}
-    </div>
-  );
-
   const settingsButton = settingsHref ? (
-    <UserSettingsButton href={settingsHref} className="h-10 w-10" />
-  ) : (
-    <div className="w-10 shrink-0" />
-  );
+    <UserSettingsButton href={settingsHref} className="h-10 w-10 shrink-0" />
+  ) : null;
 
   return (
     <header className="chrome-top z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white">
@@ -121,13 +108,14 @@ export function ChatHeader({
         {isRtl ? (
           <>
             {backButton}
-            {profileWrapper}
-            {settingsButton}
+            <div className="ms-auto min-w-0">{profileBlock}</div>
+            {settingsHref ? settingsButton : null}
           </>
         ) : (
           <>
-            {settingsButton}
-            {profileWrapper}
+            <div className="min-w-0">{profileBlock}</div>
+            <div className="ms-auto" />
+            {settingsHref ? settingsButton : null}
             {backButton}
           </>
         )}

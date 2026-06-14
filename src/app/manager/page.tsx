@@ -2,25 +2,34 @@
 
 import { AddWorkerSheet } from "@/components/manager/AddWorkerSheet";
 import { ChatListItem } from "@/components/manager/ChatListItem";
+import { ContactSearchField } from "@/components/manager/ContactSearchField";
 import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
 import { AppListHeader } from "@/components/settings/AppListHeader";
 import { AppShell } from "@/components/ui/AppShell";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { useToast } from "@/components/ui/Toast";
 import {
   MAX_MANAGERS_PER_COMPANY,
   MAX_WORKERS_PER_COMPANY,
 } from "@/lib/constants/limits";
+import { filterWorkersByQuery } from "@/lib/contacts/filter-workers";
+import { useManagerInboxPreviews } from "@/lib/hooks/use-slang-data";
 import { clearStoredManagerId } from "@/lib/manager-session";
 import { useSlangStore } from "@/lib/store";
 import { getInviteUrl, getManagerJoinUrl } from "@/lib/utils";
 import { MessageCircle, Plus } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export default function ManagerPage() {
+  useManagerInboxPreviews();
   const ready = useSlangStore((s) => s.ready);
+  const managerId = useSlangStore((s) => s.managerId);
   const bootstrapError = useSlangStore((s) => s.bootstrapError);
   const bootstrapManager = useSlangStore((s) => s.bootstrapManager);
   const workers = useSlangStore((s) => s.workers);
+  const contactAliases = useSlangStore((s) => s.contactAliases);
+  const loadWorkers = useSlangStore((s) => s.loadWorkers);
+  const loadMessagePreviews = useSlangStore((s) => s.loadMessagePreviews);
   const managers = useSlangStore((s) => s.managers);
   const isAdmin = useSlangStore((s) => s.isAdmin);
   const addManager = useSlangStore((s) => s.addManager);
@@ -36,6 +45,20 @@ export default function ManagerPage() {
     url: string;
     kind: "manager" | "worker";
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredWorkers = useMemo(
+    () => filterWorkersByQuery(workers, searchQuery, contactAliases),
+    [workers, searchQuery, contactAliases]
+  );
+
+  const handleRefresh = useCallback(async () => {
+    if (!managerId) return;
+    await Promise.all([
+      loadWorkers(),
+      loadMessagePreviews({ managerId }),
+    ]);
+  }, [managerId, loadWorkers, loadMessagePreviews]);
 
   const canAddManager = managers.length < MAX_MANAGERS_PER_COMPANY;
   const canAddWorker = workers.length < MAX_WORKERS_PER_COMPANY;
@@ -152,11 +175,30 @@ export default function ManagerPage() {
           </p>
         </div>
       ) : (
-        <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] pb-24">
-          {workers.map((worker) => (
-            <ChatListItem key={worker.id} worker={worker} />
-          ))}
-        </div>
+        <>
+          <div className="shrink-0 bg-[var(--jobchat-surface)] px-3 pb-3 pt-2">
+            <ContactSearchField
+              value={searchQuery}
+              onChange={setSearchQuery}
+            />
+          </div>
+          <PullToRefresh
+            onRefresh={handleRefresh}
+            className="bg-[var(--jobchat-surface)]"
+            contentClassName="bg-[var(--jobchat-surface)]"
+          >
+            <div className="flex flex-col gap-2 px-3 py-3 pb-24">
+              {filteredWorkers.map((worker) => (
+                <ChatListItem key={worker.id} worker={worker} />
+              ))}
+              {filteredWorkers.length === 0 && (
+                <p className="py-10 text-center text-sm text-gray-500">
+                  לא נמצאו אנשי קשר
+                </p>
+              )}
+            </div>
+          </PullToRefresh>
+        </>
       )}
 
       {canAddMember && (

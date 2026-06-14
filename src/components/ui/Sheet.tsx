@@ -13,6 +13,7 @@ type SheetProps = {
   children: ReactNode;
   className?: string;
   dir?: "ltr" | "rtl";
+  showCloseButton?: boolean;
 };
 
 function SheetPanel({
@@ -22,6 +23,7 @@ function SheetPanel({
   dir = "ltr",
   onClose,
   onTransitionEnd,
+  showCloseButton = true,
 }: {
   title?: string;
   children: ReactNode;
@@ -29,6 +31,7 @@ function SheetPanel({
   dir?: "ltr" | "rtl";
   onClose: () => void;
   onTransitionEnd: (event: React.TransitionEvent<HTMLDivElement>) => void;
+  showCloseButton?: boolean;
 }) {
   return (
     <div
@@ -39,17 +42,26 @@ function SheetPanel({
       className={cn("jobchat-sheet-panel", className)}
     >
       <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-gray-200" />
-      {title && (
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
+      {(title || showCloseButton) && (
+        <div
+          className={cn(
+            "mb-4 flex items-center",
+            title ? "justify-between" : "justify-start"
+          )}
+        >
+          {title ? (
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          ) : null}
+          {showCloseButton ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          ) : null}
         </div>
       )}
       {children}
@@ -64,6 +76,7 @@ export function Sheet({
   children,
   className,
   dir = "ltr",
+  showCloseButton = true,
 }: SheetProps) {
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
@@ -127,6 +140,7 @@ export function Sheet({
           dir={dir}
           onClose={onClose}
           onTransitionEnd={handlePanelTransitionEnd}
+          showCloseButton={showCloseButton}
         >
           {children}
         </SheetPanel>

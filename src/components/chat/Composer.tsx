@@ -30,7 +30,12 @@ type ComposerProps = {
 };
 
 const actionBtn =
-  "flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full";
+  "flex shrink-0 touch-manipulation items-center justify-center rounded-full";
+
+const inlineImageBtn = cn(
+  actionBtn,
+  "h-9 w-9 border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 active:bg-gray-100 disabled:opacity-40"
+);
 
 export function Composer({
   onSend,
@@ -101,29 +106,27 @@ export function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   };
 
+  const imageButton = onImageSend ? (
+    <button
+      type="button"
+      disabled={disabled || isSending}
+      onClick={() => setShowImageSheet(true)}
+      className={inlineImageBtn}
+      aria-label={attachImageTitle}
+    >
+      <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
+    </button>
+  ) : null;
+
   return (
     <>
       <div className="composer-dock">
         <div dir="ltr" className="flex items-end gap-2">
-          {onImageSend && (
-            <button
-              type="button"
-              disabled={disabled || isSending}
-              onClick={() => setShowImageSheet(true)}
-              className={cn(
-                actionBtn,
-                "border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] text-gray-500 active:bg-gray-100 disabled:opacity-40"
-              )}
-              aria-label={attachImageTitle}
-            >
-              <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
-            </button>
-          )}
-
           <div
             dir={dir}
-            className="flex min-h-[48px] min-w-0 flex-1 items-end rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-4 py-3 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
+            className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2 rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-3 py-1.5 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
           >
+            {dir === "rtl" && imageButton}
             <textarea
               ref={textareaRef}
               value={text}
@@ -135,10 +138,11 @@ export function Composer({
               placeholder={placeholder}
               enterKeyHint="send"
               className={cn(
-                "max-h-[120px] w-full min-w-0 flex-1 resize-none bg-transparent text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
+                "max-h-[120px] min-h-[24px] min-w-0 flex-1 resize-none bg-transparent py-1 text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
                 large ? "text-[17px] leading-relaxed" : "text-[16px] leading-normal"
               )}
             />
+            {dir === "ltr" && imageButton}
           </div>
 
           {hasText ? (
@@ -148,7 +152,7 @@ export function Composer({
               disabled={disabled || isSending}
               className={cn(
                 actionBtn,
-                "bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
+                "h-11 w-11 bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
               )}
               aria-label="Send"
             >

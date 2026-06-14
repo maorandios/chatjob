@@ -1,7 +1,11 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { assertManagerIsAdmin } from "@/lib/supabase/company-access";
+import {
+  assertManagerIsAdmin,
+  assertSameCompanyParticipants,
+} from "@/lib/supabase/company-access";
 import { rowToWorker } from "@/lib/supabase/mappers";
 import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
+import { isValidIsraeliPhone, normalizePhone } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
 import { NextResponse } from "next/server";
 
@@ -15,6 +19,8 @@ export async function PATCH(req: Request, context: RouteContext) {
     const updates: {
       language?: string;
       status?: "pending" | "active";
+      name?: string;
+      phone?: string;
     } = {};
 
     if (body.language) {
@@ -22,6 +28,34 @@ export async function PATCH(req: Request, context: RouteContext) {
       updates.status = "active";
     } else if (body.status === "pending" || body.status === "active") {
       updates.status = body.status;
+    }
+
+    if (body.name !== undefined || body.phone !== undefined) {
+      const managerId = String(body.managerId ?? "");
+      if (!managerId) {
+        return NextResponse.json({ error: "managerId required" }, { status: 400 });
+      }
+
+      const companyId = await assertSameCompanyParticipants(managerId, id);
+      if (!companyId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      if (body.name !== undefined) {
+        const name = String(body.name).trim();
+        if (!name) {
+          return NextResponse.json({ error: "Invalid name" }, { status: 400 });
+        }
+        updates.name = name;
+      }
+
+      if (body.phone !== undefined) {
+        const phone = normalizePhone(String(body.phone));
+        if (!isValidIsraeliPhone(phone)) {
+          return NextResponse.json({ error: "Invalid phone" }, { status: 400 });
+        }
+        updates.phone = phone;
+      }
     }
 
     if (Object.keys(updates).length === 0) {

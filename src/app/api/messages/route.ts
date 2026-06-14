@@ -7,6 +7,7 @@ import {
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { apiErrorResponse } from "@/lib/server/api-errors";
 import { translateText } from "@/lib/server/translate";
+import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   assertSameCompanyParticipants,
@@ -35,17 +36,33 @@ export async function GET(req: Request) {
     }
 
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+    const limitParam = Number.parseInt(searchParams.get("limit") ?? "", 10);
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(limitParam, 1), 50)
+      : MESSAGE_PAGE_SIZE;
+    const before = searchParams.get("before");
+
+    let query = supabase
       .from("messages")
       .select("*")
       .eq("manager_id", managerId)
-      .eq("worker_id", workerId)
-      .order("created_at", { ascending: true });
+      .eq("worker_id", workerId);
+
+    if (before) {
+      query = query.lt("created_at", before);
+    }
+
+    const { data, error } = await query
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
     if (error) throw error;
 
+    const messages = (data ?? []).reverse().map(rowToMessage);
+
     return NextResponse.json({
-      messages: (data ?? []).map(rowToMessage),
+      messages,
+      hasMore: messages.length === limit,
     });
   } catch (error) {
     console.error("List messages error:", error);

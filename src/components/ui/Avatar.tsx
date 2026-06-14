@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 type AvatarProps = {
   name: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 };
 
@@ -10,6 +10,7 @@ const sizes = {
   sm: "h-10 w-10 text-sm",
   md: "h-12 w-12 text-base",
   lg: "h-16 w-16 text-xl",
+  xl: "h-20 w-20 text-2xl",
 };
 
 function getInitials(name: string): string {

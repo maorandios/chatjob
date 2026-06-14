@@ -4,12 +4,13 @@ import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
 import { MobileFrame } from "@/components/ui/MobileFrame";
-import { useChatData, useInviteBootstrap } from "@/lib/hooks/use-slang-data";
+import { useInviteBootstrap } from "@/lib/hooks/use-slang-data";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
 import { getQuickReplyPhrases } from "@/lib/mock/translations";
 import {
   useContactDisplayName,
+  useContactDisplayPhone,
   useManagerById,
   useSlangStore,
 } from "@/lib/store";
@@ -27,8 +28,6 @@ export default function WorkerChatPage() {
   const setContactAlias = useSlangStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);
 
-  useChatData(managerId, worker?.id);
-
   useEffect(() => {
     if (worker && !worker.language) {
       router.replace(`/invite/${token}`);
@@ -39,6 +38,11 @@ export default function WorkerChatPage() {
     "worker",
     managerId,
     manager?.name ?? ""
+  );
+  const displayPhone = useContactDisplayPhone(
+    "worker",
+    managerId,
+    manager?.phone ?? ""
   );
 
   if (loading) {
@@ -66,9 +70,8 @@ export default function WorkerChatPage() {
     <MobileFrame dir={dir}>
       <ChatHeader
         name={displayName}
-        subtitle={manager.phone}
+        subtitle={displayPhone}
         backHref={`/invite/${token}`}
-        settingsHref={`/invite/${token}/settings`}
         dir={dir}
         showOnline={false}
         onProfileClick={() => setShowContactSheet(true)}
@@ -105,13 +108,19 @@ export default function WorkerChatPage() {
       <ContactNameSheet
         open={showContactSheet}
         onClose={() => setShowContactSheet(false)}
-        originalName={manager.name}
+        originalPhone={manager.phone}
         displayName={displayName}
-        onSave={(name) => setContactAlias("worker", managerId, name)}
-        title={ui.contactNameTitle}
-        originalLabel={ui.contactNameOriginal}
-        placeholder={ui.contactNamePlaceholder}
+        displayPhone={displayPhone}
+        onSave={(profile) =>
+          setContactAlias("worker", managerId, {
+            name: profile.name === manager.name ? "" : profile.name,
+            phone: profile.phone === manager.phone ? "" : profile.phone,
+          })
+        }
+        namePlaceholder={ui.contactNamePlaceholder}
+        phonePlaceholder={ui.contactPhonePlaceholder}
         saveLabel={ui.contactNameSave}
+        phoneCopiedLabel={ui.contactPhoneCopied}
         dir={dir}
       />
     </MobileFrame>

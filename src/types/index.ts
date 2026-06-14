@@ -10,11 +10,19 @@ export const LANGUAGE_CODES = [
 
 export type LanguageCode = (typeof LANGUAGE_CODES)[number];
 
+export type ContactAliasEntry = {
+  name?: string;
+  phone?: string;
+};
+
+/** @deprecated Legacy persisted shape — string meant name-only alias */
+export type ContactAliasValue = ContactAliasEntry | string;
+
 export type ContactAliases = {
   /** Manager viewing a worker — keyed by worker id */
-  manager: Record<string, string>;
+  manager: Record<string, ContactAliasValue>;
   /** Worker viewing a manager — keyed by manager id */
-  worker: Record<string, string>;
+  worker: Record<string, ContactAliasValue>;
 };
 
 export type WorkerStatus = "pending" | "active";

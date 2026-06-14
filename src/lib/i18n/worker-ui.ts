@@ -42,6 +42,9 @@ export type WorkerUiStrings = {
   contactNameTitle: string;
   contactNameOriginal: string;
   contactNamePlaceholder: string;
+  contactPhoneOriginal: string;
+  contactPhonePlaceholder: string;
+  contactPhoneCopied: string;
   contactNameSave: string;
   joinChat: string;
   invalidInvite: string;
@@ -90,6 +93,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "ชื่อผู้ติดต่อ",
     contactNameOriginal: "ชื่อต้นฉบับ",
     contactNamePlaceholder: "ชื่อที่คุณต้องการเรียก",
+    contactPhoneOriginal: "หมายเลขโทรศัพท์",
+    contactPhonePlaceholder: "หมายเลขโทรศัพท์",
+    contactPhoneCopied: "คัดลอกหมายเลขโทรศัพท์แล้ว",
     contactNameSave: "บันทึก",
     joinChat: "เข้าสู่แชท",
     invalidInvite: "הזמנה לא תקינה",
@@ -136,6 +142,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "संपर्क का नाम",
     contactNameOriginal: "मूल नाम",
     contactNamePlaceholder: "आप क्या कहना चाहते हैं",
+    contactPhoneOriginal: "फ़ोन नंबर",
+    contactPhonePlaceholder: "फ़ोन नंबर",
+    contactPhoneCopied: "फ़ोन नंबर कॉपी हो गया",
     contactNameSave: "सहेजें",
     joinChat: "चैट में जाएँ",
     invalidInvite: "अमान्य निमंत्रण",
@@ -182,6 +191,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "සම්බන්ධතා නම",
     contactNameOriginal: "මුල් නම",
     contactNamePlaceholder: "ඔබ හඳුන්වන නම",
+    contactPhoneOriginal: "දුරකථන අංකය",
+    contactPhonePlaceholder: "දුරකථන අංකය",
+    contactPhoneCopied: "දුරකථන අංකය පිටපත් කළා",
     contactNameSave: "සුරකින්න",
     joinChat: "චැට්ටට යන්න",
     invalidInvite: "වලංගු නොවන ආරාධනාව",
@@ -228,6 +240,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "Nume contact",
     contactNameOriginal: "Nume original",
     contactNamePlaceholder: "Cum vrei să îl numești",
+    contactPhoneOriginal: "Număr de telefon",
+    contactPhonePlaceholder: "Număr de telefon",
+    contactPhoneCopied: "Număr de telefon copiat",
     contactNameSave: "Salvează",
     joinChat: "Intră în chat",
     invalidInvite: "Invitație invalidă",
@@ -274,6 +289,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "Contact name",
     contactNameOriginal: "Original name",
     contactNamePlaceholder: "Name you want to use",
+    contactPhoneOriginal: "Phone number",
+    contactPhonePlaceholder: "Phone number",
+    contactPhoneCopied: "Phone number copied",
     contactNameSave: "Save",
     joinChat: "Enter chat",
     invalidInvite: "Invalid invitation",
@@ -320,6 +338,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "اسم جهة الاتصال",
     contactNameOriginal: "الاسم الأصلي",
     contactNamePlaceholder: "الاسم الذي تريد استخدامه",
+    contactPhoneOriginal: "رقم الهاتف",
+    contactPhonePlaceholder: "رقم الهاتف",
+    contactPhoneCopied: "تم نسخ رقم الهاتف",
     contactNameSave: "حفظ",
     joinChat: "دخول المحادثة",
     invalidInvite: "دعوة غير صالحة",
@@ -366,6 +387,9 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
     contactNameTitle: "Имя контакта",
     contactNameOriginal: "Оригинальное имя",
     contactNamePlaceholder: "Как вы хотите называть",
+    contactPhoneOriginal: "Номер телефона",
+    contactPhonePlaceholder: "Номер телефона",
+    contactPhoneCopied: "Номер телефона скопирован",
     contactNameSave: "Сохранить",
     joinChat: "Войти в чат",
     invalidInvite: "Недействительное приглашение",

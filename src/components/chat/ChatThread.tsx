@@ -1,5 +1,6 @@
 "use client";
 
+import { ChatLoadingState } from "@/components/chat/ChatLoadingState";
 import { Composer } from "@/components/chat/Composer";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { QuickReplies } from "@/components/chat/QuickReplies";
@@ -15,9 +16,10 @@ import {
   useSlangStore,
   useConversationMessages,
 } from "@/lib/store";
+import { useChatData } from "@/lib/hooks/use-slang-data";
 import { buildTranslationContext } from "@/lib/translation/context";
 import type { LanguageCode, Message } from "@/types";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type ChatThreadProps = {
   managerId: string;
@@ -76,6 +78,10 @@ export function ChatThread({
   dir = "rtl",
   largeComposer = false,
 }: ChatThreadProps) {
+  const { loading, hasMore, loadingOlder, loadOlder } = useChatData(
+    managerId,
+    workerId
+  );
   const messages = useConversationMessages(managerId, workerId);
   const sendMessage = useSlangStore((s) => s.sendMessage);
   const sendImageMessage = useSlangStore((s) => s.sendImageMessage);
@@ -83,9 +89,57 @@ export function ChatThread({
   const markManagerMessagesRead = useSlangStore((s) => s.markManagerMessagesRead);
   const markWorkerMessagesRead = useSlangStore((s) => s.markWorkerMessagesRead);
   const { showToast } = useToast();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevTailIdRef = useRef<string | undefined>(undefined);
+  const didInitialScrollRef = useRef(false);
+  const loadOlderLockRef = useRef(false);
   const [voicePreview, setVoicePreview] = useState<VoiceTranscription | null>(null);
   const [isConfirmingVoice, setIsConfirmingVoice] = useState(false);
+
+  useEffect(() => {
+    didInitialScrollRef.current = false;
+    prevTailIdRef.current = undefined;
+  }, [managerId, workerId]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!didInitialScrollRef.current) {
+      didInitialScrollRef.current = true;
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "auto" });
+      });
+      prevTailIdRef.current = messages[messages.length - 1]?.id;
+      return;
+    }
+    if (loadingOlder) return;
+
+    const tailId = messages[messages.length - 1]?.id;
+    if (!tailId || tailId === prevTailIdRef.current) return;
+    prevTailIdRef.current = tailId;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading, loadingOlder, managerId, workerId]);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || loading || loadingOlder || !hasMore || loadOlderLockRef.current) {
+      return;
+    }
+    if (el.scrollTop > 80) return;
+
+    loadOlderLockRef.current = true;
+    const prevHeight = el.scrollHeight;
+
+    void loadOlder().finally(() => {
+      requestAnimationFrame(() => {
+        const container = scrollRef.current;
+        if (container) {
+          container.scrollTop = container.scrollHeight - prevHeight + container.scrollTop;
+        }
+        loadOlderLockRef.current = false;
+      });
+    });
+  }, [loading, loadingOlder, hasMore, loadOlder]);
 
   const hasUnreadManagerMessages = messages.some(
     (m) => m.senderRole === "manager" && m.status === "sent"
@@ -95,18 +149,14 @@ export function ChatThread({
   );
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    if (viewerRole !== "worker" || !hasUnreadManagerMessages) return;
+    if (viewerRole !== "worker" || !hasUnreadManagerMessages || loading) return;
     markManagerMessagesRead(managerId, workerId);
-  }, [viewerRole, managerId, workerId, hasUnreadManagerMessages, markManagerMessagesRead]);
+  }, [viewerRole, managerId, workerId, hasUnreadManagerMessages, markManagerMessagesRead, loading]);
 
   useEffect(() => {
-    if (viewerRole !== "manager" || !hasUnreadWorkerMessages) return;
+    if (viewerRole !== "manager" || !hasUnreadWorkerMessages || loading) return;
     markWorkerMessagesRead(managerId, workerId);
-  }, [viewerRole, managerId, workerId, hasUnreadWorkerMessages, markWorkerMessagesRead]);
+  }, [viewerRole, managerId, workerId, hasUnreadWorkerMessages, markWorkerMessagesRead, loading]);
 
   const getContext = () => buildTranslationContext(messages);
 
@@ -179,11 +229,63 @@ export function ChatThread({
   };
 
   const showQuickReplies =
-    viewerRole === "worker" && messages.length === 0 && quickReplies?.length;
+    !loading &&
+    viewerRole === "worker" &&
+    messages.length === 0 &&
+    quickReplies?.length;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)] px-6">
+          <ChatLoadingState />
+        </div>
+        <Composer
+          onSend={handleSend}
+          onVoiceSend={handleVoiceRecorded}
+          onImageSend={handleImageSend}
+          placeholder={composerPlaceholder}
+          processingLabel={processingLabel}
+          analyzingLabel={analyzingLabel}
+          recordingLabel={recordingLabel}
+          finishRecordingLabel={finishRecordingLabel}
+          deleteRecordingLabel={deleteRecordingLabel}
+          maxDurationLabel={maxDurationLabel}
+          micErrorLabel={micErrorLabel}
+          tooShortLabel={recordingTooShortLabel}
+          attachImageTitle={attachImageTitle}
+          takePhotoLabel={takePhotoLabel}
+          chooseGalleryLabel={chooseGalleryLabel}
+          imageSendFailedLabel={imageSendFailedLabel}
+          large={largeComposer}
+          dir={dir}
+          disabled
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-4">
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      {loadingOlder && (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center bg-gradient-to-b from-[var(--jobchat-surface)] from-70% to-transparent px-6 pb-6 pt-5"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <ChatLoadingState />
+        </div>
+      )}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-4"
+      >
+        {hasMore && !loadingOlder && (
+          <div className="mb-3 flex justify-center py-1">
+            <span className="text-xs text-gray-400">גלול למעלה לשיחות קודמות</span>
+          </div>
+        )}
         {messages.length === 0 && emptyHint && (
           <div className="flex h-full min-h-[200px] flex-col items-center justify-center px-6 text-center">
             <p className="text-sm text-gray-500">{emptyHint}</p>

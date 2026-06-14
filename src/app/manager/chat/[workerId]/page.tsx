@@ -4,9 +4,9 @@ import { AppShell } from "@/components/ui/AppShell";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
-import { useChatData } from "@/lib/hooks/use-slang-data";
 import {
   useContactDisplayName,
+  useContactDisplayPhone,
   useSlangStore,
   useWorkerById,
 } from "@/lib/store";
@@ -19,15 +19,18 @@ export default function ManagerChatPage() {
   const managerId = useSlangStore((s) => s.managerId);
   const ready = useSlangStore((s) => s.ready);
   const worker = useWorkerById(workerId ?? "");
-  const setContactAlias = useSlangStore((s) => s.setContactAlias);
+  const updateWorkerProfile = useSlangStore((s) => s.updateWorkerProfile);
   const [showContactSheet, setShowContactSheet] = useState(false);
   const displayName = useContactDisplayName(
     "manager",
     workerId ?? "",
     worker?.name ?? ""
   );
-
-  useChatData(managerId ?? undefined, workerId);
+  const displayPhone = useContactDisplayPhone(
+    "manager",
+    workerId ?? "",
+    worker?.phone ?? ""
+  );
 
   if (!ready || !managerId) {
     return (
@@ -46,10 +49,9 @@ export default function ManagerChatPage() {
       <ChatHeader
         name={displayName}
         subtitle={
-          worker.status === "pending" ? "ממתין להצטרפות" : worker.phone
+          worker.status === "pending" ? "ממתין להצטרפות" : displayPhone
         }
         backHref="/manager"
-        settingsHref="/manager/settings"
         dir="rtl"
         showOnline={false}
         onProfileClick={() => setShowContactSheet(true)}
@@ -75,13 +77,14 @@ export default function ManagerChatPage() {
       <ContactNameSheet
         open={showContactSheet}
         onClose={() => setShowContactSheet(false)}
-        originalName={worker.name}
+        originalPhone={worker.phone}
         displayName={displayName}
-        onSave={(name) => setContactAlias("manager", workerId, name)}
-        title="שם איש קשר"
-        originalLabel="שם מקורי"
-        placeholder="איך לקרוא לעובד?"
+        displayPhone={displayPhone}
+        onSave={(profile) => updateWorkerProfile(workerId, profile)}
+        namePlaceholder="שם מלא"
+        phonePlaceholder="מספר טלפון"
         saveLabel="שמור"
+        phoneCopiedLabel="מספר טלפון הועתק"
         dir="rtl"
       />
     </AppShell>

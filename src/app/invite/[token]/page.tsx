@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { LanguagePicker } from "@/components/worker/LanguagePicker";
 import { ManagerChatListItem } from "@/components/worker/ManagerChatListItem";
-import { useInviteBootstrap } from "@/lib/hooks/use-slang-data";
+import { useInviteBootstrap, useWorkerInboxPreviews } from "@/lib/hooks/use-slang-data";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
@@ -38,11 +38,13 @@ function WorkerHome({
   const ui = getWorkerUi(language);
   const dir = getLanguageDir(language);
 
+  useWorkerInboxPreviews(workerId);
+
   return (
     <MobileFrame dir={dir}>
       <AppListHeader settingsHref={`/invite/${token}/settings`} />
 
-      <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)]">
+      <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
         {managers.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
             <p className="text-sm text-gray-500">{companyName}</p>

@@ -37,7 +37,7 @@ export function ManagerChatListItem({
   return (
     <Link
       href={`/invite/${inviteToken}/chat/${manager.id}`}
-      className="flex items-center gap-3 border-b border-[var(--jobchat-border)] bg-white px-4 py-3.5 transition-colors hover:bg-[var(--jobchat-surface)] active:bg-gray-100"
+      className="flex items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/15 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-white/25 active:bg-white/30"
     >
       <Avatar name={displayName} />
       <div className="min-w-0 flex-1">
