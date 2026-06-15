@@ -6,7 +6,6 @@ import { useRef } from "react";
 
 type ImageAttachSheetProps = {
   open: boolean;
-  title: string;
   takePhotoLabel: string;
   chooseGalleryLabel: string;
   onClose: () => void;
@@ -16,7 +15,6 @@ type ImageAttachSheetProps = {
 
 export function ImageAttachSheet({
   open,
-  title,
   takePhotoLabel,
   chooseGalleryLabel,
   onClose,
@@ -33,12 +31,13 @@ export function ImageAttachSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} className="rounded-t-[28px] px-6 pb-2 pt-3">
+    <Sheet
+      open={open}
+      onClose={onClose}
+      showCloseButton={false}
+      className="rounded-t-[28px] px-6 pb-2 pt-3"
+    >
       <div dir={dir} className="space-y-2 pb-2">
-        <p className="mb-4 text-center text-[17px] font-semibold text-gray-900">
-          {title}
-        </p>
-
         <input
           ref={galleryRef}
           type="file"

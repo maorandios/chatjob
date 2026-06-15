@@ -37,6 +37,8 @@ export function rowToWorker(row: DbWorker): Worker {
     companyId: row.company_id,
     name: row.name,
     phone: row.phone,
+    employeeNumber: row.employee_number ?? undefined,
+    address: row.address ?? undefined,
     language: (row.language as LanguageCode | null) ?? undefined,
     status: row.status as Worker["status"],
     inviteToken: row.invite_token,

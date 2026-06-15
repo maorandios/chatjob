@@ -46,6 +46,8 @@ export type Worker = {
   companyId: string;
   name: string;
   phone: string;
+  employeeNumber?: string;
+  address?: string;
   language?: LanguageCode;
   status: WorkerStatus;
   inviteToken: string;

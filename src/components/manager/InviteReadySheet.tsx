@@ -14,6 +14,9 @@ type InviteReadySheetProps = {
   inviteUrl: string;
   kind?: "manager" | "worker";
   whatsappText?: string;
+  title?: string;
+  subtitle?: string;
+  showCelebration?: boolean;
 };
 
 export function InviteReadySheet({
@@ -22,6 +25,9 @@ export function InviteReadySheet({
   memberName,
   inviteUrl,
   whatsappText,
+  title = "ההזמנה נוצרה!",
+  subtitle = "שלחו את קישור ההזמנה בוואטספ או העתיקו אותו",
+  showCelebration = true,
 }: InviteReadySheetProps) {
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -54,15 +60,15 @@ export function InviteReadySheet({
           onDone={() => {}}
         />
       )}
-      <Sheet open={open} onClose={onClose} dir="rtl">
+      <Sheet open={open} onClose={onClose} dir="rtl" showCloseButton={false}>
         <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)] animate-in zoom-in duration-300">
-            <Check className="h-8 w-8 text-[var(--jobchat-accent)]" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900">ההזמנה נוצרה!</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            שלחו את קישור ההזמנה בוואטספ או העתיקו אותו
-          </p>
+          {showCelebration && (
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)] animate-in zoom-in duration-300">
+              <Check className="h-8 w-8 text-[var(--jobchat-accent)]" />
+            </div>
+          )}
+          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <p className="mt-2 text-sm text-gray-500">{subtitle}</p>
 
           <div className="mt-6 w-full rounded-xl bg-[var(--jobchat-surface)] p-4">
             <p className="break-all text-sm text-gray-700" dir="ltr">

@@ -21,6 +21,8 @@ export async function PATCH(req: Request, context: RouteContext) {
       status?: "pending" | "active";
       name?: string;
       phone?: string;
+      employee_number?: string | null;
+      address?: string | null;
     } = {};
 
     if (body.language) {
@@ -30,7 +32,12 @@ export async function PATCH(req: Request, context: RouteContext) {
       updates.status = body.status;
     }
 
-    if (body.name !== undefined || body.phone !== undefined) {
+    if (
+      body.name !== undefined ||
+      body.phone !== undefined ||
+      body.employeeNumber !== undefined ||
+      body.address !== undefined
+    ) {
       const managerId = String(body.managerId ?? "");
       if (!managerId) {
         return NextResponse.json({ error: "managerId required" }, { status: 400 });
@@ -55,6 +62,16 @@ export async function PATCH(req: Request, context: RouteContext) {
           return NextResponse.json({ error: "Invalid phone" }, { status: 400 });
         }
         updates.phone = phone;
+      }
+
+      if (body.employeeNumber !== undefined) {
+        const employeeNumber = String(body.employeeNumber).trim();
+        updates.employee_number = employeeNumber || null;
+      }
+
+      if (body.address !== undefined) {
+        const address = String(body.address).trim();
+        updates.address = address || null;
       }
     }
 

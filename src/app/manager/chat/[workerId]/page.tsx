@@ -3,18 +3,19 @@
 import { AppShell } from "@/components/ui/AppShell";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
-import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
+import { WorkerProfileSheet } from "@/components/chat/WorkerProfileSheet";
 import {
   useContactDisplayName,
   useContactDisplayPhone,
   useSlangStore,
   useWorkerById,
 } from "@/lib/store";
-import { notFound, useParams } from "next/navigation";
-import { useState } from "react";
+import { notFound, useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ManagerChatPage() {
   const params = useParams<{ workerId: string }>();
+  const router = useRouter();
   const workerId = params?.workerId;
   const managerId = useSlangStore((s) => s.managerId);
   const ready = useSlangStore((s) => s.ready);
@@ -32,6 +33,12 @@ export default function ManagerChatPage() {
     worker?.phone ?? ""
   );
 
+  useEffect(() => {
+    if (worker?.status === "pending") {
+      router.replace("/manager");
+    }
+  }, [worker?.status, router]);
+
   if (!ready || !managerId) {
     return (
       <AppShell dir="rtl">
@@ -44,13 +51,21 @@ export default function ManagerChatPage() {
 
   if (!workerId || !worker) notFound();
 
+  if (worker.status === "pending") {
+    return (
+      <AppShell dir="rtl">
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-gray-500">טוען...</p>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell dir="rtl">
       <ChatHeader
         name={displayName}
-        subtitle={
-          worker.status === "pending" ? "ממתין להצטרפות" : displayPhone
-        }
+        subtitle={displayPhone}
         backHref="/manager"
         dir="rtl"
         showOnline={false}
@@ -74,16 +89,15 @@ export default function ManagerChatPage() {
         dir="rtl"
       />
 
-      <ContactNameSheet
+      <WorkerProfileSheet
         open={showContactSheet}
         onClose={() => setShowContactSheet(false)}
-        originalPhone={worker.phone}
         displayName={displayName}
         displayPhone={displayPhone}
+        copyPhone={worker.phone}
+        employeeNumber={worker.employeeNumber}
+        address={worker.address}
         onSave={(profile) => updateWorkerProfile(workerId, profile)}
-        namePlaceholder="שם מלא"
-        phonePlaceholder="מספר טלפון"
-        saveLabel="שמור"
         phoneCopiedLabel="מספר טלפון הועתק"
         dir="rtl"
       />

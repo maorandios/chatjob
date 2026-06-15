@@ -47,6 +47,8 @@ export async function POST(req: Request) {
     const requestingManagerId = String(body.managerId ?? "");
     const name = String(body.name ?? "").trim();
     const phone = normalizePhone(String(body.phone ?? ""));
+    const employeeNumber = String(body.employeeNumber ?? "").trim();
+    const address = String(body.address ?? "").trim();
 
     if (!requestingManagerId || !name || !phone) {
       return NextResponse.json({ error: "Invalid worker data" }, { status: 400 });
@@ -81,6 +83,8 @@ export async function POST(req: Request) {
         company_id: companyId,
         name,
         phone,
+        employee_number: employeeNumber || null,
+        address: address || null,
         status: "pending",
         invite_token: inviteToken,
       })

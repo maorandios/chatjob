@@ -68,7 +68,11 @@ type SlangState = {
     messages: Message[]
   ) => void;
   addManager: (name: string, phone: string) => Promise<Manager>;
-  addWorker: (name: string, phone: string) => Promise<Worker>;
+  addWorker: (
+    name: string,
+    phone: string,
+    profile?: { employeeNumber?: string; address?: string }
+  ) => Promise<Worker>;
   removeManager: (managerId: string) => Promise<void>;
   removeWorker: (workerId: string) => Promise<void>;
   setWorkerLanguage: (workerId: string, language: LanguageCode) => Promise<void>;
@@ -103,7 +107,12 @@ type SlangState = {
   ) => void;
   updateWorkerProfile: (
     workerId: string,
-    profile: { name: string; phone: string }
+    profile: {
+      name: string;
+      phone: string;
+      employeeNumber?: string;
+      address?: string;
+    }
   ) => Promise<void>;
   upsertMessage: (message: Message) => void;
   mergeMessages: (messages: Message[]) => void;
@@ -429,7 +438,7 @@ export const useSlangStore = create<SlangState>()(
         return manager;
       },
 
-      addWorker: async (name, phone) => {
+      addWorker: async (name, phone, profile) => {
         const managerId = get().managerId;
         if (!managerId || !get().isAdmin) {
           throw new Error("Only admin manager can add workers");
@@ -442,6 +451,8 @@ export const useSlangStore = create<SlangState>()(
             managerId,
             name: name.trim(),
             phone: normalizePhone(phone),
+            employeeNumber: profile?.employeeNumber ?? "",
+            address: profile?.address ?? "",
           }),
         });
 
@@ -740,6 +751,8 @@ export const useSlangStore = create<SlangState>()(
             managerId,
             name: profile.name,
             phone: normalizePhone(profile.phone),
+            employeeNumber: profile.employeeNumber ?? "",
+            address: profile.address ?? "",
           }),
         });
 

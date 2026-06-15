@@ -35,6 +35,8 @@ create table if not exists workers (
   company_id uuid not null references companies(id) on delete cascade,
   name text not null,
   phone text not null,
+  employee_number text,
+  address text,
   language text,
   status text not null default 'pending' check (status in ('pending', 'active')),
   invite_token text not null unique,

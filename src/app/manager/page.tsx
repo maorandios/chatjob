@@ -64,11 +64,19 @@ export default function ManagerPage() {
   const canAddWorker = workers.length < MAX_WORKERS_PER_COMPANY;
   const canAddMember = isAdmin && (canAddManager || canAddWorker);
 
-  const handleAddMember = async (
-    name: string,
-    phone: string,
-    userType: "management" | "worker"
-  ) => {
+  const handleAddMember = async ({
+    name,
+    phone,
+    userType,
+    employeeNumber,
+    address,
+  }: {
+    name: string;
+    phone: string;
+    userType: "management" | "worker";
+    employeeNumber?: string;
+    address?: string;
+  }) => {
     setIsAdding(true);
     try {
       if (userType === "management") {
@@ -87,7 +95,10 @@ export default function ManagerPage() {
           showToast(`ניתן להוסיף עד ${MAX_WORKERS_PER_COMPANY} עובדים`);
           return;
         }
-        const worker = await addWorker(name, phone);
+        const worker = await addWorker(name, phone, {
+          employeeNumber,
+          address,
+        });
         setLastInvite({
           name: worker.name,
           url: getInviteUrl(worker.inviteToken),
@@ -218,9 +229,7 @@ export default function ManagerPage() {
         open={showAdd}
         loading={isAdding}
         onClose={() => setShowAdd(false)}
-        onSubmit={(name, phone, userType) =>
-          void handleAddMember(name, phone, userType)
-        }
+        onSubmit={(data) => void handleAddMember(data)}
         disableManagement={!canAddManager}
         disableWorker={!canAddWorker}
       />

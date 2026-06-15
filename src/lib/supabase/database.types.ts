@@ -63,6 +63,8 @@ export type Database = {
           company_id: string;
           name: string;
           phone: string;
+          employee_number: string | null;
+          address: string | null;
           language: string | null;
           status: string;
           invite_token: string;
@@ -73,6 +75,8 @@ export type Database = {
           company_id: string;
           name: string;
           phone: string;
+          employee_number?: string | null;
+          address?: string | null;
           language?: string | null;
           status?: string;
           invite_token: string;
@@ -83,6 +87,8 @@ export type Database = {
           company_id?: string;
           name?: string;
           phone?: string;
+          employee_number?: string | null;
+          address?: string | null;
           language?: string | null;
           status?: string;
           invite_token?: string;

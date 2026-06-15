@@ -186,7 +186,6 @@ export function Composer({
       {onImageSend && (
         <ImageAttachSheet
           open={showImageSheet}
-          title={attachImageTitle}
           takePhotoLabel={takePhotoLabel}
           chooseGalleryLabel={chooseGalleryLabel}
           onClose={() => setShowImageSheet(false)}

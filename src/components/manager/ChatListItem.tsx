@@ -1,5 +1,6 @@
 "use client";
 
+import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
 import { Avatar } from "@/components/ui/Avatar";
 import {
   getMessageDisplayText,
@@ -7,32 +8,78 @@ import {
   useLastMessage,
   useSlangStore,
 } from "@/lib/store";
-import { formatListTime } from "@/lib/utils";
+import { formatListTime, getInviteUrl } from "@/lib/utils";
 import type { Worker } from "@/types";
+import { Send } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 type ChatListItemProps = {
   worker: Worker;
 };
 
+const pendingCardClassName =
+  "flex items-center gap-3 rounded-2xl border border-gray-200/80 bg-gray-100/70 px-4 py-3.5";
+
+const activeCardClassName =
+  "flex items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/15 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-white/25 active:bg-white/30";
+
 export function ChatListItem({ worker }: ChatListItemProps) {
   const managerId = useSlangStore((s) => s.managerId) ?? "";
   const lastMessage = useLastMessage(managerId, worker.id);
   const displayName = useContactDisplayName("manager", worker.id, worker.name);
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
+
+  const isPending = worker.status === "pending";
+  const inviteUrl = getInviteUrl(worker.inviteToken);
 
   const preview = lastMessage
     ? getMessageDisplayText(lastMessage, "manager", worker.language)
-    : worker.status === "pending"
-      ? "ממתין להצטרפות"
-      : "אין הודעות עדיין";
+    : "אין הודעות עדיין";
 
   const time = lastMessage ? formatListTime(lastMessage.createdAt) : "";
 
+  if (isPending) {
+    return (
+      <>
+        <div className={pendingCardClassName}>
+          <Avatar
+            name={displayName}
+            className="bg-gray-200 text-gray-500"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium text-gray-600">{displayName}</p>
+            <p className="mt-0.5 truncate text-sm text-gray-400">
+              ממתין להצטרפות
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowInviteSheet(true)}
+            className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center self-center rounded-full bg-[var(--jobchat-accent)] text-white active:scale-[0.98] active:opacity-90"
+            aria-label="שלח קישור"
+          >
+            <Send className="h-4 w-4 shrink-0" />
+          </button>
+        </div>
+
+        <InviteReadySheet
+          open={showInviteSheet}
+          onClose={() => setShowInviteSheet(false)}
+          memberName={displayName}
+          inviteUrl={inviteUrl}
+          kind="worker"
+          title="קישור הצטרפות"
+          subtitle={`שלחו ל-${displayName} את קישור ההזמנה`}
+          showCelebration={false}
+          whatsappText={`${displayName}, הוזמנת ל-Slang: ${inviteUrl}`}
+        />
+      </>
+    );
+  }
+
   return (
-    <Link
-      href={`/manager/chat/${worker.id}`}
-      className="flex items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/15 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-white/25 active:bg-white/30"
-    >
+    <Link href={`/manager/chat/${worker.id}`} className={activeCardClassName}>
       <Avatar name={displayName} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
@@ -41,14 +88,7 @@ export function ChatListItem({ worker }: ChatListItemProps) {
             <span className="shrink-0 text-xs text-gray-500">{time}</span>
           )}
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-sm text-gray-500">{preview}</p>
-          {worker.status === "pending" && (
-            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-              ממתין
-            </span>
-          )}
-        </div>
+        <p className="truncate text-sm text-gray-500">{preview}</p>
       </div>
     </Link>
   );
