@@ -1,5 +1,5 @@
--- Slang app schema v2 — run in Supabase SQL Editor
--- Company → up to 3 managers (one is_admin) + 5 workers
+-- Slang app schema — run in Supabase SQL Editor (fresh database)
+-- Company → managers (one is_admin) + workers; team size unlimited until billing
 -- Messages are 1:1 between one manager and one worker (same company)
 
 create extension if not exists "pgcrypto";
@@ -11,6 +11,7 @@ create extension if not exists "pgcrypto";
 create table if not exists companies (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  company_number text,
   created_at timestamptz not null default now()
 );
 
@@ -19,6 +20,7 @@ create table if not exists managers (
   company_id uuid not null references companies(id) on delete cascade,
   name text not null,
   phone text not null,
+  email text,
   invite_token text not null unique,
   is_admin boolean not null default false,
   created_at timestamptz not null default now()
@@ -26,6 +28,9 @@ create table if not exists managers (
 
 create index if not exists managers_company_id_idx on managers(company_id);
 create index if not exists managers_invite_token_idx on managers(invite_token);
+create unique index if not exists managers_email_unique_idx
+  on managers(lower(email))
+  where email is not null;
 create unique index if not exists managers_one_admin_per_company_idx
   on managers(company_id)
   where is_admin = true;
@@ -71,56 +76,13 @@ create index if not exists messages_worker_id_idx on messages(worker_id);
 create index if not exists messages_manager_id_idx on messages(manager_id);
 
 -- ---------------------------------------------------------------------------
--- Limits: max 3 managers and 5 workers per company
+-- Team size limits removed — will be enforced via billing tiers later.
 -- ---------------------------------------------------------------------------
 
-create or replace function slang_enforce_manager_limit()
-returns trigger
-language plpgsql
-as $$
-declare
-  manager_count integer;
-begin
-  select count(*) into manager_count
-  from managers
-  where company_id = NEW.company_id;
-
-  if manager_count >= 3 then
-    raise exception 'SLANG_MANAGER_LIMIT';
-  end if;
-
-  return NEW;
-end;
-$$;
-
 drop trigger if exists slang_manager_limit on managers;
-create trigger slang_manager_limit
-before insert on managers
-for each row execute function slang_enforce_manager_limit();
-
-create or replace function slang_enforce_worker_limit()
-returns trigger
-language plpgsql
-as $$
-declare
-  worker_count integer;
-begin
-  select count(*) into worker_count
-  from workers
-  where company_id = NEW.company_id;
-
-  if worker_count >= 5 then
-    raise exception 'SLANG_WORKER_LIMIT';
-  end if;
-
-  return NEW;
-end;
-$$;
-
 drop trigger if exists slang_worker_limit on workers;
-create trigger slang_worker_limit
-before insert on workers
-for each row execute function slang_enforce_worker_limit();
+drop function if exists slang_enforce_manager_limit();
+drop function if exists slang_enforce_worker_limit();
 
 create or replace function slang_enforce_message_company()
 returns trigger
@@ -236,6 +198,7 @@ drop policy if exists "slang_update_messages" on messages;
 
 create policy "slang_read_companies" on companies for select using (true);
 create policy "slang_insert_companies" on companies for insert with check (true);
+create policy "slang_update_companies" on companies for update using (true);
 create policy "slang_read_managers" on managers for select using (true);
 create policy "slang_insert_managers" on managers for insert with check (true);
 create policy "slang_update_managers" on managers for update using (true);

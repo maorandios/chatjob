@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 type AvatarProps = {
   name: string;
   size?: "sm" | "md" | "lg" | "xl";
+  imageUrl?: string;
   className?: string;
 };
 
@@ -19,7 +20,21 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function Avatar({ name, size = "md", className }: AvatarProps) {
+export function Avatar({ name, size = "md", imageUrl, className }: AvatarProps) {
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt=""
+        className={cn(
+          "shrink-0 rounded-full object-cover",
+          sizes[size],
+          className
+        )}
+      />
+    );
+  }
+
   return (
     <div
       className={cn(

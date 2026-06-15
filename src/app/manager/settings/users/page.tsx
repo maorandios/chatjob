@@ -1,13 +1,14 @@
 "use client";
 
-import { ManagerSettingsView } from "@/components/settings/ManagerSettingsView";
 import { SettingsScreenHeader } from "@/components/settings/SettingsScreenHeader";
+import { UsersScreenView } from "@/components/settings/UsersScreenView";
 import { AppShell } from "@/components/ui/AppShell";
 import { useSlangStore } from "@/lib/store";
 import { notFound } from "next/navigation";
 
-export default function ManagerSettingsPage() {
+export default function ManagerUsersPage() {
   const ready = useSlangStore((s) => s.ready);
+  const isAdmin = useSlangStore((s) => s.isAdmin);
 
   if (!ready) {
     return (
@@ -19,12 +20,12 @@ export default function ManagerSettingsPage() {
     );
   }
 
-  if (!useSlangStore.getState().managerId) notFound();
+  if (!useSlangStore.getState().managerId || !isAdmin) notFound();
 
   return (
     <AppShell dir="rtl">
-      <SettingsScreenHeader title="פרופיל אישי" backHref="/manager" dir="rtl" />
-      <ManagerSettingsView />
+      <SettingsScreenHeader title="משתמשים" backHref="/manager/settings" dir="rtl" />
+      <UsersScreenView />
     </AppShell>
   );
 }

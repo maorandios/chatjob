@@ -13,16 +13,19 @@ export type Database = {
         Row: {
           id: string;
           name: string;
+          company_number: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           name: string;
+          company_number?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          company_number?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -33,6 +36,7 @@ export type Database = {
           company_id: string;
           name: string;
           phone: string;
+          email: string | null;
           invite_token: string;
           is_admin: boolean;
           created_at: string;
@@ -42,6 +46,7 @@ export type Database = {
           company_id: string;
           name: string;
           phone: string;
+          email?: string | null;
           invite_token: string;
           is_admin?: boolean;
           created_at?: string;
@@ -51,6 +56,7 @@ export type Database = {
           company_id?: string;
           name?: string;
           phone?: string;
+          email?: string | null;
           invite_token?: string;
           is_admin?: boolean;
           created_at?: string;

@@ -19,7 +19,11 @@ export function SettingsScreenHeader({
 
   return (
     <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white">
-      <div dir="ltr" className="flex items-center gap-3 px-4 py-3">
+      <div
+        dir={dir}
+        className="flex items-center justify-between gap-3 px-4 py-3"
+      >
+        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
         <Link
           href={backHref}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
@@ -27,16 +31,6 @@ export function SettingsScreenHeader({
         >
           <ArrowLeft className={cn("h-5 w-5", !isRtl && "rotate-180")} />
         </Link>
-        <h1
-          dir={dir}
-          className={cn(
-            "min-w-0 flex-1 text-lg font-semibold text-gray-900",
-            isRtl ? "text-right" : "text-left"
-          )}
-        >
-          {title}
-        </h1>
-        <div className="w-10 shrink-0" />
       </div>
     </header>
   );

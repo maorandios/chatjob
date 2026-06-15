@@ -29,6 +29,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
+      suppressHydrationWarning
       className={cn(
         "inline-flex min-h-12 touch-manipulation items-center justify-center rounded-xl px-5 text-base font-medium transition-colors",
         variants[variant],

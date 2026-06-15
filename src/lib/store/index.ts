@@ -13,6 +13,7 @@ import { jobChatPersistStorage } from "@/lib/mock/safe-storage";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { generateId, normalizePhone } from "@/lib/utils";
 import type {
+  Company,
   ContactAliasEntry,
   ContactAliasValue,
   ContactAliases,
@@ -37,12 +38,15 @@ type SlangState = {
   isAdmin: boolean;
   companyId: string;
   companyName: string;
+  companyNumber: string;
   managers: Manager[];
   workers: Worker[];
   messages: Message[];
   invites: Invite[];
   contactAliases: ContactAliases;
+  managerProfileImages: Record<string, string>;
   ready: boolean;
+  loggedOut: boolean;
   bootstrapError: string | null;
   bootstrapManager: (inviteToken?: string) => Promise<void>;
   loadWorkers: () => Promise<void>;
@@ -114,11 +118,26 @@ type SlangState = {
       address?: string;
     }
   ) => Promise<void>;
+  updateManagerProfile: (profile: {
+    name: string;
+    phone: string;
+  }) => Promise<void>;
+  updateManagerById: (
+    targetManagerId: string,
+    profile: { name: string; phone: string }
+  ) => Promise<void>;
+  updateCompanyDetails: (details: {
+    name: string;
+    companyNumber: string;
+  }) => Promise<void>;
+  setManagerProfileImage: (managerId: string, imageDataUrl: string) => void;
   upsertMessage: (message: Message) => void;
   mergeMessages: (messages: Message[]) => void;
   upsertWorker: (worker: Worker) => void;
   upsertManager: (manager: Manager) => void;
   upsertInvite: (invite: Invite) => void;
+  logoutManager: () => void;
+  signInManager: (managerId: string) => Promise<void>;
 };
 
 function normalizeContactAliasEntry(
@@ -204,15 +223,59 @@ export const useSlangStore = create<SlangState>()(
       isAdmin: false,
       companyId: "",
       companyName: "",
+      companyNumber: "",
       managers: [],
       workers: [],
       messages: [],
       invites: [],
       contactAliases: { manager: {}, worker: {} },
+      managerProfileImages: {},
       ready: false,
+      loggedOut: false,
       bootstrapError: null,
 
+      logoutManager: () => {
+        managerBootstrapPromise = null;
+        clearStoredManagerId();
+        set({
+          loggedOut: true,
+          ready: true,
+          managerId: null,
+          managerName: "",
+          managerPhone: "",
+          managerInviteToken: "",
+          isAdmin: false,
+          companyId: "",
+          companyName: "",
+          companyNumber: "",
+          managers: [],
+          workers: [],
+          messages: [],
+          invites: [],
+          bootstrapError: null,
+        });
+      },
+
+      signInManager: async (managerId) => {
+        managerBootstrapPromise = null;
+        clearStoredManagerId();
+        set({
+          loggedOut: false,
+          ready: false,
+          managerId: null,
+          bootstrapError: null,
+        });
+        setStoredManagerId(managerId);
+        await get().bootstrapManager();
+      },
+
       bootstrapManager: async (inviteToken) => {
+        if (!inviteToken && get().loggedOut) return;
+
+        if (inviteToken) {
+          set({ loggedOut: false });
+        }
+
         if (!inviteToken) {
           if (get().ready) return;
           if (managerBootstrapPromise) return managerBootstrapPromise;
@@ -221,7 +284,7 @@ export const useSlangStore = create<SlangState>()(
         const run = async () => {
         const applyBootstrap = (data: {
           manager: Manager;
-          company: { id: string; name: string };
+          company: { id: string; name: string; companyNumber?: string };
           managers?: Manager[];
           workers?: Worker[];
         }) => {
@@ -236,8 +299,10 @@ export const useSlangStore = create<SlangState>()(
             managerPhone: manager.phone,
             managerInviteToken: manager.inviteToken,
             isAdmin: manager.isAdmin,
+            loggedOut: false,
             companyId: data.company.id,
             companyName: data.company.name,
+            companyNumber: data.company.companyNumber ?? "",
             managers: teamManagers,
             workers: teamWorkers,
             invites: teamWorkers.map((worker) => ({
@@ -300,17 +365,8 @@ export const useSlangStore = create<SlangState>()(
           }
         }
 
-        const { res, data } = await requestBootstrap({});
-        if (!res.ok) {
-          const message =
-            typeof data.error === "string"
-              ? data.error
-              : "Failed to bootstrap manager";
-          set({ bootstrapError: message, ready: false });
-          throw new Error(message);
-        }
-
-        applyBootstrap(data);
+        set({ ready: true, managerId: null, bootstrapError: null });
+        return;
         };
 
         if (!inviteToken) {
@@ -774,6 +830,102 @@ export const useSlangStore = create<SlangState>()(
         });
       },
 
+      updateManagerProfile: async (profile) => {
+        const managerId = get().managerId;
+        if (!managerId) throw new Error("Not authenticated");
+
+        const res = await fetch(`/api/managers/${encodeURIComponent(managerId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            managerId,
+            name: profile.name,
+            phone: normalizePhone(profile.phone),
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to update profile");
+
+        const data = await res.json();
+        const manager = data.manager as Manager;
+
+        set((state) => ({
+          managerName: manager.name,
+          managerPhone: manager.phone,
+          managers: mergeManagerList(state.managers, manager),
+        }));
+      },
+
+      updateManagerById: async (targetManagerId, profile) => {
+        const managerId = get().managerId;
+        if (!managerId) throw new Error("Not authenticated");
+
+        const res = await fetch(
+          `/api/managers/${encodeURIComponent(targetManagerId)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              managerId,
+              name: profile.name,
+              phone: normalizePhone(profile.phone),
+            }),
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to update manager");
+
+        const data = await res.json();
+        const manager = data.manager as Manager;
+
+        set((state) => ({
+          ...(manager.id === state.managerId
+            ? { managerName: manager.name, managerPhone: manager.phone }
+            : {}),
+          managers: mergeManagerList(state.managers, manager),
+        }));
+      },
+
+      updateCompanyDetails: async (details) => {
+        const managerId = get().managerId;
+        const companyId = get().companyId;
+        if (!managerId || !companyId) throw new Error("Not authenticated");
+
+        const res = await fetch(`/api/companies/${encodeURIComponent(companyId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            managerId,
+            name: details.name,
+            companyNumber: details.companyNumber,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to update company");
+
+        const data = await res.json();
+        const company = data.company as Company;
+
+        set((state) => ({
+          companyName: company.name,
+          companyNumber: company.companyNumber ?? "",
+          invites: state.invites.map((invite) =>
+            invite.companyId === companyId
+              ? { ...invite, companyName: company.name }
+              : invite
+          ),
+        }));
+      },
+
+      setManagerProfileImage: (managerId, imageDataUrl) => {
+        set((state) => ({
+          managerProfileImages: {
+            ...state.managerProfileImages,
+            [managerId]: imageDataUrl,
+          },
+        }));
+      },
+
       upsertMessage: (message) => {
         set((state) => {
           const index = state.messages.findIndex((m) => m.id === message.id);
@@ -821,6 +973,7 @@ export const useSlangStore = create<SlangState>()(
         managerId: state.managerId,
         managerInviteToken: state.managerInviteToken,
         contactAliases: state.contactAliases,
+        managerProfileImages: state.managerProfileImages,
       }),
     }
   )

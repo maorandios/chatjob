@@ -1,13 +1,15 @@
 "use client";
 
-import { ManagerSettingsView } from "@/components/settings/ManagerSettingsView";
+import { PaymentsScreenView } from "@/components/settings/PaymentsScreenView";
 import { SettingsScreenHeader } from "@/components/settings/SettingsScreenHeader";
 import { AppShell } from "@/components/ui/AppShell";
 import { useSlangStore } from "@/lib/store";
 import { notFound } from "next/navigation";
 
-export default function ManagerSettingsPage() {
+export default function ManagerPaymentsPage() {
   const ready = useSlangStore((s) => s.ready);
+
+  const isAdmin = useSlangStore((s) => s.isAdmin);
 
   if (!ready) {
     return (
@@ -19,12 +21,12 @@ export default function ManagerSettingsPage() {
     );
   }
 
-  if (!useSlangStore.getState().managerId) notFound();
+  if (!useSlangStore.getState().managerId || !isAdmin) notFound();
 
   return (
     <AppShell dir="rtl">
-      <SettingsScreenHeader title="פרופיל אישי" backHref="/manager" dir="rtl" />
-      <ManagerSettingsView />
+      <SettingsScreenHeader title="תשלומים" backHref="/manager/settings" dir="rtl" />
+      <PaymentsScreenView />
     </AppShell>
   );
 }

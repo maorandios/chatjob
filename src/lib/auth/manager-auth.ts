@@ -1,0 +1,108 @@
+"use client";
+
+import { normalizeEmail } from "@/lib/auth/email";
+import { mapSupabaseAuthError } from "@/lib/auth/map-auth-error";
+import { getSupabaseBrowser } from "@/lib/supabase/browser";
+
+const EMAIL_OTP_VERIFY_TYPES = ["email", "magiclink", "signup"] as const;
+
+export async function resolveManagerIdByEmail(email: string): Promise<string> {
+  const res = await fetch("/api/auth/resolve-manager", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: normalizeEmail(email) }),
+  });
+
+  if (!res.ok) {
+    throw new Error("לא נמצא חשבון מנהל עבור המייל הזה");
+  }
+
+  const data = await res.json();
+  if (typeof data.managerId !== "string" || !data.managerId) {
+    throw new Error("לא נמצא חשבון מנהל עבור המייל הזה");
+  }
+
+  return data.managerId;
+}
+
+export async function verifyEmailOtp(email: string, token: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) {
+    throw new Error("התחברות אינה מוגדרת בשרת");
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  const normalizedToken = token.trim();
+  let lastMessage = "הקוד שגוי או שפג תוקפו — נסו שוב";
+
+  for (const type of EMAIL_OTP_VERIFY_TYPES) {
+    const { error } = await supabase.auth.verifyOtp({
+      email: normalizedEmail,
+      token: normalizedToken,
+      type,
+    });
+
+    if (!error) return;
+
+    lastMessage = error.message;
+  }
+
+  throw new Error(mapSupabaseAuthError(lastMessage));
+}
+
+export async function verifyEmailOtpFromHash(
+  tokenHash: string,
+  type: "email" | "magiclink" = "email"
+): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) {
+    throw new Error("התחברות אינה מוגדרת בשרת");
+  }
+
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type,
+  });
+
+  if (error) {
+    throw new Error(mapSupabaseAuthError(error.message));
+  }
+}
+
+export async function exchangeAuthCodeForSession(code: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) {
+    throw new Error("התחברות אינה מוגדרת בשרת");
+  }
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    throw new Error(mapSupabaseAuthError(error.message));
+  }
+}
+
+export async function getAuthenticatedEmail(): Promise<string> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) {
+    throw new Error("התחברות אינה מוגדרת בשרת");
+  }
+
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error) throw error;
+  const email = session?.user?.email;
+  if (!email) {
+    throw new Error("לא נמצאה התחברות פעילה");
+  }
+
+  return email;
+}
+
+export async function signOutSupabaseAuth(): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) return;
+  await supabase.auth.signOut();
+}

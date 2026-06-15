@@ -1,4 +1,3 @@
-import { MAX_WORKERS_PER_COMPANY } from "@/lib/constants/limits";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   assertManagerIsAdmin,
@@ -62,19 +61,6 @@ export async function POST(req: Request) {
     const companyId = adminCheck.companyId;
     const supabase = getSupabaseAdmin();
 
-    const { count, error: countError } = await supabase
-      .from("workers")
-      .select("*", { count: "exact", head: true })
-      .eq("company_id", companyId);
-
-    if (countError) throw countError;
-    if ((count ?? 0) >= MAX_WORKERS_PER_COMPANY) {
-      return NextResponse.json(
-        { error: `ניתן להוסיף עד ${MAX_WORKERS_PER_COMPANY} עובדים` },
-        { status: 409 }
-      );
-    }
-
     const inviteToken = generateInviteToken();
 
     const { data: workerRow, error: workerError } = await supabase
@@ -91,15 +77,7 @@ export async function POST(req: Request) {
       .select("*")
       .single();
 
-    if (workerError) {
-      if (workerError.message.includes("SLANG_WORKER_LIMIT")) {
-        return NextResponse.json(
-          { error: `ניתן להוסיף עד ${MAX_WORKERS_PER_COMPANY} עובדים` },
-          { status: 409 }
-        );
-      }
-      throw workerError;
-    }
+    if (workerError) throw workerError;
 
     const { data: company, error: companyError } = await supabase
       .from("companies")

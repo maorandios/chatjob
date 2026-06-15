@@ -30,6 +30,7 @@ export type WorkerStatus = "pending" | "active";
 export type Company = {
   id: string;
   name: string;
+  companyNumber?: string;
 };
 
 export type Manager = {
@@ -37,6 +38,7 @@ export type Manager = {
   companyId: string;
   name: string;
   phone: string;
+  email?: string;
   inviteToken: string;
   isAdmin: boolean;
 };

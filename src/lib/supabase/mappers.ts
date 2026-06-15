@@ -17,6 +17,7 @@ export function companyFromRow(row: DbCompany): Company {
   return {
     id: row.id,
     name: row.name,
+    companyNumber: row.company_number ?? undefined,
   };
 }
 
@@ -26,6 +27,7 @@ export function rowToManager(row: DbManager): Manager {
     companyId: row.company_id,
     name: row.name,
     phone: row.phone,
+    email: row.email ?? undefined,
     inviteToken: row.invite_token,
     isAdmin: row.is_admin,
   };

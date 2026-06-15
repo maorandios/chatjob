@@ -170,14 +170,15 @@ export function useChatData(
 
 export function useManagerBootstrap() {
   const ready = useSlangStore((s) => s.ready);
+  const loggedOut = useSlangStore((s) => s.loggedOut);
   const bootstrapManager = useSlangStore((s) => s.bootstrapManager);
 
   useEffect(() => {
-    if (ready) return;
+    if (ready || loggedOut) return;
     void bootstrapManager().catch((error) => {
       console.error("[Slang] Manager bootstrap failed", error);
     });
-  }, [ready, bootstrapManager]);
+  }, [ready, loggedOut, bootstrapManager]);
 }
 
 export function useManagerInboxPreviews() {

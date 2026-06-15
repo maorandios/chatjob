@@ -1,4 +1,3 @@
-import { MAX_MANAGERS_PER_COMPANY } from "@/lib/constants/limits";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   assertManagerIsAdmin,
@@ -76,19 +75,6 @@ export async function POST(req: Request) {
     const companyId = adminCheck.companyId;
     const supabase = getSupabaseAdmin();
 
-    const { count, error: countError } = await supabase
-      .from("managers")
-      .select("*", { count: "exact", head: true })
-      .eq("company_id", companyId);
-
-    if (countError) throw countError;
-    if ((count ?? 0) >= MAX_MANAGERS_PER_COMPANY) {
-      return NextResponse.json(
-        { error: `ניתן להוסיף עד ${MAX_MANAGERS_PER_COMPANY} מנהלים` },
-        { status: 409 }
-      );
-    }
-
     const inviteToken = generateInviteToken();
 
     const { data, error } = await supabase
@@ -103,15 +89,7 @@ export async function POST(req: Request) {
       .select("*")
       .single();
 
-    if (error) {
-      if (error.message.includes("SLANG_MANAGER_LIMIT")) {
-        return NextResponse.json(
-          { error: `ניתן להוסיף עד ${MAX_MANAGERS_PER_COMPANY} מנהלים` },
-          { status: 409 }
-        );
-      }
-      throw error;
-    }
+    if (error) throw error;
 
     return NextResponse.json({ manager: rowToManager(data) });
   } catch (error) {
