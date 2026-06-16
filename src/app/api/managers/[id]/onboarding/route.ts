@@ -43,9 +43,14 @@ export async function POST(req: Request, context: RouteContext) {
       return NextResponse.json({ error: "Onboarding already complete" }, { status: 409 });
     }
 
+    const companyUpdate: { name: string; email?: string } = { name: companyName };
+    if (manager.email) {
+      companyUpdate.email = manager.email;
+    }
+
     const { error: companyError } = await supabase
       .from("companies")
-      .update({ name: companyName })
+      .update(companyUpdate)
       .eq("id", manager.company_id);
 
     if (companyError) throw companyError;

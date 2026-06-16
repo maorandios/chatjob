@@ -24,6 +24,13 @@ create extension if not exists "pgcrypto";
 alter table companies
   add column if not exists company_number text;
 
+alter table companies
+  add column if not exists email text;
+
+create unique index if not exists companies_email_unique_idx
+  on companies(lower(email))
+  where email is not null;
+
 -- ---------------------------------------------------------------------------
 -- workers: optional profile fields (manager-editable)
 -- ---------------------------------------------------------------------------

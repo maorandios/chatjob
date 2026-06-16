@@ -17,7 +17,7 @@ import {
 import { useSlangStore } from "@/lib/store";
 import { KeyRound, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type LoginStep = "form" | "otp";
 
@@ -37,6 +37,7 @@ export function ManagerLoginView() {
   const [error, setError] = useState<string | undefined>();
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const lastOtpAttemptRef = useRef("");
 
@@ -99,34 +100,52 @@ export function ManagerLoginView() {
     }
   };
 
-  const handleVerifyOtp = async (code?: string) => {
-    const token = (code ?? otp).trim();
-    if (!isCompleteOtpCode(token)) {
-      setError(`נא להזין קוד בן ${EMAIL_OTP_LENGTH} ספרות`);
-      return;
-    }
+  const handleVerifyOtp = useCallback(
+    async (code?: string) => {
+      const token = (code ?? otp).trim();
+      if (!isCompleteOtpCode(token)) {
+        setError(`נא להזין קוד בן ${EMAIL_OTP_LENGTH} ספרות`);
+        return;
+      }
 
-    setVerifying(true);
-    setError(undefined);
-    try {
-      await verifyEmailOtp(email, token);
-      const managerId = await resolveManagerIdByEmail(email);
-      await signInManager(managerId);
-      const { onboardingComplete } = useSlangStore.getState();
-      router.replace(getPostAuthManagerPath(onboardingComplete));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "האימות נכשל");
-    } finally {
-      setVerifying(false);
-    }
-  };
+      setVerifying(true);
+      setError(undefined);
+      try {
+        await verifyEmailOtp(email, token);
+        const managerId = await resolveManagerIdByEmail(email);
+        await signInManager(managerId);
+        setRedirecting(true);
+        const { onboardingComplete } = useSlangStore.getState();
+        router.replace(getPostAuthManagerPath(onboardingComplete));
+      } catch (err) {
+        lastOtpAttemptRef.current = "";
+        setError(err instanceof Error ? err.message : "האימות נכשל");
+      } finally {
+        setVerifying(false);
+      }
+    },
+    [email, otp, router, signInManager]
+  );
 
   useEffect(() => {
-    if (step !== "otp" || verifying || !isCompleteOtpCode(otp)) return;
+    if (step !== "otp" || verifying || redirecting || !isCompleteOtpCode(otp)) {
+      return;
+    }
     if (lastOtpAttemptRef.current === otp) return;
     lastOtpAttemptRef.current = otp;
     void handleVerifyOtp(otp);
-  }, [otp, step, verifying]);
+  }, [otp, step, verifying, redirecting, handleVerifyOtp]);
+
+  if (redirecting) {
+    return (
+      <AppShell dir="rtl">
+        <div className="flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)] safe-top">
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--jobchat-accent)]" />
+          <p className="mt-4 text-sm text-gray-500">מעבירים אותך הלאה...</p>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!mounted) {
     return (
@@ -223,7 +242,7 @@ export function ManagerLoginView() {
                   <OtpCodeInput
                     value={otp}
                     onChange={setOtp}
-                    disabled={verifying}
+                    disabled={verifying || redirecting}
                     error={error}
                   />
 

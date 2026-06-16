@@ -17,6 +17,7 @@ export function companyFromRow(row: DbCompany): Company {
   return {
     id: row.id,
     name: row.name,
+    email: row.email ?? undefined,
     companyNumber: row.company_number ?? undefined,
   };
 }

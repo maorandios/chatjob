@@ -11,9 +11,14 @@ create extension if not exists "pgcrypto";
 create table if not exists companies (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  email text,
   company_number text,
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists companies_email_unique_idx
+  on companies(lower(email))
+  where email is not null;
 
 create table if not exists managers (
   id uuid primary key default gen_random_uuid(),

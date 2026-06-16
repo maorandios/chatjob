@@ -96,11 +96,19 @@ export async function signupAdminWithEmail(email: string): Promise<string> {
   const supabase = getSupabaseAdmin();
   const inviteToken = generateInviteToken();
 
-  const { data: company, error: companyError } = await supabase
+  let { data: company, error: companyError } = await supabase
     .from("companies")
-    .insert({ name: NEW_SIGNUP_COMPANY_NAME })
+    .insert({ name: NEW_SIGNUP_COMPANY_NAME, email: normalized })
     .select("id")
     .single();
+
+  if (companyError && isMissingColumnError(companyError, "email")) {
+    ({ data: company, error: companyError } = await supabase
+      .from("companies")
+      .insert({ name: NEW_SIGNUP_COMPANY_NAME })
+      .select("id")
+      .single());
+  }
 
   if (companyError) {
     if (

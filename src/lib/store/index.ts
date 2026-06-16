@@ -49,7 +49,7 @@ type SlangState = {
   ready: boolean;
   loggedOut: boolean;
   bootstrapError: string | null;
-  bootstrapManager: (inviteToken?: string) => Promise<void>;
+  bootstrapManager: (inviteToken?: string, managerId?: string) => Promise<void>;
   loadWorkers: () => Promise<void>;
   fetchInvite: (
     token: string
@@ -267,7 +267,6 @@ export const useSlangStore = create<SlangState>()(
 
       signInManager: async (managerId) => {
         managerBootstrapPromise = null;
-        clearStoredManagerId();
         set({
           loggedOut: false,
           ready: false,
@@ -275,7 +274,14 @@ export const useSlangStore = create<SlangState>()(
           bootstrapError: null,
         });
         setStoredManagerId(managerId);
-        await get().bootstrapManager();
+        await get().bootstrapManager(undefined, managerId);
+
+        const state = get();
+        if (state.managerId !== managerId) {
+          throw new Error(
+            state.bootstrapError ?? "לא ניתן להשלים את ההתחברות. נסו שוב."
+          );
+        }
       },
 
       completeOnboarding: async ({ companyName, fullName, phone }) => {
@@ -314,7 +320,7 @@ export const useSlangStore = create<SlangState>()(
         }));
       },
 
-      bootstrapManager: async (inviteToken) => {
+      bootstrapManager: async (inviteToken, explicitManagerId) => {
         if (!inviteToken && get().loggedOut) return;
 
         if (inviteToken) {
@@ -322,7 +328,7 @@ export const useSlangStore = create<SlangState>()(
         }
 
         if (!inviteToken) {
-          if (get().ready) return;
+          if (get().ready && !explicitManagerId) return;
           if (managerBootstrapPromise) return managerBootstrapPromise;
         }
 
@@ -391,7 +397,7 @@ export const useSlangStore = create<SlangState>()(
           return;
         }
 
-        const storedId = getStoredManagerId();
+        const storedId = explicitManagerId ?? getStoredManagerId();
         if (storedId) {
           const { res, data } = await requestBootstrap({ managerId: storedId });
           if (res.ok) {
@@ -399,6 +405,14 @@ export const useSlangStore = create<SlangState>()(
             return;
           }
           clearStoredManagerId();
+          if (explicitManagerId) {
+            const message =
+              typeof data.error === "string"
+                ? data.error
+                : "לא ניתן לטעון את פרטי המשתמש";
+            set({ bootstrapError: message, ready: false });
+            throw new Error(message);
+          }
         }
 
         const savedInviteToken = get().managerInviteToken;

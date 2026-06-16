@@ -30,6 +30,7 @@ export type WorkerStatus = "pending" | "active";
 export type Company = {
   id: string;
   name: string;
+  email?: string;
   companyNumber?: string;
 };
 
