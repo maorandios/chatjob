@@ -1,42 +1,58 @@
 "use client";
 
+import { ManagerJoinView } from "@/components/manager/ManagerJoinView";
 import { Button } from "@/components/ui/Button";
 import { MobileFrame } from "@/components/ui/MobileFrame";
-import { setStoredManagerId } from "@/lib/manager-session";
-import { useSlangStore } from "@/lib/store";
-import { useParams, useRouter } from "next/navigation";
+import type { Manager } from "@/types";
+import { Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ManagerJoinPage() {
   const params = useParams<{ token: string }>();
   const token = params?.token ?? "";
-  const router = useRouter();
-  const bootstrapManager = useSlangStore((s) => s.bootstrapManager);
+  const [invitedManager, setInvitedManager] = useState<Manager | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
     let cancelled = false;
 
-    void bootstrapManager(token)
-      .then(() => {
+    void fetch(`/api/managers/invite/${encodeURIComponent(token)}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(
+            typeof data.error === "string"
+              ? data.error
+              : "קישור ההזמנה אינו תקין"
+          );
+        }
+        return data.manager as Manager;
+      })
+      .then((manager) => {
         if (cancelled) return;
-        const managerId = useSlangStore.getState().managerId;
-        if (managerId) setStoredManagerId(managerId);
-        router.replace("/manager");
+        setInvitedManager(manager);
       })
       .catch((err) => {
         if (cancelled) return;
         setError(
           err instanceof Error ? err.message : "קישור ההזמנה אינו תקין"
         );
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [token, bootstrapManager, router]);
+  }, [token]);
 
   if (!token) {
     return (
@@ -48,13 +64,24 @@ export default function ManagerJoinPage() {
     );
   }
 
-  if (error) {
+  if (loading) {
+    return (
+      <MobileFrame dir="rtl">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--jobchat-accent)]" />
+          <p className="text-sm text-gray-500">טוען הזמנה...</p>
+        </div>
+      </MobileFrame>
+    );
+  }
+
+  if (error || !invitedManager) {
     return (
       <MobileFrame dir="rtl">
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
           <h1 className="text-lg font-semibold text-gray-900">הזמנה לא תקינה</h1>
-          <p className="text-sm text-gray-500">{error}</p>
-          <Button variant="outline" onClick={() => router.push("/")}>
+          <p className="text-sm text-gray-500">{error ?? "קישור ההזמנה אינו תקין"}</p>
+          <Button variant="outline" onClick={() => window.location.assign("/")}>
             חזרה
           </Button>
         </div>
@@ -63,10 +90,6 @@ export default function ManagerJoinPage() {
   }
 
   return (
-    <MobileFrame dir="rtl">
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-gray-500">מצטרפים ל-Slang...</p>
-      </div>
-    </MobileFrame>
+    <ManagerJoinView inviteToken={token} invitedManager={invitedManager} />
   );
 }

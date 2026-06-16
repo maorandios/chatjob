@@ -106,6 +106,78 @@ export async function getAuthenticatedEmail(): Promise<string> {
   return email;
 }
 
+export async function getSupabaseAccessToken(): Promise<string> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) {
+    throw new Error("התחברות אינה מוגדרת בשרת");
+  }
+
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error) throw error;
+  if (!session?.access_token) {
+    throw new Error("לא נמצאה התחברות פעילה");
+  }
+
+  return session.access_token;
+}
+
+export async function acceptManagerInviteByToken(
+  inviteToken: string
+): Promise<string> {
+  const accessToken = await getSupabaseAccessToken();
+  const res = await fetch(
+    `/api/managers/invite/${encodeURIComponent(inviteToken)}/accept`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : "לא ניתן להשלים את ההצטרפות"
+    );
+  }
+
+  if (typeof data.managerId !== "string" || !data.managerId) {
+    throw new Error("לא ניתן להשלים את ההצטרפות");
+  }
+
+  return data.managerId;
+}
+
+export async function validateInviteEmailForJoin(
+  inviteToken: string,
+  email: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/managers/invite/${encodeURIComponent(inviteToken)}/validate-email`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalizeEmail(email) }),
+    }
+  );
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : "לא ניתן לבדוק את כתובת המייל"
+    );
+  }
+}
+
 export async function signOutSupabaseAuth(): Promise<void> {
   const supabase = getSupabaseBrowser();
   if (!supabase) return;

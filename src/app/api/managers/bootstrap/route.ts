@@ -89,12 +89,22 @@ export async function POST(req: Request) {
     if (inviteToken) {
       const { data: byToken, error } = await supabase
         .from("managers")
-        .select("id")
+        .select("id, email")
         .eq("invite_token", inviteToken)
         .maybeSingle();
 
       if (error) throw error;
       if (byToken) {
+        if (!byToken.email) {
+          return NextResponse.json(
+            {
+              error: "יש לאמת את כתובת האימייל לפני הכניסה",
+              code: "EMAIL_VERIFICATION_REQUIRED",
+            },
+            { status: 403 }
+          );
+        }
+
         const bundle = await loadManagerBundle(byToken.id);
         if (bundle) return NextResponse.json(bundle);
       }
