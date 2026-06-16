@@ -42,6 +42,7 @@ export type Manager = {
   inviteToken: string;
   isAdmin: boolean;
   onboardingComplete: boolean;
+  profileImageUrl?: string;
 };
 
 export type Worker = {

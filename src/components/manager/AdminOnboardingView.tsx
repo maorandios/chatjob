@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
 import { AppShell } from "@/components/ui/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -102,12 +103,10 @@ export function AdminOnboardingView() {
   return (
     <AppShell dir="rtl">
       <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
-        <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
-          <h1 className="text-xl font-semibold text-gray-900">Slang</h1>
-        </header>
-
         <div className="flex flex-1 flex-col items-center justify-center px-4 py-8">
           <div className="w-full max-w-sm text-center">
+            <AuthBrandLogo />
+
             {step === "company" && (
               <>
                 <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
@@ -125,6 +124,7 @@ export function AdminOnboardingView() {
                     placeholder="לדוגמה: כהן בנייה"
                     error={error}
                     autoFocus
+                    className="!rounded-2xl"
                   />
                 </div>
               </>
@@ -147,6 +147,7 @@ export function AdminOnboardingView() {
                     placeholder="שם פרטי ושם משפחה"
                     error={error}
                     autoFocus
+                    className="!rounded-2xl"
                   />
                 </div>
               </>
@@ -172,6 +173,7 @@ export function AdminOnboardingView() {
                     placeholder="050-1234567"
                     error={error}
                     autoFocus
+                    className="!rounded-2xl"
                   />
                 </div>
               </>
@@ -185,7 +187,7 @@ export function AdminOnboardingView() {
                 <p className="mt-2 text-sm text-gray-500">
                   ודאו שהפרטים נכונים לפני המשך
                 </p>
-                <div className="mt-8 space-y-4 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-5 text-start">
+                <div className="mt-8 space-y-4 px-1 py-2 text-start">
                   <SummaryRow label="שם החברה" value={companyName} />
                   <SummaryRow label="שם מלא" value={fullName} />
                   <SummaryRow label="טלפון" value={phone} dir="ltr" />

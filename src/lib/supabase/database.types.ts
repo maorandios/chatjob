@@ -40,6 +40,7 @@ export type Database = {
           invite_token: string;
           is_admin: boolean;
           onboarding_complete: boolean;
+          profile_image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -51,6 +52,7 @@ export type Database = {
           invite_token: string;
           is_admin?: boolean;
           onboarding_complete?: boolean;
+          profile_image_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -62,6 +64,7 @@ export type Database = {
           invite_token?: string;
           is_admin?: boolean;
           onboarding_complete?: boolean;
+          profile_image_url?: string | null;
           created_at?: string;
         };
         Relationships: [];

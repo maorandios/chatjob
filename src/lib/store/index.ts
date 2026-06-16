@@ -35,6 +35,7 @@ type SlangState = {
   managerName: string;
   managerPhone: string;
   managerInviteToken: string;
+  managerProfileImageUrl: string | undefined;
   isAdmin: boolean;
   onboardingComplete: boolean;
   companyId: string;
@@ -45,7 +46,6 @@ type SlangState = {
   messages: Message[];
   invites: Invite[];
   contactAliases: ContactAliases;
-  managerProfileImages: Record<string, string>;
   ready: boolean;
   loggedOut: boolean;
   bootstrapError: string | null;
@@ -131,7 +131,7 @@ type SlangState = {
     name: string;
     companyNumber: string;
   }) => Promise<void>;
-  setManagerProfileImage: (managerId: string, imageDataUrl: string) => void;
+  uploadManagerProfileImage: (file: File) => Promise<void>;
   upsertMessage: (message: Message) => void;
   mergeMessages: (messages: Message[]) => void;
   upsertWorker: (worker: Worker) => void;
@@ -226,6 +226,7 @@ export const useSlangStore = create<SlangState>()(
       managerName: "",
       managerPhone: "",
       managerInviteToken: "",
+      managerProfileImageUrl: undefined,
       isAdmin: false,
       onboardingComplete: true,
       companyId: "",
@@ -236,7 +237,6 @@ export const useSlangStore = create<SlangState>()(
       messages: [],
       invites: [],
       contactAliases: { manager: {}, worker: {} },
-      managerProfileImages: {},
       ready: false,
       loggedOut: false,
       bootstrapError: null,
@@ -251,6 +251,7 @@ export const useSlangStore = create<SlangState>()(
           managerName: "",
           managerPhone: "",
           managerInviteToken: "",
+          managerProfileImageUrl: undefined,
           isAdmin: false,
           onboardingComplete: true,
           companyId: "",
@@ -342,6 +343,7 @@ export const useSlangStore = create<SlangState>()(
             managerName: manager.name,
             managerPhone: manager.phone,
             managerInviteToken: manager.inviteToken,
+            managerProfileImageUrl: manager.profileImageUrl,
             isAdmin: manager.isAdmin,
             onboardingComplete: manager.onboardingComplete,
             loggedOut: false,
@@ -962,12 +964,31 @@ export const useSlangStore = create<SlangState>()(
         }));
       },
 
-      setManagerProfileImage: (managerId, imageDataUrl) => {
+      uploadManagerProfileImage: async (file) => {
+        const managerId = get().managerId;
+        if (!managerId) throw new Error("Not authenticated");
+
+        const imageDataUrl = await compressImageFile(file);
+        const res = await fetch(
+          `/api/managers/${encodeURIComponent(managerId)}/profile-image`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ managerId, imageDataUrl }),
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to upload profile image");
+
+        const data = await res.json();
+        const manager = data.manager as Manager;
+        const profileImageUrl =
+          (data.profileImageUrl as string | undefined) ??
+          manager.profileImageUrl;
+
         set((state) => ({
-          managerProfileImages: {
-            ...state.managerProfileImages,
-            [managerId]: imageDataUrl,
-          },
+          managerProfileImageUrl: profileImageUrl,
+          managers: mergeManagerList(state.managers, manager),
         }));
       },
 
@@ -1018,7 +1039,6 @@ export const useSlangStore = create<SlangState>()(
         managerId: state.managerId,
         managerInviteToken: state.managerInviteToken,
         contactAliases: state.contactAliases,
-        managerProfileImages: state.managerProfileImages,
       }),
     }
   )

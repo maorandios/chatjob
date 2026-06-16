@@ -10,8 +10,6 @@ export default function ManagerLoginPage() {
   const router = useRouter();
   const ready = useSlangStore((s) => s.ready);
   const managerId = useSlangStore((s) => s.managerId);
-  const loggedOut = useSlangStore((s) => s.loggedOut);
-
   const onboardingComplete = useSlangStore((s) => s.onboardingComplete);
 
   useEffect(() => {
@@ -24,11 +22,5 @@ export default function ManagerLoginPage() {
     return null;
   }
 
-  return (
-    <ManagerLoginView
-      banner={
-        loggedOut ? "התנתקתם מהמערכת. התחברו שוב עם קוד למייל." : undefined
-      }
-    />
-  );
+  return <ManagerLoginView />;
 }

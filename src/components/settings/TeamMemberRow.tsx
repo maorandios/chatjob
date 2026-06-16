@@ -9,6 +9,7 @@ const actionButtonClassName =
 type TeamMemberRowProps = {
   name: string;
   phone: string;
+  imageUrl?: string;
   onPress?: () => void;
   canRemove?: boolean;
   onRemove?: () => void;
@@ -20,6 +21,7 @@ type TeamMemberRowProps = {
 export function TeamMemberRow({
   name,
   phone,
+  imageUrl,
   onPress,
   canRemove,
   onRemove,
@@ -32,6 +34,7 @@ export function TeamMemberRow({
       <Avatar
         name={name}
         size="sm"
+        imageUrl={imageUrl}
         className={mutedAvatar ? "bg-gray-200 text-gray-500" : undefined}
       />
       <button

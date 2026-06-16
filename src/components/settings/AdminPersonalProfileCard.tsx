@@ -4,7 +4,6 @@ import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
 import { ManagerProfileEditSheet } from "@/components/settings/ManagerProfileEditSheet";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
-import { compressImageFile } from "@/lib/images/compress";
 import { useSlangStore } from "@/lib/store";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
@@ -13,23 +12,26 @@ export function AdminPersonalProfileCard() {
   const managerId = useSlangStore((s) => s.managerId);
   const managerName = useSlangStore((s) => s.managerName);
   const managerPhone = useSlangStore((s) => s.managerPhone);
-  const profileImage = useSlangStore((s) =>
-    managerId ? s.managerProfileImages[managerId] : undefined
-  );
+  const profileImage = useSlangStore((s) => s.managerProfileImageUrl);
   const updateManagerProfile = useSlangStore((s) => s.updateManagerProfile);
-  const setManagerProfileImage = useSlangStore((s) => s.setManagerProfileImage);
+  const uploadManagerProfileImage = useSlangStore(
+    (s) => s.uploadManagerProfileImage
+  );
   const { showToast } = useToast();
 
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const handlePhotoSelected = async (file: File) => {
-    if (!managerId) return;
+    if (!managerId || uploadingPhoto) return;
+    setUploadingPhoto(true);
     try {
-      const dataUrl = await compressImageFile(file);
-      setManagerProfileImage(managerId, dataUrl);
+      await uploadManagerProfileImage(file);
     } catch {
       showToast("לא ניתן לעדכן את תמונת הפרופיל");
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -52,7 +54,8 @@ export function AdminPersonalProfileCard() {
             <button
               type="button"
               onClick={() => setShowPhotoSheet(true)}
-              className="rounded-full p-1 ring-4 ring-white active:scale-[0.98]"
+              disabled={uploadingPhoto}
+              className="rounded-full p-1 ring-4 ring-white active:scale-[0.98] disabled:opacity-60"
               aria-label="עדכון תמונת פרופיל"
             >
               <Avatar

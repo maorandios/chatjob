@@ -31,6 +31,7 @@ export function rowToManager(row: DbManager): Manager {
     inviteToken: row.invite_token,
     isAdmin: row.is_admin,
     onboardingComplete: row.onboarding_complete ?? true,
+    profileImageUrl: row.profile_image_url ?? undefined,
   };
 }
 

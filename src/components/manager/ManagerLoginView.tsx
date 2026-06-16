@@ -1,6 +1,8 @@
 "use client";
 
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
+import { LoginGreetingsLottie } from "@/components/manager/LoginGreetingsLottie";
 import { AppShell } from "@/components/ui/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -13,19 +15,16 @@ import {
   verifyEmailOtp,
 } from "@/lib/auth/manager-auth";
 import { useSlangStore } from "@/lib/store";
-import { KeyRound, Loader2, Mail, MessageCircle } from "lucide-react";
+import { KeyRound, Loader2, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 type LoginStep = "form" | "otp";
 
-type ManagerLoginViewProps = {
-  banner?: string;
-};
-
 const RESEND_COOLDOWN_SEC = 60;
+const FIELD_ROUNDED = "!rounded-2xl";
 
-export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
+export function ManagerLoginView() {
   const router = useRouter();
   const signInManager = useSlangStore((s) => s.signInManager);
   const [mounted, setMounted] = useState(false);
@@ -131,20 +130,21 @@ export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
     return (
       <AppShell dir="rtl">
         <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
-          <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
-            <h1 className="text-xl font-semibold text-gray-900">Slang</h1>
-          </header>
-          <div className="flex flex-1 flex-col justify-center px-4 py-8">
+          <div className="flex min-h-[33dvh] items-center justify-center px-4 pt-8">
+            <AuthBrandLogo />
+          </div>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="shrink-0 px-4">
             <div className="mx-auto w-full max-w-sm">
-              <div className="rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-8">
-                <div className="mx-auto h-16 w-16 animate-pulse rounded-full bg-white/60" />
-                <div className="mx-auto mt-5 h-7 w-32 animate-pulse rounded-lg bg-white/60" />
-                <div className="mx-auto mt-3 h-4 w-full max-w-[240px] animate-pulse rounded bg-white/40" />
-                <div className="mt-8 h-12 animate-pulse rounded-xl bg-white/60" />
+              <div className="px-2">
+                <div className="h-4 w-full max-w-[260px] animate-pulse rounded bg-white/40" />
+                <div className="mt-6 h-12 animate-pulse rounded-2xl bg-white/60" />
                 <div className="mt-4 h-12 animate-pulse rounded-2xl bg-white/40" />
               </div>
             </div>
           </div>
+          <LoginGreetingsLottie />
+        </div>
         </div>
       </AppShell>
     );
@@ -153,41 +153,30 @@ export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
   return (
     <AppShell dir="rtl">
       <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
-        <header className="chrome-top shrink-0 border-b border-[var(--jobchat-border)] bg-white px-4 py-3">
-          <h1 className="text-xl font-semibold text-gray-900">Slang</h1>
-        </header>
+        <div className="flex min-h-[33dvh] shrink-0 items-center justify-center px-4 pt-8">
+          <AuthBrandLogo />
+        </div>
 
-        <div className="flex flex-1 flex-col justify-center px-4 py-8">
-          <div className="mx-auto w-full max-w-sm">
-            {banner && (
-              <p className="mb-4 rounded-xl border border-[var(--jobchat-border)] bg-white/60 px-4 py-3 text-center text-sm text-gray-600">
-                {banner}
-              </p>
-            )}
-
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="shrink-0 px-4">
+            <div className="mx-auto w-full max-w-sm">
             {step === "form" ? (
-              <div className="rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-8">
-                <div className="mb-6 flex flex-col items-center text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
-                    <MessageCircle className="h-8 w-8 text-[var(--jobchat-accent)]" />
-                  </div>
-                  <h2 className="mt-5 text-[22px] font-semibold tracking-tight text-gray-900">
-                    הרשמה / התחברות
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                    הזינו את כתובת המייל ונשלח אליכם קוד. מייל חדש יפתח חשבון
-                    מנהל חדש.
-                  </p>
-                </div>
+              <div className="px-2">
+                <p className="mb-6 text-center text-sm leading-relaxed text-gray-500">
+                  הזינו את כתובת המייל שלכם ונשלח אליכם קוד בעל 6 ספרות להתחברות
+                </p>
 
                 <div className="space-y-4">
                   <Input
-                    dir="ltr"
-                    label="אימייל"
+                    dir="rtl"
+                    label='כתובת דוא"ל'
+                    labelIcon={
+                      <Mail className="h-4 w-4 shrink-0 text-gray-500" />
+                    }
                     type="email"
                     inputMode="email"
                     autoComplete="email"
-                    placeholder="name@example.com"
+                    placeholder="Office@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => {
@@ -195,6 +184,7 @@ export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
                     }}
                     error={error}
                     disabled={sending}
+                    className={FIELD_ROUNDED}
                   />
 
                   <Button
@@ -209,20 +199,13 @@ export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
                         שולח...
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        שלח קוד התחברות
-                      </span>
+                      "התחברות"
                     )}
                   </Button>
                 </div>
-
-                <p className="mt-6 text-center text-xs leading-relaxed text-gray-400">
-                  אין צורך בסיסמה — מייל חדש נרשם אוטומטית כמנהל ראשי
-                </p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-8">
+              <div className="px-2">
                 <div className="mb-6 flex flex-col items-center text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
                     <KeyRound className="h-8 w-8 text-[var(--jobchat-accent)]" />
@@ -292,7 +275,10 @@ export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
                 </div>
               </div>
             )}
+            </div>
           </div>
+
+          <LoginGreetingsLottie />
         </div>
       </div>
     </AppShell>

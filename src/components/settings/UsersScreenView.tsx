@@ -99,6 +99,7 @@ export function UsersScreenView() {
                   key={manager.id}
                   name={manager.name}
                   phone={manager.phone}
+                  imageUrl={manager.profileImageUrl}
                   onPress={() => setEditingManager(manager)}
                   canRemove={!manager.isAdmin && manager.id !== managerId}
                   onRemove={() =>

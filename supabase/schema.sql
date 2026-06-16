@@ -24,6 +24,7 @@ create table if not exists managers (
   invite_token text not null unique,
   is_admin boolean not null default false,
   onboarding_complete boolean not null default true,
+  profile_image_url text,
   created_at timestamptz not null default now()
 );
 
@@ -75,6 +76,20 @@ create index if not exists messages_conversation_idx
   on messages(company_id, manager_id, worker_id, created_at);
 create index if not exists messages_worker_id_idx on messages(worker_id);
 create index if not exists messages_manager_id_idx on messages(manager_id);
+
+-- ---------------------------------------------------------------------------
+-- Manager profile images (Supabase Storage)
+-- ---------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public)
+values ('manager-profiles', 'manager-profiles', true)
+on conflict (id) do update set public = excluded.public;
+
+drop policy if exists "manager_profiles_public_read" on storage.objects;
+create policy "manager_profiles_public_read"
+  on storage.objects
+  for select
+  using (bucket_id = 'manager-profiles');
 
 -- ---------------------------------------------------------------------------
 -- Team size limits removed — will be enforced via billing tiers later.
