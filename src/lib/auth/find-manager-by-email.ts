@@ -122,6 +122,10 @@ export async function signupAdminWithEmail(email: string): Promise<string> {
     throw companyError;
   }
 
+  if (!company?.id) {
+    throw new Error("Failed to create company row");
+  }
+
   return insertSignupManager(supabase, {
     company_id: company.id,
     name: defaultAdminNameFromEmail(normalized),
