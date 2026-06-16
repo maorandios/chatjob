@@ -30,10 +30,10 @@ export function LoginGreetingsLottie() {
 
   return (
     <div
-      className="pointer-events-none flex min-h-0 flex-1 items-center justify-center px-4 pb-6 pt-2"
+      className="pointer-events-none flex w-full items-center justify-center px-2"
       aria-hidden
     >
-      <div className="aspect-square h-full w-full max-h-[min(44dvh,22rem)] max-w-[min(100%,22rem)]">
+      <div className="aspect-square w-full max-h-[min(20dvh,13rem)] max-w-[min(100%,13rem)]">
         <Lottie
           animationData={animationData}
           loop

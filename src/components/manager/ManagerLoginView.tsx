@@ -15,7 +15,7 @@ import {
   verifyEmailOtp,
 } from "@/lib/auth/manager-auth";
 import { useSlangStore } from "@/lib/store";
-import { KeyRound, Loader2, Mail } from "lucide-react";
+import { KeyRound, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -23,6 +23,8 @@ type LoginStep = "form" | "otp";
 
 const RESEND_COOLDOWN_SEC = 60;
 const FIELD_ROUNDED = "!rounded-2xl";
+const LOGIN_CARD_CLASS =
+  "rounded-3xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-6 shadow-[0_1px_3px_rgba(15,23,42,0.04)]";
 
 export function ManagerLoginView() {
   const router = useRouter();
@@ -129,22 +131,19 @@ export function ManagerLoginView() {
   if (!mounted) {
     return (
       <AppShell dir="rtl">
-        <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
-          <div className="flex min-h-[33dvh] items-center justify-center px-4 pt-8">
-            <AuthBrandLogo />
+        <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)] safe-top">
+          <div className="flex shrink-0 flex-col items-center gap-3 px-4 pt-8">
+            <LoginGreetingsLottie />
+            <AuthBrandLogo size="compact" />
           </div>
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="shrink-0 px-4">
+          <div className="mt-10 shrink-0 px-4 pb-8">
             <div className="mx-auto w-full max-w-sm">
-              <div className="px-2">
-                <div className="h-4 w-full max-w-[260px] animate-pulse rounded bg-white/40" />
-                <div className="mt-6 h-12 animate-pulse rounded-2xl bg-white/60" />
+              <div className={LOGIN_CARD_CLASS}>
+                <div className="h-12 animate-pulse rounded-2xl bg-white/60" />
                 <div className="mt-4 h-12 animate-pulse rounded-2xl bg-white/40" />
               </div>
             </div>
           </div>
-          <LoginGreetingsLottie />
-        </div>
         </div>
       </AppShell>
     );
@@ -152,27 +151,21 @@ export function ManagerLoginView() {
 
   return (
     <AppShell dir="rtl">
-      <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
-        <div className="flex min-h-[33dvh] shrink-0 items-center justify-center px-4 pt-8">
-          <AuthBrandLogo />
+      <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)] safe-top">
+        <div className="flex shrink-0 flex-col items-center gap-3 px-4 pt-8">
+          <LoginGreetingsLottie />
+          <AuthBrandLogo size="compact" />
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="shrink-0 px-4">
-            <div className="mx-auto w-full max-w-sm">
+        <div className="mt-10 shrink-0 px-4 pb-8">
+          <div className="mx-auto w-full max-w-sm">
             {step === "form" ? (
-              <div className="px-2">
-                <p className="mb-6 text-center text-sm leading-relaxed text-gray-500">
-                  הזינו את כתובת המייל שלכם ונשלח אליכם קוד בעל 6 ספרות להתחברות
-                </p>
-
+              <div className={LOGIN_CARD_CLASS}>
                 <div className="space-y-4">
                   <Input
                     dir="rtl"
+                    align="center"
                     label='כתובת דוא"ל'
-                    labelIcon={
-                      <Mail className="h-4 w-4 shrink-0 text-gray-500" />
-                    }
                     type="email"
                     inputMode="email"
                     autoComplete="email"
@@ -202,10 +195,15 @@ export function ManagerLoginView() {
                       "התחברות"
                     )}
                   </Button>
+
+                  <p className="text-center text-xs leading-relaxed text-gray-400">
+                    הזינו את כתובת המייל שלכם ונשלח אליכם קוד בעל 6 ספרות
+                    להתחברות
+                  </p>
                 </div>
               </div>
             ) : (
-              <div className="px-2">
+              <div className={LOGIN_CARD_CLASS}>
                 <div className="mb-6 flex flex-col items-center text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
                     <KeyRound className="h-8 w-8 text-[var(--jobchat-accent)]" />
@@ -275,10 +273,7 @@ export function ManagerLoginView() {
                 </div>
               </div>
             )}
-            </div>
           </div>
-
-          <LoginGreetingsLottie />
         </div>
       </div>
     </AppShell>

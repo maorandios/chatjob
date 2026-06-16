@@ -24,7 +24,7 @@
 html {
   height: 100%;
   height: -webkit-fill-available;
-  background-color: #ffffff;
+  background-color: var(--jobchat-surface);
   color-scheme: light;
 }
 
@@ -36,7 +36,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #ffffff;
+  background-color: var(--jobchat-surface);
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
@@ -57,7 +57,7 @@ a,
   width: 100%;
   flex-direction: column;
   overflow: hidden;
-  background: white;
+  background: var(--jobchat-surface);
 }
 
 .app-root--centered {
