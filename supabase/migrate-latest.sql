@@ -37,7 +37,12 @@ create unique index if not exists companies_email_unique_idx
 
 alter table workers
   add column if not exists employee_number text,
-  add column if not exists address text;
+  add column if not exists address text,
+  add column if not exists email text;
+
+create unique index if not exists workers_email_unique_idx
+  on workers(lower(email))
+  where email is not null;
 
 -- ---------------------------------------------------------------------------
 -- managers: single admin per company (v2 — replaces separate admins table)

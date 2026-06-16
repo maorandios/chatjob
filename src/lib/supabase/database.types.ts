@@ -78,6 +78,7 @@ export type Database = {
           company_id: string;
           name: string;
           phone: string;
+          email: string | null;
           employee_number: string | null;
           address: string | null;
           language: string | null;
@@ -90,6 +91,7 @@ export type Database = {
           company_id: string;
           name: string;
           phone: string;
+          email?: string | null;
           employee_number?: string | null;
           address?: string | null;
           language?: string | null;
@@ -102,6 +104,7 @@ export type Database = {
           company_id?: string;
           name?: string;
           phone?: string;
+          email?: string | null;
           employee_number?: string | null;
           address?: string | null;
           language?: string | null;

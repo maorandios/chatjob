@@ -42,6 +42,7 @@ export function rowToWorker(row: DbWorker): Worker {
     companyId: row.company_id,
     name: row.name,
     phone: row.phone,
+    email: row.email ?? undefined,
     employeeNumber: row.employee_number ?? undefined,
     address: row.address ?? undefined,
     language: (row.language as LanguageCode | null) ?? undefined,

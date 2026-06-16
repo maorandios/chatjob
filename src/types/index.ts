@@ -51,6 +51,7 @@ export type Worker = {
   companyId: string;
   name: string;
   phone: string;
+  email?: string;
   employeeNumber?: string;
   address?: string;
   language?: LanguageCode;
@@ -88,8 +89,11 @@ export type WorkerInvite = {
 export type LanguageOption = {
   code: LanguageCode;
   nativeName: string;
+  /** Language name in English for picker labels */
+  englishName: string;
   countryName: string;
-  flag: string;
+  /** ISO 3166-1 alpha-2 country code for flag icon */
+  countryCode: string;
   dir: "ltr" | "rtl";
 };
 

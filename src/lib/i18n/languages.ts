@@ -5,51 +5,58 @@ export const DEFAULT_WORKER_LANGUAGE: LanguageCode = "en";
 export const WORKER_LANGUAGES: LanguageOption[] = [
   {
     code: "th",
+    englishName: "Thai",
     countryName: "Thailand",
     nativeName: "ไทย",
-    flag: "🇹🇭",
+    countryCode: "TH",
     dir: "ltr",
   },
   {
     code: "ru",
+    englishName: "Russian",
     countryName: "Russia",
     nativeName: "Русский",
-    flag: "🇷🇺",
+    countryCode: "RU",
     dir: "ltr",
   },
   {
     code: "en",
+    englishName: "English",
     countryName: "English",
     nativeName: "English",
-    flag: "🇬🇧",
+    countryCode: "GB",
     dir: "ltr",
   },
   {
     code: "hi",
+    englishName: "Hindi",
     countryName: "India",
     nativeName: "हिन्दी",
-    flag: "🇮🇳",
+    countryCode: "IN",
     dir: "ltr",
   },
   {
     code: "si",
+    englishName: "Sinhala",
     countryName: "Sri Lanka",
     nativeName: "සිංහල",
-    flag: "🇱🇰",
+    countryCode: "LK",
     dir: "ltr",
   },
   {
     code: "ro",
+    englishName: "Romanian",
     countryName: "Moldova",
     nativeName: "Română",
-    flag: "🇲🇩",
+    countryCode: "MD",
     dir: "ltr",
   },
   {
     code: "ar",
+    englishName: "Arabic",
     countryName: "Arabic",
     nativeName: "العربية",
-    flag: "🇸🇦",
+    countryCode: "SA",
     dir: "rtl",
   },
 ];
@@ -78,4 +85,8 @@ export function getLanguage(code: LanguageCode | string | undefined): LanguageOp
 
 export function getLanguageDir(code: LanguageCode | string | undefined): "ltr" | "rtl" {
   return getLanguage(code).dir;
+}
+
+export function getLanguagePickerLabel(lang: LanguageOption): string {
+  return `${lang.nativeName} • ${lang.englishName}`;
 }

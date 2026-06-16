@@ -1,7 +1,8 @@
 "use client";
 
 import { Avatar } from "@/components/ui/Avatar";
-import { getLanguage } from "@/lib/i18n/languages";
+import { LanguageFlag } from "@/components/worker/LanguageFlag";
+import { getLanguage, getLanguagePickerLabel } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
 import type { LanguageCode } from "@/types";
 import { ChevronRight, CreditCard } from "lucide-react";
@@ -53,8 +54,13 @@ export function WorkerSettingsView({
             href={`/invite/${token}?changeLang=1`}
             className="flex w-full items-center justify-between rounded-xl bg-[var(--jobchat-surface)] p-4 hover:bg-gray-100"
           >
-            <p className="font-medium text-gray-900">
-              {lang.flag} {lang.countryName} · {lang.nativeName}
+            <p className="flex items-center gap-2 font-medium text-gray-900">
+              <LanguageFlag
+                countryCode={lang.countryCode}
+                className="h-5 w-5"
+                title={lang.countryName}
+              />
+              {getLanguagePickerLabel(lang)}
             </p>
             <ChevronRight
               className={

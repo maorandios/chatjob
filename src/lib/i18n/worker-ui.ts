@@ -47,11 +47,177 @@ export type WorkerUiStrings = {
   contactPhoneCopied: string;
   contactNameSave: string;
   joinChat: string;
+  verifyEmailTitle: string;
+  verifyEmailSubtitle: string;
+  emailLabel: string;
+  sendVerificationCode: string;
+  enterCodeTitle: string;
+  enterCodeSentPrefix: string;
+  resendCode: string;
+  resendInSeconds: string;
+  changeEmail: string;
+  verifying: string;
+  verifyAndContinue: string;
+  invalidEmail: string;
+  otpDigitsRequired: string;
+  saveLanguageFailed: string;
+  sendOtpFailed: string;
+  resendOtpFailed: string;
+  verifyFailed: string;
+  saving: string;
   invalidInvite: string;
   invalidInviteSubtitle: string;
 };
 
-const ui: Record<LanguageCode, WorkerUiStrings> = {
+const emailVerificationStrings = {
+  th: {
+    verifyEmailTitle: "ยืนยันอีเมล",
+    verifyEmailSubtitle: "เพื่อเข้าใช้งานแอป คุณต้องยืนยันอีเมลส่วนตัว",
+    emailLabel: "ที่อยู่อีเมล",
+    sendVerificationCode: "ส่งรหัสยืนยัน",
+    enterCodeTitle: "กรอกรหัส",
+    enterCodeSentPrefix: "เราส่งรหัส {length} หลักไปที่",
+    resendCode: "ส่งรหัสอีกครั้ง",
+    resendInSeconds: "ส่งอีกครั้งใน {seconds} วินาที",
+    changeEmail: "เปลี่ยนอีเมล",
+    verifying: "กำลังยืนยัน...",
+    verifyAndContinue: "ยืนยันและดำเนินการต่อ",
+    invalidEmail: "กรุณากรอกอีเมลที่ถูกต้อง",
+    otpDigitsRequired: "กรุณากรอกรหัส {length} หลัก",
+    saveLanguageFailed: "ไม่สามารถบันทึกภาษาได้ ลองอีกครั้ง",
+    sendOtpFailed: "ไม่สามารถส่งรหัสยืนยันได้",
+    resendOtpFailed: "ไม่สามารถส่งรหัสอีกครั้งได้",
+    verifyFailed: "การยืนยันล้มเหลว",
+    saving: "กำลังบันทึก...",
+  },
+  hi: {
+    verifyEmailTitle: "ईमेल सत्यापित करें",
+    verifyEmailSubtitle: "ऐप में प्रवेश करने के लिए अपना व्यक्तिगत ईमेल सत्यापित करें।",
+    emailLabel: "ईमेल पता",
+    sendVerificationCode: "सत्यापन कोड भेजें",
+    enterCodeTitle: "कोड दर्ज करें",
+    enterCodeSentPrefix: "हमने {length} अंकों का कोड भेजा है",
+    resendCode: "कोड फिर भेजें",
+    resendInSeconds: "{seconds} सेकंड में फिर भेजें",
+    changeEmail: "ईमेल बदलें",
+    verifying: "सत्यापित हो रहा है...",
+    verifyAndContinue: "सत्यापित करें और जारी रखें",
+    invalidEmail: "कृपया मान्य ईमेल पता दर्ज करें",
+    otpDigitsRequired: "कृपया {length} अंकों का कोड दर्ज करें",
+    saveLanguageFailed: "भाषा सहेजी नहीं जा सकी। फिर कोशिश करें।",
+    sendOtpFailed: "सत्यापन कोड नहीं भेजा जा सका",
+    resendOtpFailed: "कोड दोबारा नहीं भेजा जा सका",
+    verifyFailed: "सत्यापन विफल",
+    saving: "सहेजा जा रहा है...",
+  },
+  si: {
+    verifyEmailTitle: "ඊමේල් සත්‍යාපනය",
+    verifyEmailSubtitle: "යෙදුමට ඇතුල් වීමට ඔබේ පෞද්ගලික ඊමේල් සත්‍යාපනය කරන්න.",
+    emailLabel: "ඊමේල් ලිපිනය",
+    sendVerificationCode: "සත්‍යාපන කේතය යවන්න",
+    enterCodeTitle: "කේතය ඇතුළත් කරන්න",
+    enterCodeSentPrefix: "අපි ඉලක්කම් {length} කේතයක් යැව්වා",
+    resendCode: "කේතය නැවත යවන්න",
+    resendInSeconds: "{seconds} තත්පරයකින් නැවත යවන්න",
+    changeEmail: "ඊමේල් වෙනස් කරන්න",
+    verifying: "සත්‍යාපනය වෙමින්...",
+    verifyAndContinue: "සත්‍යාපනය කර ඉදිරියට",
+    invalidEmail: "කරුණාකර වලංගු ඊමේල් ලිපිනයක් ඇතුළත් කරන්න",
+    otpDigitsRequired: "කරුණාකර ඉලක්කම් {length} කේතයක් ඇතුළත් කරන්න",
+    saveLanguageFailed: "භාෂාව සුරැකිය නොහැක. නැවත උත්සාහ කරන්න.",
+    sendOtpFailed: "සත්‍යාපන කේතය යැවිය නොහැක",
+    resendOtpFailed: "කේතය නැවත යැවිය නොහැක",
+    verifyFailed: "සත්‍යාපනය අසාර්ථකයි",
+    saving: "සුරකිමින්...",
+  },
+  ro: {
+    verifyEmailTitle: "Verifică adresa de email",
+    verifyEmailSubtitle: "Pentru a intra în aplicație, verifică emailul personal.",
+    emailLabel: "Adresă de email",
+    sendVerificationCode: "Trimite codul de verificare",
+    enterCodeTitle: "Introdu codul",
+    enterCodeSentPrefix: "Am trimis un cod de {length} cifre la",
+    resendCode: "Retrimite codul",
+    resendInSeconds: "Retrimite în {seconds} secunde",
+    changeEmail: "Schimbă emailul",
+    verifying: "Se verifică...",
+    verifyAndContinue: "Verifică și continuă",
+    invalidEmail: "Introdu o adresă de email validă",
+    otpDigitsRequired: "Introdu un cod de {length} cifre",
+    saveLanguageFailed: "Nu s-a putut salva limba. Încearcă din nou.",
+    sendOtpFailed: "Nu s-a putut trimite codul de verificare",
+    resendOtpFailed: "Nu s-a putut retrimite codul",
+    verifyFailed: "Verificarea a eșuat",
+    saving: "Se salvează...",
+  },
+  en: {
+    verifyEmailTitle: "Verify your email",
+    verifyEmailSubtitle: "To enter the app, verify your personal email.",
+    emailLabel: "Email address",
+    sendVerificationCode: "Send verification code",
+    enterCodeTitle: "Enter the code",
+    enterCodeSentPrefix: "We sent a {length}-digit code to",
+    resendCode: "Resend code",
+    resendInSeconds: "Resend in {seconds} seconds",
+    changeEmail: "Change email",
+    verifying: "Verifying...",
+    verifyAndContinue: "Verify and continue",
+    invalidEmail: "Please enter a valid email address",
+    otpDigitsRequired: "Please enter a {length}-digit code",
+    saveLanguageFailed: "Could not save language. Please try again.",
+    sendOtpFailed: "Could not send verification code",
+    resendOtpFailed: "Could not resend code",
+    verifyFailed: "Verification failed",
+    saving: "Saving...",
+  },
+  ar: {
+    verifyEmailTitle: "تأكيد البريد الإلكتروني",
+    verifyEmailSubtitle: "للدخول إلى التطبيق، يجب تأكيد بريدك الإلكتروني الشخصي.",
+    emailLabel: "البريد الإلكتروني",
+    sendVerificationCode: "إرسال رمز التحقق",
+    enterCodeTitle: "أدخل الرمز",
+    enterCodeSentPrefix: "أرسلنا رمزًا من {length} أرقام إلى",
+    resendCode: "إعادة إرسال الرمز",
+    resendInSeconds: "إعادة الإرسال خلال {seconds} ثانية",
+    changeEmail: "تغيير البريد الإلكتروني",
+    verifying: "جارٍ التحقق...",
+    verifyAndContinue: "تحقق ومتابعة",
+    invalidEmail: "يرجى إدخال بريد إلكتروني صالح",
+    otpDigitsRequired: "يرجى إدخال رمز من {length} أرقام",
+    saveLanguageFailed: "تعذر حفظ اللغة. حاول مرة أخرى.",
+    sendOtpFailed: "تعذر إرسال رمز التحقق",
+    resendOtpFailed: "تعذر إعادة إرسال الرمز",
+    verifyFailed: "فشل التحقق",
+    saving: "جارٍ الحفظ...",
+  },
+  ru: {
+    verifyEmailTitle: "Подтвердите email",
+    verifyEmailSubtitle: "Чтобы войти в приложение, подтвердите личный email.",
+    emailLabel: "Адрес email",
+    sendVerificationCode: "Отправить код подтверждения",
+    enterCodeTitle: "Введите код",
+    enterCodeSentPrefix: "Мы отправили {length}-значный код на",
+    resendCode: "Отправить код снова",
+    resendInSeconds: "Повторная отправка через {seconds} сек.",
+    changeEmail: "Изменить email",
+    verifying: "Проверка...",
+    verifyAndContinue: "Подтвердить и продолжить",
+    invalidEmail: "Введите корректный email",
+    otpDigitsRequired: "Введите {length}-значный код",
+    saveLanguageFailed: "Не удалось сохранить язык. Попробуйте снова.",
+    sendOtpFailed: "Не удалось отправить код подтверждения",
+    resendOtpFailed: "Не удалось отправить код повторно",
+    verifyFailed: "Проверка не удалась",
+    saving: "Сохранение...",
+  },
+} as const;
+
+type BaseWorkerUiStrings = Omit<
+  WorkerUiStrings,
+  keyof (typeof emailVerificationStrings)[LanguageCode]
+>;
+
+const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
   th: {
     continue: "ดำเนินการต่อ",
     chooseLanguage: "เลือกภาษาของคุณ",
@@ -397,6 +563,17 @@ const ui: Record<LanguageCode, WorkerUiStrings> = {
   },
 };
 
+export function formatWorkerUi(
+  template: string,
+  values: Record<string, string | number>
+): string {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replace(`{${key}}`, String(value)),
+    template
+  );
+}
+
 export function getWorkerUi(lang: LanguageCode | string | undefined): WorkerUiStrings {
-  return ui[normalizeWorkerLanguage(lang)];
+  const code = normalizeWorkerLanguage(lang);
+  return { ...ui[code], ...emailVerificationStrings[code] };
 }

@@ -47,6 +47,7 @@ create table if not exists workers (
   company_id uuid not null references companies(id) on delete cascade,
   name text not null,
   phone text not null,
+  email text,
   employee_number text,
   address text,
   language text,
@@ -57,6 +58,9 @@ create table if not exists workers (
 
 create index if not exists workers_company_id_idx on workers(company_id);
 create index if not exists workers_invite_token_idx on workers(invite_token);
+create unique index if not exists workers_email_unique_idx
+  on workers(lower(email))
+  where email is not null;
 
 create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
