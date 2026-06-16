@@ -17,9 +17,9 @@ export function LogoutNavCard() {
   const handleConfirm = async () => {
     setLoggingOut(true);
     await signOutSupabaseAuth();
-    logoutManager();
     setOpen(false);
     router.replace("/manager/login");
+    logoutManager();
   };
 
   return (

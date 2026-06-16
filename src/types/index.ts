@@ -41,6 +41,7 @@ export type Manager = {
   email?: string;
   inviteToken: string;
   isAdmin: boolean;
+  onboardingComplete: boolean;
 };
 
 export type Worker = {

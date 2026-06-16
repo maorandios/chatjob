@@ -27,7 +27,7 @@ export async function sendManagerLoginOtp(email: string): Promise<void> {
     throw new Error("Supabase לא מוגדר באפליקציה (NEXT_PUBLIC_SUPABASE_*)");
   }
 
-  // Omit emailRedirectTo so Supabase issues a numeric OTP (not a magic-link token).
+  // No emailRedirectTo — Supabase uses dashboard email templates ({{ .Token }} for OTP).
   const { error } = await supabase.auth.signInWithOtp({
     email: normalized,
     options: {

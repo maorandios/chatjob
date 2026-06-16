@@ -7,6 +7,7 @@ import {
   resolveManagerIdByEmail,
   verifyEmailOtpFromHash,
 } from "@/lib/auth/manager-auth";
+import { getPostAuthManagerPath } from "@/lib/auth/post-auth-redirect";
 import { useSlangStore } from "@/lib/store";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -46,7 +47,8 @@ export default function ManagerAuthCallbackPage() {
         if (cancelled) return;
 
         await signInManager(managerId);
-        router.replace("/manager");
+        const { onboardingComplete } = useSlangStore.getState();
+        router.replace(getPostAuthManagerPath(onboardingComplete));
       } catch (err) {
         if (cancelled) return;
         setError(

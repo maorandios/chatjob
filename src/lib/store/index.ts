@@ -36,6 +36,7 @@ type SlangState = {
   managerPhone: string;
   managerInviteToken: string;
   isAdmin: boolean;
+  onboardingComplete: boolean;
   companyId: string;
   companyName: string;
   companyNumber: string;
@@ -138,6 +139,11 @@ type SlangState = {
   upsertInvite: (invite: Invite) => void;
   logoutManager: () => void;
   signInManager: (managerId: string) => Promise<void>;
+  completeOnboarding: (details: {
+    companyName: string;
+    fullName: string;
+    phone: string;
+  }) => Promise<void>;
 };
 
 function normalizeContactAliasEntry(
@@ -221,6 +227,7 @@ export const useSlangStore = create<SlangState>()(
       managerPhone: "",
       managerInviteToken: "",
       isAdmin: false,
+      onboardingComplete: true,
       companyId: "",
       companyName: "",
       companyNumber: "",
@@ -245,6 +252,7 @@ export const useSlangStore = create<SlangState>()(
           managerPhone: "",
           managerInviteToken: "",
           isAdmin: false,
+          onboardingComplete: true,
           companyId: "",
           companyName: "",
           companyNumber: "",
@@ -267,6 +275,42 @@ export const useSlangStore = create<SlangState>()(
         });
         setStoredManagerId(managerId);
         await get().bootstrapManager();
+      },
+
+      completeOnboarding: async ({ companyName, fullName, phone }) => {
+        const managerId = get().managerId;
+        if (!managerId) throw new Error("לא נמצאה התחברות פעילה");
+
+        const res = await fetch(
+          `/api/managers/${encodeURIComponent(managerId)}/onboarding`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ companyName, fullName, phone }),
+          }
+        );
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(
+            typeof data.error === "string"
+              ? data.error
+              : "לא ניתן ליצור את החשבון"
+          );
+        }
+
+        const manager = data.manager as Manager;
+        const company = data.company as Company;
+
+        set((state) => ({
+          managerName: manager.name,
+          managerPhone: manager.phone,
+          onboardingComplete: true,
+          companyId: company.id,
+          companyName: company.name,
+          companyNumber: company.companyNumber ?? "",
+          managers: mergeManagerList(state.managers, manager),
+        }));
       },
 
       bootstrapManager: async (inviteToken) => {
@@ -299,6 +343,7 @@ export const useSlangStore = create<SlangState>()(
             managerPhone: manager.phone,
             managerInviteToken: manager.inviteToken,
             isAdmin: manager.isAdmin,
+            onboardingComplete: manager.onboardingComplete,
             loggedOut: false,
             companyId: data.company.id,
             companyName: data.company.name,

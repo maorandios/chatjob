@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { isValidEmail, normalizeEmail } from "@/lib/auth/email";
 import { EMAIL_OTP_LENGTH, isCompleteOtpCode } from "@/lib/auth/otp";
 import { sendManagerLoginOtp } from "@/lib/auth/send-manager-otp";
+import { getPostAuthManagerPath } from "@/lib/auth/post-auth-redirect";
 import {
   resolveManagerIdByEmail,
   verifyEmailOtp,
@@ -110,7 +111,8 @@ export function ManagerLoginView({ banner }: ManagerLoginViewProps) {
       await verifyEmailOtp(email, token);
       const managerId = await resolveManagerIdByEmail(email);
       await signInManager(managerId);
-      router.replace("/manager");
+      const { onboardingComplete } = useSlangStore.getState();
+      router.replace(getPostAuthManagerPath(onboardingComplete));
     } catch (err) {
       setError(err instanceof Error ? err.message : "האימות נכשל");
     } finally {

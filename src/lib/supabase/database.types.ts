@@ -39,6 +39,7 @@ export type Database = {
           email: string | null;
           invite_token: string;
           is_admin: boolean;
+          onboarding_complete: boolean;
           created_at: string;
         };
         Insert: {
@@ -49,6 +50,7 @@ export type Database = {
           email?: string | null;
           invite_token: string;
           is_admin?: boolean;
+          onboarding_complete?: boolean;
           created_at?: string;
         };
         Update: {
@@ -59,6 +61,7 @@ export type Database = {
           email?: string | null;
           invite_token?: string;
           is_admin?: boolean;
+          onboarding_complete?: boolean;
           created_at?: string;
         };
         Relationships: [];

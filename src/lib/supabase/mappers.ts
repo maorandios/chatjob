@@ -30,6 +30,7 @@ export function rowToManager(row: DbManager): Manager {
     email: row.email ?? undefined,
     inviteToken: row.invite_token,
     isAdmin: row.is_admin,
+    onboardingComplete: row.onboarding_complete ?? true,
   };
 }
 

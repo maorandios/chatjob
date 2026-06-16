@@ -14,10 +14,12 @@ import { useSlangStore } from "@/lib/store";
 import { getInviteUrl, getManagerJoinUrl } from "@/lib/utils";
 import { MessageCircle, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRequireOnboardingComplete } from "@/lib/hooks/use-manager-access";
 import { useRouter } from "next/navigation";
 
 export default function ManagerPage() {
   const router = useRouter();
+  useRequireOnboardingComplete();
   useManagerInboxPreviews();
   const ready = useSlangStore((s) => s.ready);
   const managerId = useSlangStore((s) => s.managerId);

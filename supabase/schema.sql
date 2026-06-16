@@ -23,6 +23,7 @@ create table if not exists managers (
   email text,
   invite_token text not null unique,
   is_admin boolean not null default false,
+  onboarding_complete boolean not null default true,
   created_at timestamptz not null default now()
 );
 

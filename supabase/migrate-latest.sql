@@ -42,6 +42,9 @@ alter table managers
 alter table managers
   add column if not exists email text;
 
+alter table managers
+  add column if not exists onboarding_complete boolean not null default true;
+
 create unique index if not exists managers_email_unique_idx
   on managers(lower(email))
   where email is not null;

@@ -13,13 +13,18 @@ export async function resolveManagerIdByEmail(email: string): Promise<string> {
     body: JSON.stringify({ email: normalizeEmail(email) }),
   });
 
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    throw new Error("לא נמצא חשבון מנהל עבור המייל הזה");
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : "לא ניתן להשלים את ההרשמה. נסו שוב."
+    );
   }
 
-  const data = await res.json();
   if (typeof data.managerId !== "string" || !data.managerId) {
-    throw new Error("לא נמצא חשבון מנהל עבור המייל הזה");
+    throw new Error("לא ניתן להשלים את ההרשמה. נסו שוב.");
   }
 
   return data.managerId;

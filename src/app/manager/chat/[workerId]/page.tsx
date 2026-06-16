@@ -4,6 +4,7 @@ import { AppShell } from "@/components/ui/AppShell";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { WorkerProfileSheet } from "@/components/chat/WorkerProfileSheet";
+import { useRequireOnboardingComplete } from "@/lib/hooks/use-manager-access";
 import {
   useContactDisplayName,
   useContactDisplayPhone,
@@ -14,6 +15,7 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ManagerChatPage() {
+  useRequireOnboardingComplete();
   const params = useParams<{ workerId: string }>();
   const router = useRouter();
   const workerId = params?.workerId;
