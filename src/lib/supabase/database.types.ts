@@ -44,6 +44,7 @@ export type Database = {
           is_admin: boolean;
           onboarding_complete: boolean;
           profile_image_url: string | null;
+          telegram_user_id: number | null;
           created_at: string;
         };
         Insert: {
@@ -56,6 +57,7 @@ export type Database = {
           is_admin?: boolean;
           onboarding_complete?: boolean;
           profile_image_url?: string | null;
+          telegram_user_id?: number | null;
           created_at?: string;
         };
         Update: {
@@ -68,6 +70,7 @@ export type Database = {
           is_admin?: boolean;
           onboarding_complete?: boolean;
           profile_image_url?: string | null;
+          telegram_user_id?: number | null;
           created_at?: string;
         };
         Relationships: [];
@@ -84,6 +87,7 @@ export type Database = {
           language: string | null;
           status: string;
           invite_token: string;
+          telegram_user_id: number | null;
           created_at: string;
         };
         Insert: {
@@ -97,6 +101,7 @@ export type Database = {
           language?: string | null;
           status?: string;
           invite_token: string;
+          telegram_user_id?: number | null;
           created_at?: string;
         };
         Update: {
@@ -110,6 +115,7 @@ export type Database = {
           language?: string | null;
           status?: string;
           invite_token?: string;
+          telegram_user_id?: number | null;
           created_at?: string;
         };
         Relationships: [];

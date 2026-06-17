@@ -21,6 +21,7 @@ import { useInviteBootstrap, useWorkerInboxPreviews } from "@/lib/hooks/use-slan
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
+import { useIsTelegramApp } from "@/components/telegram/TelegramProvider";
 import { useSlangStore } from "@/lib/store";
 import type { LanguageCode } from "@/types";
 import { useParams, useRouter } from "next/navigation";
@@ -86,15 +87,19 @@ function InviteOnboarding({
   worker,
 }: {
   token: string;
-  worker: { id: string; language?: LanguageCode; email?: string };
+  worker: { id: string; language?: LanguageCode; email?: string; telegramUserId?: number };
 }) {
   const router = useRouter();
   const isChangingLanguage = useClientSearchParam("changeLang");
+  const isTelegramApp = useClientSearchParam("tg") || useIsTelegramApp();
   const setWorkerLanguage = useSlangStore((s) => s.setWorkerLanguage);
 
-  const [stage, setStage] = useState<"language" | "email" | "otp">(
-    !isChangingLanguage && worker.language ? "email" : "language"
-  );
+  const [stage, setStage] = useState<"language" | "email" | "otp">(() => {
+    if (isChangingLanguage || !worker.language) return "language";
+    if (isTelegramApp && worker.telegramUserId) return "language";
+    if (!worker.email) return "email";
+    return "otp";
+  });
   const [selectedLang, setSelectedLang] = useState<LanguageCode | undefined>(
     worker.language
   );
@@ -130,6 +135,10 @@ function InviteOnboarding({
     setError(undefined);
     try {
       await setWorkerLanguage(worker.id, selectedLang);
+      if (isTelegramApp) {
+        window.location.assign(`/invite/${token}?tg=1`);
+        return;
+      }
       setStage("email");
     } catch (error) {
       console.error("[Slang] Failed to set language", error);
@@ -385,6 +394,7 @@ function InviteOnboarding({
 
 function InvitePageContent({ token }: { token: string }) {
   const isChangingLanguage = useClientSearchParam("changeLang");
+  const isTelegramApp = useClientSearchParam("tg") || useIsTelegramApp();
   const { loading, worker, invite } = useInviteBootstrap(token);
 
   if (loading) {
@@ -410,9 +420,9 @@ function InvitePageContent({ token }: { token: string }) {
 
   const showHome =
     worker.language &&
-    worker.email &&
     worker.status === "active" &&
-    !isChangingLanguage;
+    !isChangingLanguage &&
+    (worker.email || (isTelegramApp && worker.telegramUserId));
 
   if (showHome) {
     return (

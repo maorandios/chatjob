@@ -33,6 +33,7 @@ export function rowToManager(row: DbManager): Manager {
     isAdmin: row.is_admin,
     onboardingComplete: row.onboarding_complete ?? true,
     profileImageUrl: row.profile_image_url ?? undefined,
+    telegramUserId: row.telegram_user_id ?? undefined,
   };
 }
 
@@ -48,6 +49,7 @@ export function rowToWorker(row: DbWorker): Worker {
     language: (row.language as LanguageCode | null) ?? undefined,
     status: row.status as Worker["status"],
     inviteToken: row.invite_token,
+    telegramUserId: row.telegram_user_id ?? undefined,
   };
 }
 

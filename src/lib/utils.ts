@@ -55,3 +55,14 @@ export function getManagerJoinUrl(token: string): string {
   }
   return `https://chatjob.vercel.app/manager/join/${token}`;
 }
+
+const TELEGRAM_BOT_USERNAME =
+  process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || "KlingBot";
+
+export function getTelegramWorkerInviteUrl(token: string): string {
+  return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=worker_${token}`;
+}
+
+export function getTelegramManagerInviteUrl(token: string): string {
+  return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=mgr_${token}`;
+}
