@@ -1,5 +1,4 @@
 import { PageStackTransition } from "@/components/ui/PageStackTransition";
-import { TelegramWebRedirect } from "@/components/telegram/TelegramWebRedirect";
 import { Suspense, type ReactNode } from "react";
 
 function InviteStack({ children }: { children: ReactNode }) {
@@ -13,7 +12,6 @@ export default function InviteTokenLayout({
 }) {
   return (
     <Suspense fallback={children}>
-      <TelegramWebRedirect />
       <InviteStack>{children}</InviteStack>
     </Suspense>
   );

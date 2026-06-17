@@ -9,7 +9,6 @@ import {
   useSlangStore,
 } from "@/lib/store";
 import { formatListTime, getInviteUrl } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import type { Worker } from "@/types";
 import { Send } from "lucide-react";
 import Link from "next/link";
@@ -17,8 +16,6 @@ import { useState } from "react";
 
 type ChatListItemProps = {
   worker: Worker;
-  chatHref?: string;
-  variant?: "default" | "telegram";
 };
 
 const pendingCardClassName =
@@ -27,14 +24,7 @@ const pendingCardClassName =
 const activeCardClassName =
   "flex items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/15 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-white/25 active:bg-white/30";
 
-const telegramRowClassName =
-  "flex items-center gap-3 border-b px-4 py-3 transition-colors active:opacity-80";
-
-export function ChatListItem({
-  worker,
-  chatHref,
-  variant = "default",
-}: ChatListItemProps) {
+export function ChatListItem({ worker }: ChatListItemProps) {
   const managerId = useSlangStore((s) => s.managerId) ?? "";
   const lastMessage = useLastMessage(managerId, worker.id);
   const displayName = useContactDisplayName("manager", worker.id, worker.name);
@@ -42,14 +32,6 @@ export function ChatListItem({
 
   const isPending = worker.status === "pending";
   const inviteUrl = getInviteUrl(worker.inviteToken);
-  const href = chatHref ?? `/manager/chat/${worker.id}`;
-  const rowStyle =
-    variant === "telegram"
-      ? {
-          borderColor: "var(--tg-theme-hint-color, var(--jobchat-border))",
-          backgroundColor: "var(--tg-theme-bg-color, transparent)",
-        }
-      : undefined;
 
   const preview = lastMessage
     ? getMessageDisplayText(lastMessage, "manager", worker.language)
@@ -58,14 +40,9 @@ export function ChatListItem({
   const time = lastMessage ? formatListTime(lastMessage.createdAt) : "";
 
   if (isPending) {
-    const pendingClass =
-      variant === "telegram"
-        ? cn(telegramRowClassName, "opacity-70")
-        : pendingCardClassName;
-
     return (
       <>
-        <div className={pendingClass} style={rowStyle}>
+        <div className={pendingCardClassName}>
           <Avatar
             name={displayName}
             className="bg-gray-200 text-gray-500"
@@ -102,53 +79,16 @@ export function ChatListItem({
   }
 
   return (
-    <Link
-      href={href}
-      className={variant === "telegram" ? telegramRowClassName : activeCardClassName}
-      style={rowStyle}
-    >
+    <Link href={`/manager/chat/${worker.id}`} className={activeCardClassName}>
       <Avatar name={displayName} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <p
-            className={cn(
-              "truncate font-medium",
-              variant !== "telegram" && "text-gray-900"
-            )}
-            style={
-              variant === "telegram"
-                ? { color: "var(--tg-theme-text-color, #111827)" }
-                : undefined
-            }
-          >
-            {displayName}
-          </p>
+          <p className="truncate font-medium text-gray-900">{displayName}</p>
           {time && (
-            <span
-              className={cn("shrink-0 text-xs", variant !== "telegram" && "text-gray-500")}
-              style={
-                variant === "telegram"
-                  ? { color: "var(--tg-theme-hint-color, #6b7280)" }
-                  : undefined
-              }
-            >
-              {time}
-            </span>
+            <span className="shrink-0 text-xs text-gray-500">{time}</span>
           )}
         </div>
-        <p
-          className={cn(
-            "truncate text-sm",
-            variant !== "telegram" && "text-gray-500"
-          )}
-          style={
-            variant === "telegram"
-              ? { color: "var(--tg-theme-subtitle-text-color, #6b7280)" }
-              : undefined
-          }
-        >
-          {preview}
-        </p>
+        <p className="truncate text-sm text-gray-500">{preview}</p>
       </div>
     </Link>
   );

@@ -18,7 +18,6 @@ import {
 } from "@/lib/store";
 import { useChatData } from "@/lib/hooks/use-slang-data";
 import { buildTranslationContext } from "@/lib/translation/context";
-import { cn } from "@/lib/utils";
 import type { LanguageCode, Message } from "@/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -49,7 +48,6 @@ type ChatThreadProps = {
   imageSendFailedLabel?: string;
   dir?: "ltr" | "rtl";
   largeComposer?: boolean;
-  variant?: "default" | "telegram";
 };
 
 export function ChatThread({
@@ -79,9 +77,7 @@ export function ChatThread({
   imageSendFailedLabel = "שליחת התמונה נכשלה",
   dir = "rtl",
   largeComposer = false,
-  variant = "default",
 }: ChatThreadProps) {
-  const isTelegram = variant === "telegram";
   const { loading, hasMore, loadingOlder, loadOlder } = useChatData(
     managerId,
     workerId
@@ -240,15 +236,8 @@ export function ChatThread({
 
   if (loading) {
     return (
-      <div className="relative flex min-h-0 flex-1 flex-col">
-        <div
-          className="flex flex-1 flex-col items-center justify-center px-6"
-          style={
-            isTelegram
-              ? { backgroundColor: "var(--tg-theme-bg-color, var(--jobchat-surface))" }
-              : undefined
-          }
-        >
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)] px-6">
           <ChatLoadingState />
         </div>
         <Composer
@@ -271,7 +260,6 @@ export function ChatThread({
           large={largeComposer}
           dir={dir}
           disabled
-          variant={variant}
         />
       </div>
     );
@@ -291,45 +279,19 @@ export function ChatThread({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className={cn(
-          "chat-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-3",
-          !isTelegram && "bg-[var(--jobchat-surface)] px-4 py-4"
-        )}
-        style={
-          isTelegram
-            ? { backgroundColor: "var(--tg-theme-bg-color, var(--jobchat-surface))" }
-            : undefined
-        }
+        className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-4"
       >
         {hasMore && !loadingOlder && (
           <div className="mb-3 flex justify-center py-1">
-            <span
-              className={cn("text-xs", !isTelegram && "text-gray-400")}
-              style={
-                isTelegram
-                  ? { color: "var(--tg-theme-hint-color, #9ca3af)" }
-                  : undefined
-              }
-            >
-              גלול למעלה לשיחות קודמות
-            </span>
+            <span className="text-xs text-gray-400">גלול למעלה לשיחות קודמות</span>
           </div>
         )}
         {messages.length === 0 && emptyHint && (
           <div className="flex h-full min-h-[200px] flex-col items-center justify-center px-6 text-center">
-            <p
-              className={cn("text-sm", !isTelegram && "text-gray-500")}
-              style={
-                isTelegram
-                  ? { color: "var(--tg-theme-hint-color, #6b7280)" }
-                  : undefined
-              }
-            >
-              {emptyHint}
-            </p>
+            <p className="text-sm text-gray-500">{emptyHint}</p>
           </div>
         )}
-        <div className={cn("flex flex-col", isTelegram ? "gap-1.5" : "gap-3")}>
+        <div className="flex flex-col gap-3">
           {messages.map((message: Message) => {
             const isOwn = message.senderRole === viewerRole;
             const displayText = getMessageDisplayText(
@@ -345,7 +307,6 @@ export function ChatThread({
                 displayText={displayText}
                 isOwn={isOwn}
                 showStatus={isOwn}
-                variant={variant}
               />
             );
           })}
@@ -357,7 +318,6 @@ export function ChatThread({
         <QuickReplies
           replies={quickReplies!}
           onSelect={(text) => void handleSend(text)}
-          variant={variant}
         />
       )}
 
@@ -381,7 +341,6 @@ export function ChatThread({
         large={largeComposer}
         dir={dir}
         disabled={!!voicePreview || isConfirmingVoice}
-        variant={variant}
       />
 
       <VoiceConfirmSheet

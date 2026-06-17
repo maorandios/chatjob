@@ -21,7 +21,6 @@ import { useInviteBootstrap, useWorkerInboxPreviews } from "@/lib/hooks/use-slan
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
-import { useIsTelegramApp } from "@/lib/telegram/use-is-telegram-app";
 import { useSlangStore } from "@/lib/store";
 import type { LanguageCode } from "@/types";
 import { useParams, useRouter } from "next/navigation";
@@ -87,11 +86,10 @@ function InviteOnboarding({
   worker,
 }: {
   token: string;
-  worker: { id: string; language?: LanguageCode; email?: string; telegramUserId?: number };
+  worker: { id: string; language?: LanguageCode; email?: string };
 }) {
   const router = useRouter();
   const isChangingLanguage = useClientSearchParam("changeLang");
-  const isTelegramApp = useIsTelegramApp();
   const setWorkerLanguage = useSlangStore((s) => s.setWorkerLanguage);
 
   const [stage, setStage] = useState<"language" | "email" | "otp">(
@@ -132,10 +130,6 @@ function InviteOnboarding({
     setError(undefined);
     try {
       await setWorkerLanguage(worker.id, selectedLang);
-      if (isTelegramApp) {
-        router.replace(`/invite/${token}`);
-        return;
-      }
       setStage("email");
     } catch (error) {
       console.error("[Slang] Failed to set language", error);
@@ -391,7 +385,6 @@ function InviteOnboarding({
 
 function InvitePageContent({ token }: { token: string }) {
   const isChangingLanguage = useClientSearchParam("changeLang");
-  const isTelegramApp = useIsTelegramApp();
   const { loading, worker, invite } = useInviteBootstrap(token);
 
   if (loading) {
@@ -417,9 +410,9 @@ function InvitePageContent({ token }: { token: string }) {
 
   const showHome =
     worker.language &&
+    worker.email &&
     worker.status === "active" &&
-    !isChangingLanguage &&
-    (worker.email || (isTelegramApp && worker.telegramUserId));
+    !isChangingLanguage;
 
   if (showHome) {
     return (

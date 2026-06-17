@@ -27,7 +27,6 @@ type ComposerProps = {
   large?: boolean;
   dir?: "ltr" | "rtl";
   disabled?: boolean;
-  variant?: "default" | "telegram";
 };
 
 const actionBtn =
@@ -58,9 +57,7 @@ export function Composer({
   large = false,
   dir = "rtl",
   disabled = false,
-  variant = "default",
 }: ComposerProps) {
-  const isTelegram = variant === "telegram";
   const { showToast } = useToast();
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -114,12 +111,7 @@ export function Composer({
       type="button"
       disabled={disabled || isSending}
       onClick={() => setShowImageSheet(true)}
-      className={cn(
-        actionBtn,
-        isTelegram
-          ? "h-9 w-9 text-[var(--tg-theme-link-color,var(--jobchat-accent))] active:opacity-70 disabled:opacity-40"
-          : inlineImageBtn
-      )}
+      className={inlineImageBtn}
       aria-label={attachImageTitle}
     >
       <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
@@ -128,16 +120,11 @@ export function Composer({
 
   return (
     <>
-      <div className={cn("composer-dock", isTelegram && "composer-dock--telegram")}>
+      <div className="composer-dock">
         <div dir="ltr" className="flex items-end gap-2">
           <div
             dir={dir}
-            className={cn(
-              "flex min-h-[44px] min-w-0 flex-1 items-center gap-2 px-1 py-1",
-              isTelegram
-                ? "rounded-[22px] bg-[var(--tg-theme-secondary-bg-color,var(--jobchat-surface))] px-3"
-                : "rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-3 py-1.5 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
-            )}
+            className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2 rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-3 py-1.5 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
           >
             {dir === "rtl" && imageButton}
             <textarea
@@ -151,10 +138,7 @@ export function Composer({
               placeholder={placeholder}
               enterKeyHint="send"
               className={cn(
-                "max-h-[120px] min-h-[24px] min-w-0 flex-1 resize-none bg-transparent py-1 outline-none disabled:opacity-60",
-                isTelegram
-                  ? "text-[var(--tg-theme-text-color,#111827)] placeholder:text-[var(--tg-theme-hint-color,#9ca3af)]"
-                  : "text-gray-900 placeholder:text-gray-400",
+                "max-h-[120px] min-h-[24px] min-w-0 flex-1 resize-none bg-transparent py-1 text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-60",
                 large ? "text-[17px] leading-relaxed" : "text-[16px] leading-normal"
               )}
             />
@@ -168,9 +152,7 @@ export function Composer({
               disabled={disabled || isSending}
               className={cn(
                 actionBtn,
-                isTelegram
-                  ? "h-10 w-10 text-[var(--tg-theme-link-color,var(--jobchat-accent))] active:opacity-70 disabled:opacity-40"
-                  : "h-11 w-11 bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
+                "h-11 w-11 bg-[var(--jobchat-accent)] text-white shadow-[0_2px_10px_rgba(0,60,255,0.35)] active:opacity-90 disabled:opacity-40"
               )}
               aria-label="Send"
             >

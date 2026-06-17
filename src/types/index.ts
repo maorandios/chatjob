@@ -44,7 +44,6 @@ export type Manager = {
   isAdmin: boolean;
   onboardingComplete: boolean;
   profileImageUrl?: string;
-  telegramUserId?: number;
 };
 
 export type Worker = {
@@ -58,7 +57,6 @@ export type Worker = {
   language?: LanguageCode;
   status: WorkerStatus;
   inviteToken: string;
-  telegramUserId?: number;
 };
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "failed";

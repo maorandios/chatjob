@@ -30,14 +30,10 @@ create table if not exists managers (
   is_admin boolean not null default false,
   onboarding_complete boolean not null default true,
   profile_image_url text,
-  telegram_user_id bigint,
   created_at timestamptz not null default now()
 );
 
 create index if not exists managers_company_id_idx on managers(company_id);
-create unique index if not exists managers_telegram_user_id_unique_idx
-  on managers(telegram_user_id)
-  where telegram_user_id is not null;
 create index if not exists managers_invite_token_idx on managers(invite_token);
 create unique index if not exists managers_email_unique_idx
   on managers(lower(email))
@@ -57,14 +53,10 @@ create table if not exists workers (
   language text,
   status text not null default 'pending' check (status in ('pending', 'active')),
   invite_token text not null unique,
-  telegram_user_id bigint,
   created_at timestamptz not null default now()
 );
 
 create index if not exists workers_company_id_idx on workers(company_id);
-create unique index if not exists workers_telegram_user_id_unique_idx
-  on workers(telegram_user_id)
-  where telegram_user_id is not null;
 create index if not exists workers_invite_token_idx on workers(invite_token);
 create unique index if not exists workers_email_unique_idx
   on workers(lower(email))
