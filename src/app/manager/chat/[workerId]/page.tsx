@@ -11,6 +11,7 @@ import {
   useSlangStore,
   useWorkerById,
 } from "@/lib/store";
+import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -36,10 +37,10 @@ export default function ManagerChatPage() {
   );
 
   useEffect(() => {
-    if (worker?.status === "pending") {
+    if (worker && isWorkerInvitePending(worker)) {
       router.replace("/manager");
     }
-  }, [worker?.status, router]);
+  }, [worker, router]);
 
   if (!ready || !managerId) {
     return (
@@ -53,7 +54,7 @@ export default function ManagerChatPage() {
 
   if (!workerId || !worker) notFound();
 
-  if (worker.status === "pending") {
+  if (isWorkerInvitePending(worker)) {
     return (
       <AppShell dir="rtl">
         <div className="flex flex-1 items-center justify-center">

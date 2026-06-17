@@ -9,6 +9,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
 import { useSlangStore } from "@/lib/store";
 import { cn, getInviteUrl } from "@/lib/utils";
+import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Manager, Worker } from "@/types";
 import { CircleUserRound, ShieldUser } from "lucide-react";
 import { useState } from "react";
@@ -116,9 +117,9 @@ export function UsersScreenView() {
                 key={worker.id}
                 name={worker.name}
                 phone={worker.phone}
-                mutedAvatar={worker.status === "pending"}
+                mutedAvatar={isWorkerInvitePending(worker)}
                 onPress={() => setEditingWorker(worker)}
-                pendingInvite={worker.status === "pending"}
+                pendingInvite={isWorkerInvitePending(worker)}
                 onSendInvite={() => setInviteWorker(worker)}
                 canRemove
                 onRemove={() =>

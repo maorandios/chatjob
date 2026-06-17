@@ -54,6 +54,11 @@ export async function acceptWorkerInvite(
 
   if (worker.email) {
     if (worker.email.toLowerCase() === normalized) {
+      await supabase
+        .from("workers")
+        .update({ status: "active" })
+        .eq("id", worker.id)
+        .eq("status", "pending");
       return worker.id;
     }
     throw new Error("הזמנה זו כבר שויכה לכתובת מייל אחרת");
@@ -66,7 +71,7 @@ export async function acceptWorkerInvite(
 
   const { data: updated, error: updateError } = await supabase
     .from("workers")
-    .update({ email: normalized })
+    .update({ email: normalized, status: "active" })
     .eq("id", worker.id)
     .is("email", null)
     .select("id")

@@ -23,6 +23,7 @@ import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
 import { useSlangStore } from "@/lib/store";
 import type { LanguageCode } from "@/types";
+import { isWorkerJoined } from "@/lib/workers/invite-status";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -411,7 +412,7 @@ function InvitePageContent({ token }: { token: string }) {
   const showHome =
     worker.language &&
     worker.email &&
-    worker.status === "active" &&
+    isWorkerJoined(worker) &&
     !isChangingLanguage;
 
   if (showHome) {

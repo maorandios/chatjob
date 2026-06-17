@@ -3,6 +3,7 @@
 import { TeamMemberRow } from "@/components/settings/TeamMemberRow";
 import { useToast } from "@/components/ui/Toast";
 import { useSlangStore } from "@/lib/store";
+import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Manager, Worker } from "@/types";
 
 export function TeamListSection() {
@@ -69,8 +70,8 @@ export function TeamListSection() {
                 key={worker.id}
                 name={worker.name}
                 phone={worker.phone}
-                mutedAvatar={worker.status === "pending"}
-                pendingInvite={worker.status === "pending"}
+                mutedAvatar={isWorkerInvitePending(worker)}
+                pendingInvite={isWorkerInvitePending(worker)}
                 canRemove
                 onRemove={() => void handleRemoveWorker(worker)}
               />

@@ -9,6 +9,7 @@ import {
   useSlangStore,
 } from "@/lib/store";
 import { formatListTime, getInviteUrl } from "@/lib/utils";
+import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Worker } from "@/types";
 import { Send } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +31,7 @@ export function ChatListItem({ worker }: ChatListItemProps) {
   const displayName = useContactDisplayName("manager", worker.id, worker.name);
   const [showInviteSheet, setShowInviteSheet] = useState(false);
 
-  const isPending = worker.status === "pending";
+  const isPending = isWorkerInvitePending(worker);
   const inviteUrl = getInviteUrl(worker.inviteToken);
 
   const preview = lastMessage
