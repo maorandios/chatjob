@@ -17,7 +17,7 @@ export async function handleTelegramStartMessage(message: StartMessage): Promise
   if (parsed?.kind === "worker") {
     await sendTelegramMiniAppButton(
       chatId,
-      "ברוכים הבאים ל-Kling.\nלחצו על הכפתור למטה כדי לפתוח את האפליקציה, לבחור שפה ולהתחיל לשוחח עם המנהל.",
+      "ברוכים הבאים ל-Kling.\nלחצו על הכפתור למטה, בחרו שפה ובחרו מנהל לשיחה.",
       "פתיחת Kling",
       buildTelegramMiniAppPath(parsed)
     );
@@ -27,7 +27,7 @@ export async function handleTelegramStartMessage(message: StartMessage): Promise
   if (parsed?.kind === "manager") {
     await sendTelegramMiniAppButton(
       chatId,
-      "ברוכים הבאים ל-Kling.\nלחצו על הכפתור למטה כדי לפתוח את לוח הבקרה של המנהל.",
+      "ברוכים הבאים ל-Kling.\nלחצו על הכפתור למטה כדי לראות את רשימת העובדים ולהתחיל לשוחח.",
       "פתיחת Kling",
       buildTelegramMiniAppPath(parsed)
     );
@@ -36,8 +36,8 @@ export async function handleTelegramStartMessage(message: StartMessage): Promise
 
   await sendTelegramMiniAppButton(
     chatId,
-    `שלום! Kling — תרגום שיחות בין מנהלים לעובדים.\n\nפתחו את האפליקציה מהכפתור למטה, או השתמשו בקישור ההזמנה שקיבלתם.`,
+    `שלום! Kling — תרגום שיחות בין מנהלים לעובדים.\n\nלחצו על הכפתור למטה לרשימת השיחות, או השתמשו בקישור ההזמנה שקיבלתם.`,
     "פתיחת Kling",
-    "/telegram"
+    "/telegram/inbox"
   );
 }

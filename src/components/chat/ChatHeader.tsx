@@ -11,10 +11,12 @@ type ChatHeaderProps = {
   name: string;
   subtitle?: string;
   backHref?: string;
+  onBack?: () => void;
   dir?: "ltr" | "rtl";
   showOnline?: boolean;
   onProfileClick?: () => void;
   settingsHref?: string;
+  variant?: "default" | "telegram";
 };
 
 function ProfileContent({
@@ -55,24 +57,38 @@ export function ChatHeader({
   name,
   subtitle,
   backHref,
+  onBack,
   dir = "rtl",
   showOnline = true,
   onProfileClick,
   settingsHref,
+  variant = "default",
 }: ChatHeaderProps) {
   const isRtl = dir === "rtl";
 
-  const backButton = backHref ? (
-    <Link
-      href={backHref}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
-      aria-label="Back"
-    >
-      <ArrowLeft className={cn("h-5 w-5", !isRtl && "rotate-180")} />
-    </Link>
-  ) : (
-    <div className="w-10 shrink-0" />
-  );
+  const backButton =
+    backHref || onBack ? (
+      backHref ? (
+        <Link
+          href={backHref}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
+          aria-label="Back"
+        >
+          <ArrowLeft className={cn("h-5 w-5", !isRtl && "rotate-180")} />
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
+          aria-label="Back"
+        >
+          <ArrowLeft className={cn("h-5 w-5", !isRtl && "rotate-180")} />
+        </button>
+      )
+    ) : (
+      <div className="w-10 shrink-0" />
+    );
 
   const profileInner = (
     <ProfileContent
@@ -103,7 +119,22 @@ export function ChatHeader({
   ) : null;
 
   return (
-    <header className="chrome-top z-20 shrink-0 border-b border-[var(--jobchat-border)] bg-white">
+    <header
+      className={cn(
+        "chrome-top z-20 shrink-0 border-b",
+        variant === "default" &&
+          "border-[var(--jobchat-border)] bg-white"
+      )}
+      style={
+        variant === "telegram"
+          ? {
+              backgroundColor: "var(--tg-theme-header-bg-color, #ffffff)",
+              borderColor: "var(--tg-theme-hint-color, var(--jobchat-border))",
+              color: "var(--tg-theme-text-color, var(--foreground))",
+            }
+          : undefined
+      }
+    >
       <div dir="ltr" className="flex items-center gap-3 px-4 py-3">
         {isRtl ? (
           <>

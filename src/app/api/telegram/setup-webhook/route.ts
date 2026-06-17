@@ -25,13 +25,13 @@ export async function POST(req: Request) {
     const bot = await getTelegramBotInfo();
     const webhookUrl = getWebhookUrl();
     await setTelegramWebhook(webhookUrl);
-    await setTelegramChatMenuButton("/telegram");
+    await setTelegramChatMenuButton("/telegram/inbox");
 
     return NextResponse.json({
       ok: true,
       bot,
       webhookUrl,
-      miniAppUrl: getTelegramMiniAppUrl("/telegram"),
+      miniAppUrl: getTelegramMiniAppUrl("/telegram/inbox"),
     });
   } catch (error) {
     console.error("[Telegram] setup-webhook error:", error);

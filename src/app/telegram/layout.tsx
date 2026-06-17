@@ -9,7 +9,9 @@ export default function TelegramLayout({ children }: { children: ReactNode }) {
         src="https://telegram.org/js/telegram-web-app.js"
         strategy="beforeInteractive"
       />
-      <TelegramProvider>{children}</TelegramProvider>
+      <TelegramProvider>
+        <div className="telegram-app">{children}</div>
+      </TelegramProvider>
     </>
   );
 }

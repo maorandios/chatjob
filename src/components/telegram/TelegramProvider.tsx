@@ -14,6 +14,7 @@ import {
 export type TelegramSessionPayload = {
   role: "manager" | "worker" | "unknown";
   managerId?: string;
+  workerId?: string;
   inviteToken?: string;
   message?: string;
 };
@@ -76,6 +77,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     if (resolved.role === "worker") {
       setSession({
         role: "worker",
+        workerId: resolved.workerId,
         inviteToken: resolved.inviteToken,
       });
       return;
@@ -101,10 +103,33 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         const fromTelegram = WebApp.initDataUnsafe.start_param?.trim();
         setStartParam(fromUrl ?? fromTelegram);
         setLaunchStartParam(fromUrl ?? fromTelegram);
-        document.documentElement.style.setProperty(
-          "--tg-theme-bg-color",
-          WebApp.themeParams.bg_color ?? "#f5f6f8"
-        );
+        const theme = WebApp.themeParams;
+        const root = document.documentElement;
+        const themeVars: Record<string, string | undefined> = {
+          "--tg-theme-bg-color": theme.bg_color,
+          "--tg-theme-text-color": theme.text_color,
+          "--tg-theme-hint-color": theme.hint_color,
+          "--tg-theme-link-color": theme.link_color,
+          "--tg-theme-button-color": theme.button_color,
+          "--tg-theme-button-text-color": theme.button_text_color,
+          "--tg-theme-secondary-bg-color": theme.secondary_bg_color,
+          "--tg-theme-header-bg-color": theme.header_bg_color,
+          "--tg-theme-accent-text-color": theme.accent_text_color,
+          "--tg-theme-section-bg-color": theme.section_bg_color,
+          "--tg-theme-section-header-text-color":
+            theme.section_header_text_color,
+          "--tg-theme-subtitle-text-color": theme.subtitle_text_color,
+          "--tg-theme-destructive-text-color": theme.destructive_text_color,
+        };
+        for (const [key, value] of Object.entries(themeVars)) {
+          if (value) root.style.setProperty(key, value);
+        }
+        if (theme.bg_color) {
+          root.style.setProperty("--jobchat-surface", theme.bg_color);
+        }
+        if (theme.button_color) {
+          root.style.setProperty("--jobchat-accent", theme.button_color);
+        }
       })
       .catch(() => {
         if (!cancelled) setIsTelegram(false);

@@ -9,6 +9,7 @@ import {
   useSlangStore,
 } from "@/lib/store";
 import { formatListTime, getInviteUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Worker } from "@/types";
 import { Send } from "lucide-react";
 import Link from "next/link";
@@ -16,6 +17,8 @@ import { useState } from "react";
 
 type ChatListItemProps = {
   worker: Worker;
+  chatHref?: string;
+  variant?: "default" | "telegram";
 };
 
 const pendingCardClassName =
@@ -24,7 +27,14 @@ const pendingCardClassName =
 const activeCardClassName =
   "flex items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/15 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-white/25 active:bg-white/30";
 
-export function ChatListItem({ worker }: ChatListItemProps) {
+const telegramRowClassName =
+  "flex items-center gap-3 border-b px-4 py-3 transition-colors active:opacity-80";
+
+export function ChatListItem({
+  worker,
+  chatHref,
+  variant = "default",
+}: ChatListItemProps) {
   const managerId = useSlangStore((s) => s.managerId) ?? "";
   const lastMessage = useLastMessage(managerId, worker.id);
   const displayName = useContactDisplayName("manager", worker.id, worker.name);
@@ -32,6 +42,14 @@ export function ChatListItem({ worker }: ChatListItemProps) {
 
   const isPending = worker.status === "pending";
   const inviteUrl = getInviteUrl(worker.inviteToken);
+  const href = chatHref ?? `/manager/chat/${worker.id}`;
+  const rowStyle =
+    variant === "telegram"
+      ? {
+          borderColor: "var(--tg-theme-hint-color, var(--jobchat-border))",
+          backgroundColor: "var(--tg-theme-bg-color, transparent)",
+        }
+      : undefined;
 
   const preview = lastMessage
     ? getMessageDisplayText(lastMessage, "manager", worker.language)
@@ -40,9 +58,14 @@ export function ChatListItem({ worker }: ChatListItemProps) {
   const time = lastMessage ? formatListTime(lastMessage.createdAt) : "";
 
   if (isPending) {
+    const pendingClass =
+      variant === "telegram"
+        ? cn(telegramRowClassName, "opacity-70")
+        : pendingCardClassName;
+
     return (
       <>
-        <div className={pendingCardClassName}>
+        <div className={pendingClass} style={rowStyle}>
           <Avatar
             name={displayName}
             className="bg-gray-200 text-gray-500"
@@ -79,7 +102,11 @@ export function ChatListItem({ worker }: ChatListItemProps) {
   }
 
   return (
-    <Link href={`/manager/chat/${worker.id}`} className={activeCardClassName}>
+    <Link
+      href={href}
+      className={variant === "telegram" ? telegramRowClassName : activeCardClassName}
+      style={rowStyle}
+    >
       <Avatar name={displayName} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">

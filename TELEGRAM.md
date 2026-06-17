@@ -29,13 +29,13 @@ curl -X POST https://chatjob.vercel.app/api/telegram/setup-webhook \
   -d '{"secret":"YOUR_TELEGRAM_SETUP_SECRET"}'
 ```
 
-This sets the bot webhook and **Open Kling** menu button → `/telegram`.
+This sets the bot webhook and **Open Kling** menu button → `/telegram/inbox`.
 
 ## 4. BotFather Mini App URL
 
 In [@BotFather](https://t.me/BotFather):
 
-- `/setmenubutton` → Web App URL: `https://chatjob.vercel.app/telegram`
+- `/setmenubutton` → Web App URL: `https://chatjob.vercel.app/telegram/inbox`
 
 ## 5. Test links
 
@@ -55,7 +55,8 @@ Flow:
 
 1. Open link in Telegram → tap **פתיחת Kling**
 2. Mini App links your Telegram account
-3. Worker: pick language → chat. Manager: worker list → chat.
+3. Worker: pick language → inbox → pick manager → 1:1 chat. Manager: worker list → 1:1 chat.
+4. Menu button **Open Kling** opens `/telegram/inbox` (contact list).
 
 ## 6. Notes
 
