@@ -1,6 +1,7 @@
 "use client";
 
 import { startParamFromMiniAppSearch } from "@/lib/telegram/config";
+import { initTelegramWebApp, type TelegramWebAppLike } from "@/lib/telegram/init-web-app";
 import {
   createContext,
   useCallback,
@@ -95,8 +96,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     void import("@twa-dev/sdk")
       .then(({ default: WebApp }) => {
         if (cancelled) return;
-        WebApp.ready();
-        WebApp.expand();
+        initTelegramWebApp(WebApp as unknown as TelegramWebAppLike);
         setIsTelegram(Boolean(WebApp.initData));
         setInitData(WebApp.initData ?? "");
         const fromUrl = startParamFromMiniAppSearch(window.location.search);
@@ -106,14 +106,12 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         const theme = WebApp.themeParams;
         const root = document.documentElement;
         const themeVars: Record<string, string | undefined> = {
-          "--tg-theme-bg-color": theme.bg_color,
           "--tg-theme-text-color": theme.text_color,
           "--tg-theme-hint-color": theme.hint_color,
           "--tg-theme-link-color": theme.link_color,
           "--tg-theme-button-color": theme.button_color,
           "--tg-theme-button-text-color": theme.button_text_color,
           "--tg-theme-secondary-bg-color": theme.secondary_bg_color,
-          "--tg-theme-header-bg-color": theme.header_bg_color,
           "--tg-theme-accent-text-color": theme.accent_text_color,
           "--tg-theme-section-bg-color": theme.section_bg_color,
           "--tg-theme-section-header-text-color":
@@ -123,9 +121,6 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         };
         for (const [key, value] of Object.entries(themeVars)) {
           if (value) root.style.setProperty(key, value);
-        }
-        if (theme.bg_color) {
-          root.style.setProperty("--jobchat-surface", theme.bg_color);
         }
         if (theme.button_color) {
           root.style.setProperty("--jobchat-accent", theme.button_color);

@@ -72,9 +72,41 @@ a,
   min-height: 0;
   width: 100%;
   max-width: none;
+  height: 100%;
+  height: 100dvh;
   flex-direction: column;
   overflow: hidden;
   background: var(--tg-theme-bg-color, var(--jobchat-surface));
+}
+
+html.telegram-mini-app,
+html.telegram-mini-app body {
+  height: 100%;
+  height: 100dvh;
+  max-width: none;
+  overflow: hidden;
+  background-color: var(--tg-theme-bg-color, var(--jobchat-surface));
+}
+
+html.telegram-mini-app .app-root--centered {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+html.telegram-mini-app .chrome-top {
+  padding-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--tg-content-safe-area-top, var(--tg-safe-area-top, 0px))
+  );
+}
+
+html.telegram-mini-app .composer-dock--telegram {
+  padding-bottom: max(
+    0.625rem,
+    env(safe-area-inset-bottom, 0px),
+    var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px))
+  );
 }
 
 .safe-top {

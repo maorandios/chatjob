@@ -37,6 +37,8 @@ In [@BotFather](https://t.me/BotFather):
 
 - `/setmenubutton` → Web App URL: `https://chatjob.vercel.app/telegram/inbox`
 
+Use a **recent Telegram app** (Bot API 8.0+) for true fullscreen. Avoid `mode=compact` in invite links — that opens the half-height sheet.
+
 ## 5. Test links
 
 **Worker** (replace `INVITE_TOKEN`):
