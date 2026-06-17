@@ -126,11 +126,14 @@ export type TelegramSessionResult =
     };
 
 export async function resolveTelegramSession(
-  parsed: ParsedTelegramInitData
+  parsed: ParsedTelegramInitData,
+  options?: { startParamOverride?: string }
 ): Promise<TelegramSessionResult> {
   const supabase = getSupabaseAdmin();
   const telegramUserId = parsed.user.id;
-  const start = parseTelegramStartParam(parsed.startParam);
+  const start = parseTelegramStartParam(
+    options?.startParamOverride ?? parsed.startParam
+  );
 
   if (start?.kind === "manager") {
     const { data: manager, error } = await supabase
@@ -167,7 +170,10 @@ export async function resolveTelegramSession(
 
     if (error) throw error;
     if (!worker) {
-      return { role: "unknown", message: "קישור עובד לא תקין" };
+      return {
+        role: "unknown",
+        message: `קישור עובד לא תקין (${start.token}). צרו עובד חדש מהמנהל.`,
+      };
     }
 
     await linkWorkerTelegramUser(worker.id, telegramUserId);
@@ -231,6 +237,6 @@ export async function resolveTelegramSession(
   return {
     role: "unknown",
     message:
-      "פתחו את הקישור שקיבלתם מהמנהל או השתמשו בתפריט Open Kling לאחר הצטרפות.",
+      "אם קיבלתם קישור הזמנה — חזרו לצ'אט עם הבוט ולחצו על הכפתור \"פתיחת Kling\" שהבוט שלח. אל תלחצו על כפתור התפריט התחתון בפעם הראשונה.",
   };
 }

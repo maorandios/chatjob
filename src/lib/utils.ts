@@ -57,7 +57,7 @@ export function getManagerJoinUrl(token: string): string {
 }
 
 const TELEGRAM_BOT_USERNAME =
-  process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || "KlingBot";
+  process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim() || "getklingBot";
 
 export function getTelegramWorkerInviteUrl(token: string): string {
   return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=worker_${token}`;

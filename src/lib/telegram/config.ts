@@ -51,3 +51,25 @@ export function buildWorkerDeepLink(botUsername: string, inviteToken: string): s
 export function buildManagerDeepLink(botUsername: string, inviteToken: string): string {
   return `https://t.me/${botUsername}?start=mgr_${inviteToken}`;
 }
+
+export function buildTelegramMiniAppPath(
+  parsed: NonNullable<ReturnType<typeof parseTelegramStartParam>>
+): string {
+  if (parsed.kind === "worker") {
+    return `/telegram?worker=${encodeURIComponent(parsed.token)}`;
+  }
+  return `/telegram?mgr=${encodeURIComponent(parsed.token)}`;
+}
+
+export function startParamFromMiniAppSearch(
+  search: string | URLSearchParams
+): string | undefined {
+  const params =
+    typeof search === "string" ? new URLSearchParams(search) : search;
+  const worker = params.get("worker")?.trim();
+  if (worker) return `worker_${worker}`;
+  const mgr = params.get("mgr")?.trim();
+  if (mgr) return `mgr_${mgr}`;
+  const start = params.get("start")?.trim();
+  return start || undefined;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { startParamFromMiniAppSearch } from "@/lib/telegram/config";
 import {
   createContext,
   useCallback,
@@ -34,6 +35,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [isTelegram, setIsTelegram] = useState(false);
   const [initData, setInitData] = useState("");
   const [startParam, setStartParam] = useState<string | undefined>();
+  const [launchStartParam, setLaunchStartParam] = useState<string | undefined>();
   const [session, setSession] = useState<TelegramSessionPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +45,11 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     const res = await fetch("/api/telegram/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData }),
+      body: JSON.stringify({
+        initData,
+        startParam: launchStartParam,
+        search: typeof window !== "undefined" ? window.location.search : "",
+      }),
     });
     const data = await res.json().catch(() => ({}));
 
@@ -79,7 +85,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       role: "unknown",
       message: resolved.message,
     });
-  }, [initData]);
+  }, [initData, launchStartParam]);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,7 +97,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         WebApp.expand();
         setIsTelegram(Boolean(WebApp.initData));
         setInitData(WebApp.initData ?? "");
-        setStartParam(WebApp.initDataUnsafe.start_param);
+        const fromUrl = startParamFromMiniAppSearch(window.location.search);
+        const fromTelegram = WebApp.initDataUnsafe.start_param?.trim();
+        setStartParam(fromUrl ?? fromTelegram);
+        setLaunchStartParam(fromUrl ?? fromTelegram);
         document.documentElement.style.setProperty(
           "--tg-theme-bg-color",
           WebApp.themeParams.bg_color ?? "#f5f6f8"
@@ -115,7 +124,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     void refreshSession().catch((err: unknown) => {
       setError(err instanceof Error ? err.message : "Telegram session failed");
     });
-  }, [initData, refreshSession]);
+  }, [initData, launchStartParam, refreshSession]);
 
   const value = useMemo(
     () => ({

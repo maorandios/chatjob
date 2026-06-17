@@ -1,4 +1,5 @@
 import { resolveTelegramSession } from "@/lib/telegram/link-account";
+import { startParamFromMiniAppSearch } from "@/lib/telegram/config";
 import { verifyTelegramInitData } from "@/lib/telegram/verify-init-data";
 import { NextResponse } from "next/server";
 
@@ -12,7 +13,16 @@ export async function POST(req: Request) {
     }
 
     const parsed = verifyTelegramInitData(initData);
-    const session = await resolveTelegramSession(parsed);
+    const startParamOverride =
+      typeof body.startParam === "string" && body.startParam.trim()
+        ? body.startParam.trim()
+        : startParamFromMiniAppSearch(
+            typeof body.search === "string" ? body.search : ""
+          );
+
+    const session = await resolveTelegramSession(parsed, {
+      startParamOverride: startParamOverride || undefined,
+    });
 
     return NextResponse.json({
       user: parsed.user,

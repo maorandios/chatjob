@@ -1,4 +1,4 @@
-import { parseTelegramStartParam } from "@/lib/telegram/config";
+import { buildTelegramMiniAppPath, parseTelegramStartParam } from "@/lib/telegram/config";
 import { sendTelegramMiniAppButton } from "@/lib/telegram/bot-api";
 
 type StartMessage = {
@@ -17,9 +17,9 @@ export async function handleTelegramStartMessage(message: StartMessage): Promise
   if (parsed?.kind === "worker") {
     await sendTelegramMiniAppButton(
       chatId,
-      "ברוכים הבאים ל-Kling.\nלחצו לפתיחת האפליקציה, בחרו שפה והתחילו לשוחח עם המנהל.",
+      "ברוכים הבאים ל-Kling.\nלחצו על הכפתור למטה כדי לפתוח את האפליקציה, לבחור שפה ולהתחיל לשוחח עם המנהל.",
       "פתיחת Kling",
-      "/telegram"
+      buildTelegramMiniAppPath(parsed)
     );
     return;
   }
@@ -27,9 +27,9 @@ export async function handleTelegramStartMessage(message: StartMessage): Promise
   if (parsed?.kind === "manager") {
     await sendTelegramMiniAppButton(
       chatId,
-      "ברוכים הבאים ל-Kling.\nלחצו לפתיחת לוח הבקרה של המנהל.",
+      "ברוכים הבאים ל-Kling.\nלחצו על הכפתור למטה כדי לפתוח את לוח הבקרה של המנהל.",
       "פתיחת Kling",
-      "/telegram"
+      buildTelegramMiniAppPath(parsed)
     );
     return;
   }
