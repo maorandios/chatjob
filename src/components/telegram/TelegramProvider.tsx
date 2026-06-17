@@ -142,18 +142,3 @@ export function useTelegram() {
   }
   return context;
 }
-
-export function useIsTelegramApp(): boolean {
-  if (typeof window === "undefined") return false;
-  return Boolean(window.Telegram?.WebApp?.initData);
-}
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData?: string;
-      };
-    };
-  }
-}

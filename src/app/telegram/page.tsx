@@ -30,7 +30,7 @@ export default function TelegramEntryPage() {
         } catch {
           await bootstrapManager(undefined, session.managerId);
         }
-        router.replace("/manager?tg=1");
+        router.replace("/manager");
       })();
       return;
     }
@@ -38,7 +38,7 @@ export default function TelegramEntryPage() {
     if (session.role === "worker" && session.inviteToken) {
       void (async () => {
         await fetchInvite(session.inviteToken!);
-        router.replace(`/invite/${session.inviteToken}?tg=1`);
+        router.replace(`/invite/${session.inviteToken}`);
       })();
     }
   }, [

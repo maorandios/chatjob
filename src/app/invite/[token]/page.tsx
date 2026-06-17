@@ -21,7 +21,7 @@ import { useInviteBootstrap, useWorkerInboxPreviews } from "@/lib/hooks/use-slan
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
-import { useIsTelegramApp } from "@/components/telegram/TelegramProvider";
+import { useIsTelegramApp } from "@/lib/telegram/use-is-telegram-app";
 import { useSlangStore } from "@/lib/store";
 import type { LanguageCode } from "@/types";
 import { useParams, useRouter } from "next/navigation";
@@ -91,15 +91,12 @@ function InviteOnboarding({
 }) {
   const router = useRouter();
   const isChangingLanguage = useClientSearchParam("changeLang");
-  const isTelegramApp = useClientSearchParam("tg") || useIsTelegramApp();
+  const isTelegramApp = useIsTelegramApp();
   const setWorkerLanguage = useSlangStore((s) => s.setWorkerLanguage);
 
-  const [stage, setStage] = useState<"language" | "email" | "otp">(() => {
-    if (isChangingLanguage || !worker.language) return "language";
-    if (isTelegramApp && worker.telegramUserId) return "language";
-    if (!worker.email) return "email";
-    return "otp";
-  });
+  const [stage, setStage] = useState<"language" | "email" | "otp">(
+    !isChangingLanguage && worker.language ? "email" : "language"
+  );
   const [selectedLang, setSelectedLang] = useState<LanguageCode | undefined>(
     worker.language
   );
@@ -136,7 +133,7 @@ function InviteOnboarding({
     try {
       await setWorkerLanguage(worker.id, selectedLang);
       if (isTelegramApp) {
-        window.location.assign(`/invite/${token}?tg=1`);
+        router.replace(`/invite/${token}`);
         return;
       }
       setStage("email");
@@ -394,7 +391,7 @@ function InviteOnboarding({
 
 function InvitePageContent({ token }: { token: string }) {
   const isChangingLanguage = useClientSearchParam("changeLang");
-  const isTelegramApp = useClientSearchParam("tg") || useIsTelegramApp();
+  const isTelegramApp = useIsTelegramApp();
   const { loading, worker, invite } = useInviteBootstrap(token);
 
   if (loading) {
