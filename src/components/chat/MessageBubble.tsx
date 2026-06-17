@@ -12,6 +12,7 @@ type MessageBubbleProps = {
   displayText: string;
   isOwn: boolean;
   showStatus?: boolean;
+  variant?: "default" | "telegram";
 };
 
 function StatusRow({
@@ -57,7 +58,9 @@ export function MessageBubble({
   displayText,
   isOwn,
   showStatus = false,
+  variant = "default",
 }: MessageBubbleProps) {
+  const isTelegram = variant === "telegram";
   const isImage = message.inputType === "image" && message.imageUrl;
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const canOpenLightbox = isImage && message.status !== "sending";
@@ -116,11 +119,28 @@ export function MessageBubble({
         ) : (
           <div
             className={cn(
-              "rounded-2xl px-3 py-2 text-[15px] leading-snug",
-              isOwn
-                ? "rounded-br-sm bg-[var(--jobchat-accent)] text-white"
-                : "rounded-bl-sm border border-gray-200 bg-white text-gray-900"
+              "rounded-2xl px-3 py-1.5 text-[15px] leading-snug shadow-sm",
+              isOwn ? "rounded-br-md" : "rounded-bl-md",
+              !isTelegram &&
+                (isOwn
+                  ? "rounded-br-sm bg-[var(--jobchat-accent)] text-white"
+                  : "rounded-bl-sm border border-gray-200 bg-white text-gray-900")
             )}
+            style={
+              isTelegram
+                ? isOwn
+                  ? {
+                      backgroundColor: "var(--tg-theme-button-color, #3390ec)",
+                      color:
+                        "var(--tg-theme-button-text-color, #ffffff)",
+                    }
+                  : {
+                      backgroundColor:
+                        "var(--tg-theme-section-bg-color, var(--tg-theme-secondary-bg-color, #ffffff))",
+                      color: "var(--tg-theme-text-color, #000000)",
+                    }
+                : undefined
+            }
           >
             <p className="whitespace-pre-wrap break-words">{displayText}</p>
             <StatusRow
@@ -128,8 +148,12 @@ export function MessageBubble({
               isOwn={isOwn}
               showStatus={showStatus}
               className={cn(
-                "mt-1",
-                isOwn ? "text-white/70" : "text-gray-400"
+                "mt-0.5",
+                isTelegram
+                  ? "opacity-55"
+                  : isOwn
+                    ? "text-white/70"
+                    : "text-gray-400"
               )}
             />
           </div>

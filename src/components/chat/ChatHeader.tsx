@@ -24,23 +24,37 @@ function ProfileContent({
   subtitle,
   showOnline,
   isRtl,
+  variant,
 }: {
   name: string;
   subtitle?: string;
   showOnline: boolean;
   isRtl: boolean;
+  variant: "default" | "telegram";
 }) {
+  const isTelegram = variant === "telegram";
+  const nameStyle = isTelegram
+    ? { color: "var(--tg-theme-text-color, #111827)" }
+    : undefined;
+  const subtitleStyle = isTelegram
+    ? { color: "var(--tg-theme-subtitle-text-color, #6b7280)" }
+    : undefined;
+
   return (
     <>
       <Avatar name={name} size="sm" />
       <div className={cn("min-w-0", isRtl ? "text-right" : "text-left")}>
-        <p className="truncate text-base font-semibold text-gray-900">{name}</p>
+        <p className="truncate text-base font-semibold" style={nameStyle}>
+          {name}
+        </p>
         {subtitle && (
           <p
             className={cn(
-              "flex items-center gap-1.5 text-xs text-gray-500",
-              isRtl ? "justify-end" : "justify-start"
+              "flex items-center gap-1.5 truncate text-xs",
+              isRtl ? "justify-end" : "justify-start",
+              !nameStyle && "text-gray-500"
             )}
+            style={subtitleStyle}
           >
             {showOnline && (
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--jobchat-accent)]" />
@@ -65,25 +79,36 @@ export function ChatHeader({
   variant = "default",
 }: ChatHeaderProps) {
   const isRtl = dir === "rtl";
+  const isTelegram = variant === "telegram";
+  const backBtnClass = cn(
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
+    !isTelegram && "text-gray-700 hover:bg-[var(--jobchat-surface)]"
+  );
+  const backBtnStyle = isTelegram
+    ? { color: "var(--tg-theme-link-color, #3390ec)" }
+    : undefined;
+  const backIconClass = cn("h-5 w-5", !isRtl && "rotate-180");
 
   const backButton =
     backHref || onBack ? (
       backHref ? (
         <Link
           href={backHref}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
+          className={backBtnClass}
+          style={backBtnStyle}
           aria-label="Back"
         >
-          <ArrowLeft className={cn("h-5 w-5", !isRtl && "rotate-180")} />
+          <ArrowLeft className={backIconClass} />
         </Link>
       ) : (
         <button
           type="button"
           onClick={onBack}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-[var(--jobchat-surface)]"
+          className={backBtnClass}
+          style={backBtnStyle}
           aria-label="Back"
         >
-          <ArrowLeft className={cn("h-5 w-5", !isRtl && "rotate-180")} />
+          <ArrowLeft className={backIconClass} />
         </button>
       )
     ) : (
@@ -96,6 +121,7 @@ export function ChatHeader({
       subtitle={subtitle}
       showOnline={showOnline}
       isRtl={isRtl}
+      variant={variant}
     />
   );
 

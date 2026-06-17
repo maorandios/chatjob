@@ -110,6 +110,13 @@ a,
   box-shadow: 0 env(safe-area-inset-bottom, 0px) 0 0 #ffffff;
 }
 
+.composer-dock--telegram {
+  border-top-color: var(--tg-theme-hint-color, var(--jobchat-border));
+  background: var(--tg-theme-bg-color, var(--jobchat-surface));
+  box-shadow: none;
+  padding-top: 0.5rem;
+}
+
 /* Bottom sheet overlay — div-based for iOS 12+ (no <dialog>) */
 .jobchat-sheet-overlay {
   position: fixed;

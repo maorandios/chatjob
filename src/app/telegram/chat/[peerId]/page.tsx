@@ -132,6 +132,7 @@ export default function TelegramChatPage() {
           sendFailedLabel="שליחה נכשלה"
           recordingTooShortLabel="הקלטה קצרה מדי — נסה שוב"
           dir="rtl"
+          variant="telegram"
         />
         <WorkerProfileSheet
           open={showContactSheet}
@@ -171,6 +172,7 @@ export default function TelegramChatPage() {
           workerId={worker.id}
           viewerRole="worker"
           workerLanguage={lang}
+          variant="telegram"
           emptyHint={`${ui.sendMessageTo} ${workerViewName}`}
           quickReplies={quickReplies}
           composerPlaceholder={ui.messagePlaceholder}

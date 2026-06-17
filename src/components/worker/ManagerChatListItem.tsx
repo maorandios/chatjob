@@ -7,6 +7,7 @@ import {
   useLastMessage,
 } from "@/lib/store";
 import { formatListTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { LanguageCode, Manager } from "@/types";
 import Link from "next/link";
 
@@ -59,12 +60,45 @@ export function ManagerChatListItem({
       <Avatar name={displayName} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <p className="truncate font-medium text-gray-900">{displayName}</p>
+          <p
+            className={cn(
+              "truncate font-medium",
+              variant !== "telegram" && "text-gray-900"
+            )}
+            style={
+              variant === "telegram"
+                ? { color: "var(--tg-theme-text-color, #111827)" }
+                : undefined
+            }
+          >
+            {displayName}
+          </p>
           {time && (
-            <span className="shrink-0 text-xs text-gray-500">{time}</span>
+            <span
+              className={cn("shrink-0 text-xs", variant !== "telegram" && "text-gray-500")}
+              style={
+                variant === "telegram"
+                  ? { color: "var(--tg-theme-hint-color, #6b7280)" }
+                  : undefined
+              }
+            >
+              {time}
+            </span>
           )}
         </div>
-        <p className="truncate text-sm text-gray-500">{preview}</p>
+        <p
+          className={cn(
+            "truncate text-sm",
+            variant !== "telegram" && "text-gray-500"
+          )}
+          style={
+            variant === "telegram"
+              ? { color: "var(--tg-theme-subtitle-text-color, #6b7280)" }
+              : undefined
+          }
+        >
+          {preview}
+        </p>
       </div>
     </Link>
   );
