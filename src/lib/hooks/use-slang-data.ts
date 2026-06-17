@@ -6,6 +6,8 @@ import {
   subscribeToManagerInbox,
   subscribeToWorkerInbox,
 } from "@/lib/supabase/messages-realtime";
+import { subscribeToCompanyWorkers } from "@/lib/supabase/workers-realtime";
+import { useVisibilityPoll } from "@/lib/hooks/use-visibility-poll";
 import { useSlangStore } from "@/lib/store";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -65,6 +67,8 @@ export function useChatData(
   const loadMessages = useSlangStore((s) => s.loadMessages);
   const setConversationMessages = useSlangStore((s) => s.setConversationMessages);
   const mergeMessages = useSlangStore((s) => s.mergeMessages);
+  const mergeRef = useRef(mergeMessages);
+  mergeRef.current = mergeMessages;
 
   const cachedSession =
     managerId && workerId
@@ -165,6 +169,23 @@ export function useChatData(
 
   useMessagesRealtime(managerId, workerId);
 
+  useVisibilityPoll(
+    () => {
+      if (!managerId || !workerId) return;
+      void loadMessages(managerId, workerId, { limit: MESSAGE_PAGE_SIZE })
+        .then(({ messages }) => {
+          if (messages.length > 0) {
+            mergeRef.current(messages);
+          }
+        })
+        .catch((error) => {
+          console.error("[Slang] Failed to sync messages", error);
+        });
+    },
+    Boolean(managerId && workerId),
+    5_000
+  );
+
   return { loading, hasMore, loadingOlder, loadOlder };
 }
 
@@ -184,20 +205,44 @@ export function useManagerBootstrap() {
 export function useManagerInboxPreviews() {
   const ready = useSlangStore((s) => s.ready);
   const managerId = useSlangStore((s) => s.managerId);
+  const companyId = useSlangStore((s) => s.companyId);
   const loadMessagePreviews = useSlangStore((s) => s.loadMessagePreviews);
+  const loadWorkers = useSlangStore((s) => s.loadWorkers);
   const upsertMessage = useSlangStore((s) => s.upsertMessage);
+  const upsertWorker = useSlangStore((s) => s.upsertWorker);
   const upsertRef = useRef(upsertMessage);
+  const upsertWorkerRef = useRef(upsertWorker);
   upsertRef.current = upsertMessage;
+  upsertWorkerRef.current = upsertWorker;
+
+  const refreshInbox = useCallback(() => {
+    if (!managerId) return;
+    void loadMessagePreviews({ managerId });
+    void loadWorkers();
+  }, [managerId, loadMessagePreviews, loadWorkers]);
 
   useEffect(() => {
     if (!ready || !managerId) return;
 
-    void loadMessagePreviews({ managerId });
+    refreshInbox();
 
-    return subscribeToManagerInbox(managerId, (message) => {
+    const unsubMessages = subscribeToManagerInbox(managerId, (message) => {
       upsertRef.current(message);
     });
-  }, [ready, managerId, loadMessagePreviews]);
+
+    const unsubWorkers = companyId
+      ? subscribeToCompanyWorkers(companyId, (worker) => {
+          upsertWorkerRef.current(worker);
+        })
+      : () => {};
+
+    return () => {
+      unsubMessages();
+      unsubWorkers();
+    };
+  }, [ready, managerId, companyId, refreshInbox]);
+
+  useVisibilityPoll(refreshInbox, ready && Boolean(managerId));
 }
 
 export function useWorkerInboxPreviews(workerId: string | undefined) {
@@ -206,15 +251,22 @@ export function useWorkerInboxPreviews(workerId: string | undefined) {
   const upsertRef = useRef(upsertMessage);
   upsertRef.current = upsertMessage;
 
+  const refreshInbox = useCallback(() => {
+    if (!workerId) return;
+    void loadMessagePreviews({ workerId });
+  }, [workerId, loadMessagePreviews]);
+
   useEffect(() => {
     if (!workerId) return;
 
-    void loadMessagePreviews({ workerId });
+    refreshInbox();
 
     return subscribeToWorkerInbox(workerId, (message) => {
       upsertRef.current(message);
     });
-  }, [workerId, loadMessagePreviews]);
+  }, [workerId, refreshInbox]);
+
+  useVisibilityPoll(refreshInbox, Boolean(workerId));
 }
 
 export function useInviteBootstrap(token: string | undefined) {
