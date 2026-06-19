@@ -46,6 +46,10 @@ export type WorkerUiStrings = {
   contactPhonePlaceholder: string;
   contactPhoneCopied: string;
   contactNameSave: string;
+  cancel: string;
+  editProfileTitle: string;
+  logout: string;
+  logoutConfirm: string;
   joinChat: string;
   verifyEmailTitle: string;
   verifyEmailSubtitle: string;
@@ -263,6 +267,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "หมายเลขโทรศัพท์",
     contactPhoneCopied: "คัดลอกหมายเลขโทรศัพท์แล้ว",
     contactNameSave: "บันทึก",
+    cancel: "ยกเลิก",
+    editProfileTitle: "แก้ไขโปรไฟล์",
+    logout: "ออกจากระบบ",
+    logoutConfirm: "ต้องการออกจากระบบไหม?",
     joinChat: "เข้าสู่แชท",
     invalidInvite: "הזמנה לא תקינה",
     invalidInviteSubtitle: "קישור ההזמנה אינו פעיל",
@@ -312,6 +320,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "फ़ोन नंबर",
     contactPhoneCopied: "फ़ोन नंबर कॉपी हो गया",
     contactNameSave: "सहेजें",
+    cancel: "रद्द करें",
+    editProfileTitle: "प्रोफ़ाइल संपादित करें",
+    logout: "लॉग आउट",
+    logoutConfirm: "क्या आप लॉग आउट करना चाहते हैं?",
     joinChat: "चैट में जाएँ",
     invalidInvite: "अमान्य निमंत्रण",
     invalidInviteSubtitle: "निमंत्रण लिंक काम नहीं कर रहा",
@@ -361,6 +373,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "දුරකථන අංකය",
     contactPhoneCopied: "දුරකථන අංකය පිටපත් කළා",
     contactNameSave: "සුරකින්න",
+    cancel: "අවලංගු කරන්න",
+    editProfileTitle: "පැතිකඩ සංස්කරණය",
+    logout: "ඉවත් වන්න",
+    logoutConfirm: "ඔබට ඉවත් වීමට අවශ්‍යද?",
     joinChat: "චැට්ටට යන්න",
     invalidInvite: "වලංගු නොවන ආරාධනාව",
     invalidInviteSubtitle: "ආරාධනා සබැඳිය ක්‍රියා නොකරයි",
@@ -410,6 +426,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "Număr de telefon",
     contactPhoneCopied: "Număr de telefon copiat",
     contactNameSave: "Salvează",
+    cancel: "Anulează",
+    editProfileTitle: "Editează profilul",
+    logout: "Deconectare",
+    logoutConfirm: "Vrei să te deconectezi?",
     joinChat: "Intră în chat",
     invalidInvite: "Invitație invalidă",
     invalidInviteSubtitle: "Linkul de invitație nu este activ",
@@ -459,6 +479,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "Phone number",
     contactPhoneCopied: "Phone number copied",
     contactNameSave: "Save",
+    cancel: "Cancel",
+    editProfileTitle: "Edit profile",
+    logout: "Log out",
+    logoutConfirm: "Do you want to log out?",
     joinChat: "Enter chat",
     invalidInvite: "Invalid invitation",
     invalidInviteSubtitle: "This invite link is not active",
@@ -508,6 +532,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "رقم الهاتف",
     contactPhoneCopied: "تم نسخ رقم الهاتف",
     contactNameSave: "حفظ",
+    cancel: "إلغاء",
+    editProfileTitle: "تعديل الملف الشخصي",
+    logout: "تسجيل الخروج",
+    logoutConfirm: "هل تريد تسجيل الخروج؟",
     joinChat: "دخول المحادثة",
     invalidInvite: "دعوة غير صالحة",
     invalidInviteSubtitle: "رابط الدعوة غير نشط",
@@ -557,6 +585,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     contactPhonePlaceholder: "Номер телефона",
     contactPhoneCopied: "Номер телефона скопирован",
     contactNameSave: "Сохранить",
+    cancel: "Отмена",
+    editProfileTitle: "Редактировать профиль",
+    logout: "Выйти",
+    logoutConfirm: "Хотите выйти из аккаунта?",
     joinChat: "Войти в чат",
     invalidInvite: "Недействительное приглашение",
     invalidInviteSubtitle: "Ссылка приглашения не активна",

@@ -1,10 +1,10 @@
 "use client";
 
 import { ManagerJoinView } from "@/components/manager/ManagerJoinView";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { Button } from "@/components/ui/Button";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import type { Manager } from "@/types";
-import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -67,10 +67,7 @@ export default function ManagerJoinPage() {
   if (loading) {
     return (
       <MobileFrame dir="rtl">
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--jobchat-accent)]" />
-          <p className="text-sm text-gray-500">טוען הזמנה...</p>
-        </div>
+        <AppLoadingState />
       </MobileFrame>
     );
   }

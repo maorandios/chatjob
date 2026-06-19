@@ -2,6 +2,7 @@
 
 import { ManagerSettingsView } from "@/components/settings/ManagerSettingsView";
 import { SettingsScreenHeader } from "@/components/settings/SettingsScreenHeader";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { AppShell } from "@/components/ui/AppShell";
 import { useRequireOnboardingComplete } from "@/lib/hooks/use-manager-access";
 import { useSlangStore } from "@/lib/store";
@@ -14,9 +15,7 @@ export default function ManagerSettingsPage() {
   if (!ready || !managerId) {
     return (
       <AppShell dir="rtl">
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-gray-500">טוען...</p>
-        </div>
+        <AppLoadingState />
       </AppShell>
     );
   }

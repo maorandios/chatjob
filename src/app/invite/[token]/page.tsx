@@ -6,6 +6,7 @@ import { AppListHeader } from "@/components/settings/AppListHeader";
 import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { LanguagePicker } from "@/components/worker/LanguagePicker";
 import { ManagerChatListItem } from "@/components/worker/ManagerChatListItem";
@@ -162,7 +163,7 @@ function InviteOnboarding({
     setError(undefined);
     try {
       await setWorkerLanguage(worker.id, selectedLang);
-      router.push(getWorkerJoinPath(token));
+      router.replace(getWorkerSettingsPath(token));
     } catch (error) {
       console.error("[Slang] Failed to set language", error);
       setError(ui.saveLanguageFailed);
@@ -410,9 +411,7 @@ function InvitePageContent({ token }: { token: string }) {
   if (loading) {
     return (
       <MobileFrame>
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-gray-500">Loading...</p>
-        </div>
+        <AppLoadingState />
       </MobileFrame>
     );
   }

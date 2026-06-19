@@ -4,6 +4,7 @@ import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
 import { AppShell } from "@/components/ui/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { MainLoader } from "@/components/ui/MainLoader";
 import { getAuthenticatedEmail } from "@/lib/auth/manager-auth";
 import { useSlangStore } from "@/lib/store";
 import { cn, isValidIsraeliPhone } from "@/lib/utils";
@@ -105,7 +106,7 @@ export function AdminOnboardingView() {
     return (
       <AppShell dir="rtl">
         <div className="flex min-h-0 flex-1 items-center justify-center bg-[var(--jobchat-surface)]">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--jobchat-accent)]" />
+          <MainLoader />
         </div>
       </AppShell>
     );

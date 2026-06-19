@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { MainLoader } from "@/components/ui/MainLoader";
 import {
   useCallback,
   useRef,
@@ -107,16 +107,15 @@ export function PullToRefresh({
           className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center"
           style={{ height: Math.max(pullDistance, refreshing ? 40 : 0) }}
         >
-          <Loader2
-            className={cn(
-              "h-5 w-5 text-[var(--jobchat-accent)]",
-              refreshing && "animate-spin"
-            )}
+          <div
+            className="h-7 w-7"
             style={{
               marginTop: Math.max(pullDistance - 24, 6),
               opacity: refreshing ? 1 : Math.min(pullDistance / PULL_THRESHOLD, 1),
             }}
-          />
+          >
+            <MainLoader className="h-full w-full" />
+          </div>
         </div>
       )}
       <div

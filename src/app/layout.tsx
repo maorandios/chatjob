@@ -1,6 +1,7 @@
 import { ToastProvider } from "@/components/ui/Toast";
 import { LEGACY_POLYFILL_SCRIPT } from "@/lib/legacy-polyfills";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -42,7 +43,11 @@ export default function RootLayout({
     <html lang="he" className="h-full">
       <head>
         {/* Sync polyfills before any async Next.js chunks — parse-safe on Safari 15 */}
-        <script dangerouslySetInnerHTML={{ __html: LEGACY_POLYFILL_SCRIPT }} />
+        <Script
+          id="legacy-polyfills"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: LEGACY_POLYFILL_SCRIPT }}
+        />
       </head>
       <body className="flex h-full min-h-0 flex-col">
         <ToastProvider>

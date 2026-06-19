@@ -64,6 +64,10 @@ export function getWorkerSettingsPath(token: string): string {
   return `${getWorkerJoinPath(token)}/settings`;
 }
 
+export function getWorkerSettingsLanguagePath(token: string): string {
+  return `${getWorkerSettingsPath(token)}/language`;
+}
+
 export function getWorkerChatPath(token: string, managerId: string): string {
   return `${getWorkerJoinPath(token)}/chat/${encodeURIComponent(managerId)}`;
 }

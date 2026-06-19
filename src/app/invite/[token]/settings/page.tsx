@@ -2,11 +2,11 @@
 
 import { SettingsScreenHeader } from "@/components/settings/SettingsScreenHeader";
 import { WorkerSettingsView } from "@/components/settings/WorkerSettingsView";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { useInviteBootstrap } from "@/lib/hooks/use-slang-data";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
-import { useContactDisplayName } from "@/lib/store";
 import { getWorkerJoinPath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -29,9 +29,7 @@ export default function WorkerSettingsPage() {
   if (loading) {
     return (
       <MobileFrame>
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-gray-500">Loading...</p>
-        </div>
+        <AppLoadingState />
       </MobileFrame>
     );
   }
@@ -41,7 +39,6 @@ export default function WorkerSettingsPage() {
   const language = worker.language as LanguageCode;
   const dir = getLanguageDir(language);
   const ui = getWorkerUi(language);
-  const workerDisplayName = useContactDisplayName("worker", worker.id, worker.name);
 
   return (
     <MobileFrame dir={dir}>
@@ -53,7 +50,7 @@ export default function WorkerSettingsPage() {
       <WorkerSettingsView
         token={token}
         workerId={worker.id}
-        workerName={workerDisplayName}
+        workerName={worker.name}
         workerImageUrl={worker.profileImageUrl}
         language={language}
         dir={dir}

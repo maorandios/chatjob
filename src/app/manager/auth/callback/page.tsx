@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { AppShell } from "@/components/ui/AppShell";
 import {
   exchangeAuthCodeForSession,
@@ -9,7 +10,6 @@ import {
 } from "@/lib/auth/manager-auth";
 import { getPostAuthManagerPath } from "@/lib/auth/post-auth-redirect";
 import { useSlangStore } from "@/lib/store";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -81,10 +81,7 @@ export default function ManagerAuthCallbackPage() {
             </Link>
           </>
         ) : (
-          <>
-            <Loader2 className="h-10 w-10 animate-spin text-[var(--jobchat-accent)]" />
-            <p className="mt-4 text-sm text-gray-500">מתחברים...</p>
-          </>
+          <AppLoadingState />
         )}
       </div>
     </AppShell>

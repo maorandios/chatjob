@@ -1,15 +1,20 @@
 "use client";
 
 import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
+import { Sheet } from "@/components/ui/Sheet";
 import { LanguageFlag } from "@/components/worker/LanguageFlag";
+import { signOutSupabaseAuth } from "@/lib/auth/manager-auth";
 import { getLanguage, getLanguagePickerLabel } from "@/lib/i18n/languages";
-import { getWorkerUi } from "@/lib/i18n/worker-ui";
-import { useSlangStore } from "@/lib/store";
-import { getWorkerJoinPath } from "@/lib/utils";
+import { getWorkerUi, type WorkerUiStrings } from "@/lib/i18n/worker-ui";
+import { useContactDisplayName, useSlangStore } from "@/lib/store";
+import { getWorkerJoinPath, getWorkerSettingsLanguagePath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
-import { Camera, ChevronRight, CreditCard } from "lucide-react";
+import { ChevronRight, LogOut, Pencil } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type WorkerSettingsViewProps = {
@@ -29,24 +34,24 @@ export function WorkerSettingsView({
   language,
   dir = "ltr",
 }: WorkerSettingsViewProps) {
+  const router = useRouter();
   const ui = getWorkerUi(language);
   const lang = getLanguage(language);
+  const displayName = useContactDisplayName("worker", workerId, workerName);
   const setContactAlias = useSlangStore((s) => s.setContactAlias);
   const uploadWorkerProfileImage = useSlangStore(
     (s) => s.uploadWorkerProfileImage
   );
-  const [name, setName] = useState(workerName);
   const [savingName, setSavingName] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showLogoutSheet, setShowLogoutSheet] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  useEffect(() => {
-    setName(workerName);
-  }, [workerName]);
-
-  const handleSaveName = async () => {
-    const nextName = name.trim();
+  const handleSaveName = async (nextName: string) => {
     if (!nextName || savingName) return;
+    if (nextName === displayName) return;
 
     setSavingName(true);
     try {
@@ -71,107 +76,233 @@ export function WorkerSettingsView({
     }
   };
 
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await signOutSupabaseAuth();
+      setShowLogoutSheet(false);
+      router.replace(getWorkerJoinPath(token));
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   return (
     <>
-      <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-white px-4 py-5">
+      <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-5">
         <div className="space-y-5" dir={dir}>
-        <section>
-          <p className="mb-3 text-sm font-semibold text-gray-700">
-            {ui.yourName}
-          </p>
-          <div className="flex items-center gap-4 rounded-xl bg-[var(--jobchat-surface)] p-4">
+          <section>
+            <div className="relative rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-8">
+              <button
+                type="button"
+                onClick={() => setShowEditSheet(true)}
+                className="absolute end-3 top-3 flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-gray-200 bg-transparent text-gray-600 active:scale-95 active:opacity-70"
+                aria-label={ui.editProfileTitle}
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoSheet(true)}
+                  disabled={uploadingPhoto}
+                  className="rounded-full p-1 ring-4 ring-white active:scale-[0.98] disabled:opacity-60"
+                  aria-label={ui.yourName}
+                >
+                  <Avatar
+                    name={displayName}
+                    size="xl"
+                    imageUrl={workerImageUrl}
+                  />
+                </button>
+
+                <p className="mt-5 text-[22px] font-semibold tracking-tight text-gray-900">
+                  {displayName}
+                </p>
+                <p className="mt-1.5 text-[15px] text-gray-500">{ui.yourName}</p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-3 text-sm font-semibold text-gray-700">
+              {ui.yourLanguage}
+            </p>
+            <Link
+              href={getWorkerSettingsLanguagePath(token)}
+              className="flex min-h-[76px] w-full items-center justify-between rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 transition-colors hover:bg-white/40 active:bg-white/50"
+            >
+              <p className="flex items-center gap-2 font-medium text-gray-900">
+                <LanguageFlag
+                  countryCode={lang.countryCode}
+                  className="h-5 w-5"
+                  title={lang.countryName}
+                />
+                {getLanguagePickerLabel(lang)}
+              </p>
+              <ChevronRight
+                className={
+                  dir === "rtl"
+                    ? "h-5 w-5 rotate-180 text-gray-400"
+                    : "h-5 w-5 text-gray-400"
+                }
+              />
+            </Link>
+          </section>
+
+          <section>
             <button
               type="button"
-              onClick={() => setShowPhotoSheet(true)}
-              disabled={uploadingPhoto}
-              className="relative rounded-full active:scale-[0.98] disabled:opacity-60"
-              aria-label="עדכון תמונת פרופיל"
+              onClick={() => setShowLogoutSheet(true)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
             >
-              <Avatar name={workerName} imageUrl={workerImageUrl} />
-              <span className="absolute -bottom-1 -end-1 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white ring-2 ring-white">
-                <Camera className="h-3.5 w-3.5" />
-              </span>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
+                <LogOut className="h-5 w-5 text-[var(--jobchat-accent)]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">{ui.logout}</p>
+              </div>
+              <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
             </button>
-            <div className="min-w-0 flex-1">
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                onBlur={() => void handleSaveName()}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.currentTarget.blur();
-                  }
-                }}
-                className="w-full bg-transparent font-medium text-gray-900 outline-none"
-                dir={dir}
-              />
-              <p className="mt-1 text-xs text-gray-400">
-                {savingName ? "שומר..." : "שם תצוגה אישי"}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <p className="mb-3 text-sm font-semibold text-gray-700">
-            {ui.yourLanguage}
-          </p>
-          <Link
-            href={`${getWorkerJoinPath(token)}?changeLang=1`}
-            className="flex w-full items-center justify-between rounded-xl bg-[var(--jobchat-surface)] p-4 hover:bg-gray-100"
-          >
-            <p className="flex items-center gap-2 font-medium text-gray-900">
-              <LanguageFlag
-                countryCode={lang.countryCode}
-                className="h-5 w-5"
-                title={lang.countryName}
-              />
-              {getLanguagePickerLabel(lang)}
-            </p>
-            <ChevronRight
-              className={
-                dir === "rtl"
-                  ? "h-5 w-5 rotate-180 text-gray-400"
-                  : "h-5 w-5 text-gray-400"
-              }
-            />
-          </Link>
-        </section>
-
-        <section>
-          <p className="mb-3 text-sm font-semibold text-gray-700">תשלומים</p>
-          <button
-            type="button"
-            disabled
-            className="flex w-full items-center gap-3 rounded-xl bg-[var(--jobchat-surface)] px-4 py-3 text-start"
-          >
-            <CreditCard className="h-5 w-5 shrink-0 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">ניהול תשלומים</p>
-              <p className="text-xs text-gray-500">בקרוב</p>
-            </div>
-          </button>
-        </section>
-
-        <button
-          type="button"
-          disabled
-          className="w-full rounded-xl border border-[var(--jobchat-border)] px-4 py-3 text-sm text-gray-400"
-        >
-          {ui.help} (בקרוב)
-        </button>
-        <p className="pb-4 text-center text-xs text-gray-400">{ui.prototype}</p>
+          </section>
         </div>
       </div>
+
+      <WorkerProfileEditSheet
+        open={showEditSheet}
+        onClose={() => setShowEditSheet(false)}
+        name={displayName}
+        ui={ui}
+        dir={dir}
+        onSave={(profile) => handleSaveName(profile.name)}
+      />
 
       <ImageAttachSheet
         open={showPhotoSheet}
         onClose={() => setShowPhotoSheet(false)}
-        takePhotoLabel="צלם תמונה"
-        chooseGalleryLabel="בחר מהגלריה"
+        takePhotoLabel={ui.takePhotoLabel}
+        chooseGalleryLabel={ui.chooseGalleryLabel}
         onImageSelected={(file) => void handleImageSelected(file)}
         dir={dir}
       />
+
+      <Sheet
+        open={showLogoutSheet}
+        onClose={() => !loggingOut && setShowLogoutSheet(false)}
+        dir={dir}
+        showCloseButton={false}
+      >
+        <div dir={dir} className="space-y-5">
+          <p className="text-center text-[17px] font-semibold leading-snug text-gray-900">
+            {ui.logoutConfirm}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={() => setShowLogoutSheet(false)}
+              disabled={loggingOut}
+              className="!rounded-2xl text-gray-600"
+            >
+              {ui.cancel}
+            </Button>
+            <Button
+              fullWidth
+              onClick={() => void handleLogout()}
+              disabled={loggingOut}
+              className="!rounded-2xl"
+            >
+              {ui.logout}
+            </Button>
+          </div>
+        </div>
+      </Sheet>
     </>
+  );
+}
+
+type WorkerProfileEditSheetProps = {
+  open: boolean;
+  onClose: () => void;
+  name: string;
+  ui: WorkerUiStrings;
+  dir: "ltr" | "rtl";
+  onSave: (data: { name: string }) => void | Promise<void>;
+};
+
+function WorkerProfileEditSheet({
+  open,
+  onClose,
+  name: initialName,
+  ui,
+  dir,
+  onSave,
+}: WorkerProfileEditSheetProps) {
+  const [name, setName] = useState(initialName);
+  const [error, setError] = useState<string | undefined>();
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setName(initialName);
+    setError(undefined);
+  }, [open, initialName]);
+
+  const handleSave = async () => {
+    const nextName = name.trim();
+    if (!nextName) {
+      setError(ui.yourName);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSave({ name: nextName });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Sheet open={open} onClose={onClose} dir={dir} showCloseButton={false}>
+      <div dir={dir} className="space-y-4">
+        <p className="text-center text-[17px] font-semibold text-gray-900">
+          {ui.editProfileTitle}
+        </p>
+        <Input
+          dir={dir}
+          label={ui.yourName}
+          placeholder={ui.yourName}
+          value={name}
+          onChange={(event) => {
+            setName(event.target.value);
+            setError(undefined);
+          }}
+          error={error}
+        />
+        <div className="flex gap-3 pt-1">
+          <Button
+            variant="ghost"
+            fullWidth
+            onClick={onClose}
+            disabled={saving}
+            className="!rounded-2xl text-gray-600"
+          >
+            {ui.cancel}
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => void handleSave()}
+            disabled={saving}
+            className="!rounded-2xl"
+          >
+            {ui.contactNameSave}
+          </Button>
+        </div>
+      </div>
+    </Sheet>
   );
 }

@@ -3,6 +3,7 @@
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
 import { LoginGreetingsLottie } from "@/components/manager/LoginGreetingsLottie";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { AppShell } from "@/components/ui/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -145,10 +146,7 @@ export function UnifiedLoginView() {
   if (redirecting) {
     return (
       <AppShell dir="rtl">
-        <div className="safe-top flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)]">
-          <Loader2 className="h-10 w-10 animate-spin text-[var(--jobchat-accent)]" />
-          <p className="mt-4 text-sm text-gray-500">מעבירים אותך הלאה...</p>
-        </div>
+        <AppLoadingState />
       </AppShell>
     );
   }

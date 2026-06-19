@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { useInviteBootstrap } from "@/lib/hooks/use-slang-data";
 import { getWorkerJoinPath } from "@/lib/utils";
@@ -22,9 +23,7 @@ export default function LegacyWorkerChatPage() {
 
   return (
     <MobileFrame>
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-gray-500">Loading...</p>
-      </div>
+      <AppLoadingState />
     </MobileFrame>
   );
 }

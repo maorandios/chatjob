@@ -1,5 +1,6 @@
 "use client";
 
+import { ChatLoadingState } from "@/components/chat/ChatLoadingState";
 import { ManagerChatView } from "@/components/manager/ManagerChatView";
 import { AppShell } from "@/components/ui/AppShell";
 import { useRequireOnboardingComplete } from "@/lib/hooks/use-manager-access";
@@ -19,8 +20,8 @@ export default function CleanManagerChatPage() {
   if (!ready || !managerId) {
     return (
       <AppShell dir="rtl">
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-gray-500">טוען...</p>
+        <div className="flex min-h-0 flex-1 items-center bg-[var(--jobchat-surface)]">
+          <ChatLoadingState />
         </div>
       </AppShell>
     );

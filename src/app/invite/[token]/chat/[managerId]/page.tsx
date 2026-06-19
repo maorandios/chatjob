@@ -1,6 +1,7 @@
 "use client";
 
 import { ChatHeader } from "@/components/chat/ChatHeader";
+import { ChatLoadingState } from "@/components/chat/ChatLoadingState";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
 import { MobileFrame } from "@/components/ui/MobileFrame";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/store";
 import { getWorkerJoinPath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function WorkerChatPage() {
@@ -37,7 +38,10 @@ export default function WorkerChatPage() {
     if (worker && !worker.language) {
       router.replace(getWorkerJoinPath(token));
     }
-  }, [authRequired, worker, token, router]);
+    if (!loading && token && (!worker || !invite || !managerId || !manager)) {
+      router.replace(getWorkerJoinPath(token));
+    }
+  }, [authRequired, worker, invite, managerId, manager, loading, token, router]);
 
   const displayName = useContactDisplayName(
     "worker",
@@ -53,14 +57,22 @@ export default function WorkerChatPage() {
   if (loading) {
     return (
       <MobileFrame>
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-gray-500">Loading...</p>
+        <div className="flex min-h-0 flex-1 items-center bg-[var(--jobchat-surface)]">
+          <ChatLoadingState />
         </div>
       </MobileFrame>
     );
   }
 
-  if (!token || !worker || !invite || !managerId || !manager) notFound();
+  if (!token || !worker || !invite || !managerId || !manager) {
+    return (
+      <MobileFrame>
+        <div className="flex min-h-0 flex-1 items-center bg-[var(--jobchat-surface)]">
+          <ChatLoadingState />
+        </div>
+      </MobileFrame>
+    );
+  }
 
   if (!worker.language) {
     return null;

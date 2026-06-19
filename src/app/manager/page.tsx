@@ -1,5 +1,6 @@
 "use client";
 
+import { ChatListSkeleton } from "@/components/chat/ChatListSkeleton";
 import { AddWorkerSheet } from "@/components/manager/AddWorkerSheet";
 import { ChatListItem } from "@/components/manager/ChatListItem";
 import { ContactSearchField } from "@/components/manager/ContactSearchField";
@@ -128,8 +129,12 @@ export default function ManagerPage() {
   if (!ready || !managerId) {
     return (
       <AppShell dir="rtl">
-        <div className="flex flex-1 items-center justify-center bg-[var(--jobchat-surface)]">
-          <p className="text-sm text-gray-500">טוען...</p>
+        <AppListHeader settingsHref="/manager/settings" />
+        <div className="shrink-0 bg-[var(--jobchat-surface)] px-3 pb-3 pt-2">
+          <div className="h-12 animate-pulse rounded-2xl bg-white/50" />
+        </div>
+        <div className="min-h-0 flex-1 bg-[var(--jobchat-surface)]">
+          <ChatListSkeleton />
         </div>
       </AppShell>
     );

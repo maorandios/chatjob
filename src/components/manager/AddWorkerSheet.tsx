@@ -2,9 +2,10 @@
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { MainLoader } from "@/components/ui/MainLoader";
 import { Sheet } from "@/components/ui/Sheet";
 import { cn, isValidIsraeliPhone } from "@/lib/utils";
-import { ArrowLeft, CircleUserRound, Loader2, ShieldUser } from "lucide-react";
+import { ArrowLeft, CircleUserRound, ShieldUser } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export type UserType = "management" | "worker";
@@ -138,10 +139,7 @@ export function AddWorkerSheet({
     >
       {loading ? (
         <div className="flex flex-col items-center py-10 text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-[var(--jobchat-accent)]" />
-          <p className="mt-4 text-base font-medium text-gray-900">
-            יוצרים קישור להזמנה
-          </p>
+          <MainLoader />
         </div>
       ) : step === "pick" ? (
         <div className="space-y-5 pb-1">
