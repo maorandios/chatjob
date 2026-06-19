@@ -77,7 +77,7 @@ export function WorkerLoginView() {
         const { inviteToken } = await resolveWorkerInviteTokenByEmail(email);
         window.location.assign(getWorkerJoinPath(inviteToken));
       } catch (err) {
-        lastOtpAttemptRef.current = "";
+        lastOtpAttemptRef.current = token;
         setError(err instanceof Error ? err.message : "האימות נכשל");
       } finally {
         verifyInFlightRef.current = false;
@@ -163,7 +163,10 @@ export function WorkerLoginView() {
 
               <OtpCodeInput
                 value={otp}
-                onChange={setOtp}
+                onChange={(next) => {
+                  setOtp(next);
+                  setError(undefined);
+                }}
                 disabled={verifying}
                 error={error}
               />

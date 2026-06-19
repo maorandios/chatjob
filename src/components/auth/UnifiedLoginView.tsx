@@ -124,7 +124,7 @@ export function UnifiedLoginView() {
         await routeByVerifiedEmail();
       } catch (err) {
         await signOutSupabaseAuth();
-        lastOtpAttemptRef.current = "";
+        lastOtpAttemptRef.current = token;
         setError(err instanceof Error ? err.message : "האימות נכשל");
       } finally {
         setVerifying(false);
@@ -177,8 +177,14 @@ export function UnifiedLoginView() {
   return (
     <AppShell dir="rtl">
       <div className="safe-top flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
-        <div className="flex shrink-0 flex-col items-center gap-3 px-4 pt-8">
-          <LoginGreetingsLottie />
+        <div
+          className={
+            step === "form"
+              ? "flex shrink-0 flex-col items-center gap-3 px-4 pt-8"
+              : "flex shrink-0 flex-col items-center px-4 pt-5 pb-2"
+          }
+        >
+          {step === "form" && <LoginGreetingsLottie />}
           <AuthBrandLogo size="compact" />
         </div>
 
@@ -247,7 +253,10 @@ export function UnifiedLoginView() {
                 <div className="space-y-4">
                   <OtpCodeInput
                     value={otp}
-                    onChange={setOtp}
+                    onChange={(next) => {
+                      setOtp(next);
+                      setError(undefined);
+                    }}
                     disabled={verifying || redirecting}
                     error={error}
                   />

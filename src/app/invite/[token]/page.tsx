@@ -233,7 +233,7 @@ function InviteOnboarding({
         await acceptWorkerInviteByToken(token);
         window.location.assign(getWorkerJoinPath(token));
       } catch (err) {
-        lastOtpAttemptRef.current = "";
+        lastOtpAttemptRef.current = tokenValue;
         setError(err instanceof Error ? err.message : ui.verifyFailed);
       } finally {
         verifyInFlightRef.current = false;
@@ -330,7 +330,10 @@ function InviteOnboarding({
 
                 <OtpCodeInput
                   value={otp}
-                  onChange={setOtp}
+                  onChange={(next) => {
+                    setOtp(next);
+                    setError(undefined);
+                  }}
                   disabled={verifyingOtp}
                   error={error}
                 />

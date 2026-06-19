@@ -32,6 +32,28 @@ export function OtpCodeInput({
     }
   }, [disabled]);
 
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const syncVisualHeight = () => {
+      document.documentElement.style.setProperty(
+        "--jobchat-visual-height",
+        `${viewport.height}px`
+      );
+    };
+
+    syncVisualHeight();
+    viewport.addEventListener("resize", syncVisualHeight);
+    viewport.addEventListener("scroll", syncVisualHeight);
+
+    return () => {
+      viewport.removeEventListener("resize", syncVisualHeight);
+      viewport.removeEventListener("scroll", syncVisualHeight);
+      document.documentElement.style.removeProperty("--jobchat-visual-height");
+    };
+  }, []);
+
   const digits = value
     .padEnd(EMAIL_OTP_LENGTH, " ")
     .split("")
@@ -40,11 +62,11 @@ export function OtpCodeInput({
   const scrollIntoView = () => {
     window.setTimeout(() => {
       containerRef.current?.scrollIntoView({
-        block: "center",
+        block: "nearest",
         inline: "nearest",
         behavior: "smooth",
       });
-    }, 120);
+    }, 250);
   };
 
   return (

@@ -9,7 +9,7 @@ export function mapSupabaseAuthError(message: string): string {
     lower.includes("expired") ||
     lower.includes("invalid")
   ) {
-    return "הקוד שגוי או שפג תוקפו — בקשו קוד חדש ונסו שוב.";
+    return "קוד האימות שגוי או שפג תוקפו. בדקו את הקוד ונסו שוב.";
   }
   if (lower.includes("rate limit") || lower.includes("too many")) {
     return "יותר מדי בקשות. נסו שוב בעוד כמה דקות.";

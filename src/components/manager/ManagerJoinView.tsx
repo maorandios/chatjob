@@ -128,7 +128,7 @@ export function ManagerJoinView({
         setRedirecting(true);
         router.replace("/manager");
       } catch (err) {
-        lastOtpAttemptRef.current = "";
+        lastOtpAttemptRef.current = token;
         setError(err instanceof Error ? err.message : "האימות נכשל");
       } finally {
         verifyInFlightRef.current = false;
@@ -285,7 +285,10 @@ export function ManagerJoinView({
                 <div className="space-y-4">
                   <OtpCodeInput
                     value={otp}
-                    onChange={setOtp}
+                    onChange={(next) => {
+                      setOtp(next);
+                      setError(undefined);
+                    }}
                     disabled={verifying || redirecting}
                     error={error}
                   />
