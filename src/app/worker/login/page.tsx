@@ -1,12 +1,7 @@
 "use client";
 
-import { WorkerLoginView } from "@/components/worker/WorkerLoginView";
-import { MobileFrame } from "@/components/ui/MobileFrame";
+import { UnifiedLoginView } from "@/components/auth/UnifiedLoginView";
 
 export default function WorkerLoginPage() {
-  return (
-    <MobileFrame dir="rtl">
-      <WorkerLoginView />
-    </MobileFrame>
-  );
+  return <UnifiedLoginView />;
 }

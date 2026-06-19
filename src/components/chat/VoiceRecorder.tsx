@@ -4,7 +4,13 @@ import { RecordingOverlay } from "@/components/chat/RecordingOverlay";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { Loader2, Mic } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 
 const MIN_RECORD_MS = 800;
 const MAX_RECORD_SEC = 20;
@@ -58,12 +64,14 @@ export function VoiceRecorder({
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const recordStartRef = useRef<number>(0);
   const stoppingRef = useRef(false);
-  const autoStoppedRef = useRef(false);
+  const isPressingRef = useRef(false);
+  const pressTokenRef = useRef(0);
 
   const cleanupStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -77,6 +85,7 @@ export function VoiceRecorder({
     if (!recorder || recorder.state === "inactive") {
       setIsRecording(false);
       setElapsedMs(0);
+      setPendingBlob(null);
       return;
     }
 
@@ -93,21 +102,22 @@ export function VoiceRecorder({
     chunksRef.current = [];
     mediaRecorderRef.current = null;
     stoppingRef.current = false;
+    setPendingBlob(null);
   }, [cleanupStream]);
 
-  const finishRecording = useCallback(
+  const stopRecordingForDecision = useCallback(
     async (options?: { autoMaxDuration?: boolean }) => {
       if (stoppingRef.current) return;
 
       const recorder = mediaRecorderRef.current;
       if (!recorder || recorder.state === "inactive") {
+        if (pendingBlob) return;
         setIsRecording(false);
         setElapsedMs(0);
         return;
       }
 
       stoppingRef.current = true;
-      autoStoppedRef.current = Boolean(options?.autoMaxDuration);
 
       const duration = Date.now() - recordStartRef.current;
       setIsRecording(false);
@@ -124,7 +134,7 @@ export function VoiceRecorder({
       chunksRef.current = [];
       mediaRecorderRef.current = null;
 
-      if (autoStoppedRef.current) {
+      if (options?.autoMaxDuration) {
         showToast(maxDurationLabel);
       }
 
@@ -132,7 +142,6 @@ export function VoiceRecorder({
         showToast(tooShortLabel);
         setElapsedMs(0);
         stoppingRef.current = false;
-        autoStoppedRef.current = false;
         return;
       }
 
@@ -140,29 +149,60 @@ export function VoiceRecorder({
         showToast(errorLabel);
         setElapsedMs(0);
         stoppingRef.current = false;
-        autoStoppedRef.current = false;
         return;
       }
 
-      setIsAnalyzing(true);
-      try {
-        await onRecorded(blob);
-      } catch (error) {
-        showToast(error instanceof Error ? error.message : errorLabel);
-      } finally {
-        setIsAnalyzing(false);
-        setElapsedMs(0);
-        stoppingRef.current = false;
-        autoStoppedRef.current = false;
-      }
+      setPendingBlob(blob);
+      setElapsedMs(duration);
+      stoppingRef.current = false;
     },
-    [cleanupStream, errorLabel, maxDurationLabel, onRecorded, showToast, tooShortLabel]
+    [
+      cleanupStream,
+      errorLabel,
+      maxDurationLabel,
+      pendingBlob,
+      showToast,
+      tooShortLabel,
+    ]
+  );
+
+  const finishRecording = useCallback(async () => {
+    if (isRecording) {
+      await stopRecordingForDecision();
+      return;
+    }
+
+    if (!pendingBlob || isAnalyzing) return;
+
+    setIsAnalyzing(true);
+    try {
+      await onRecorded(pendingBlob);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : errorLabel);
+    } finally {
+      setIsAnalyzing(false);
+      setElapsedMs(0);
+      setPendingBlob(null);
+      stoppingRef.current = false;
+    }
+  },
+    [
+      errorLabel,
+      isAnalyzing,
+      isRecording,
+      onRecorded,
+      pendingBlob,
+      showToast,
+      stopRecordingForDecision,
+    ]
   );
 
   const startRecording = useCallback(async () => {
-    if (disabled || isAnalyzing || isRecording) return;
+    if (disabled || isAnalyzing || isRecording || pendingBlob) return;
 
     try {
+      setPendingBlob(null);
+      const pressToken = pressTokenRef.current;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -171,6 +211,10 @@ export function VoiceRecorder({
           channelCount: 1,
         },
       });
+      if (!isPressingRef.current || pressToken !== pressTokenRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       const mimeType = getSupportedMimeType();
       const recorder = mimeType
@@ -191,9 +235,17 @@ export function VoiceRecorder({
       cleanupStream();
       showToast(errorLabel);
     }
-  }, [cleanupStream, disabled, errorLabel, isAnalyzing, isRecording, showToast]);
+  }, [
+    cleanupStream,
+    disabled,
+    errorLabel,
+    isAnalyzing,
+    isRecording,
+    pendingBlob,
+    showToast,
+  ]);
 
-  const showOverlay = isRecording || isAnalyzing;
+  const showOverlay = isRecording || isAnalyzing || Boolean(pendingBlob);
   const isBusy = isAnalyzing;
 
   useEffect(() => {
@@ -205,16 +257,37 @@ export function VoiceRecorder({
 
       if (elapsed >= MAX_RECORD_MS) {
         clearInterval(tick);
-        void finishRecording({ autoMaxDuration: true });
+        void stopRecordingForDecision({ autoMaxDuration: true });
       }
     }, 100);
 
     return () => clearInterval(tick);
-  }, [isRecording, finishRecording]);
+  }, [isRecording, stopRecordingForDecision]);
 
-  const handleMicClick = () => {
-    if (disabled || isAnalyzing || isRecording) return;
+  const handlePressStart = (event: PointerEvent<HTMLButtonElement>) => {
+    if (disabled || isAnalyzing || isRecording || pendingBlob) return;
+    event.preventDefault();
+    isPressingRef.current = true;
+    pressTokenRef.current += 1;
+    event.currentTarget.setPointerCapture(event.pointerId);
     void startRecording();
+  };
+
+  const handlePressEnd = (event: PointerEvent<HTMLButtonElement>) => {
+    if (!isPressingRef.current) return;
+    event.preventDefault();
+    isPressingRef.current = false;
+    pressTokenRef.current += 1;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    void stopRecordingForDecision();
+  };
+
+  const handlePressCancel = () => {
+    isPressingRef.current = false;
+    pressTokenRef.current += 1;
+    void cancelRecording();
   };
 
   return (
@@ -223,9 +296,12 @@ export function VoiceRecorder({
         type="button"
         dir={dir}
         disabled={disabled || isBusy}
-        onClick={handleMicClick}
+        onPointerDown={handlePressStart}
+        onPointerUp={handlePressEnd}
+        onPointerCancel={handlePressCancel}
+        onContextMenu={(event) => event.preventDefault()}
         className={cn(
-          "flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full transition-all active:scale-95",
+          "flex h-11 w-11 shrink-0 touch-none select-none items-center justify-center rounded-full transition-all active:scale-95",
           isRecording
             ? "bg-red-500 text-white"
             : isBusy
@@ -236,7 +312,7 @@ export function VoiceRecorder({
                 ? "bg-[var(--jobchat-accent)] text-white hover:brightness-105"
                 : "text-[var(--jobchat-accent)] hover:bg-[var(--jobchat-accent-light)]"
         )}
-        aria-label="Voice message"
+        aria-label="Hold to record voice message"
         aria-pressed={isRecording}
       >
         {isBusy ? (
@@ -251,10 +327,10 @@ export function VoiceRecorder({
 
       {showOverlay && (
         <RecordingOverlay
-          phase={isAnalyzing ? "analyzing" : "recording"}
+          phase={isAnalyzing ? "analyzing" : pendingBlob ? "ready" : "recording"}
           elapsedMs={elapsedMs}
           maxSec={MAX_RECORD_SEC}
-          label={recordingLabel}
+          label={pendingBlob ? "סיים או ביטול" : recordingLabel}
           analyzingLabel={analyzingLabel}
           finishLabel={finishRecordingLabel}
           deleteLabel={deleteRecordingLabel}

@@ -74,7 +74,7 @@ export default function ManagerAuthCallbackPage() {
             </h2>
             <p className="mt-2 text-sm text-gray-500">{error}</p>
             <Link
-              href="/manager/login"
+              href="/login"
               className="mt-6 rounded-xl bg-[var(--jobchat-accent)] px-6 py-3 text-sm font-medium text-white"
             >
               חזרה להתחברות

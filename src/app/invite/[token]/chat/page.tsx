@@ -2,6 +2,7 @@
 
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { useInviteBootstrap } from "@/lib/hooks/use-slang-data";
+import { getWorkerJoinPath } from "@/lib/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -14,7 +15,7 @@ export default function LegacyWorkerChatPage() {
 
   useEffect(() => {
     if (!token || loading) return;
-    router.replace(`/invite/${token}`);
+    router.replace(getWorkerJoinPath(token));
   }, [token, loading, router]);
 
   if (!token) notFound();

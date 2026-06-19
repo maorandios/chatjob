@@ -22,10 +22,11 @@ import { getLanguageDir } from "@/lib/i18n/languages";
 import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
 import { useSlangStore } from "@/lib/store";
+import { getWorkerJoinPath, getWorkerSettingsPath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
 import { isWorkerJoined } from "@/lib/workers/invite-status";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export default function InvitePage() {
   const params = useParams<{ token: string }>();
@@ -48,17 +49,32 @@ function WorkerHome({
   language: LanguageCode;
 }) {
   const managers = useSlangStore((s) => s.managers);
+  const messages = useSlangStore((s) => s.messages);
   const ui = getWorkerUi(language);
   const dir = getLanguageDir(language);
+  const sortedManagers = useMemo(() => {
+    const latestByManager = new Map<string, number>();
+    for (const message of messages) {
+      if (message.workerId !== workerId) continue;
+      const current = latestByManager.get(message.managerId) ?? 0;
+      const next = new Date(message.createdAt).getTime();
+      if (next > current) latestByManager.set(message.managerId, next);
+    }
+
+    return [...managers].sort(
+      (a, b) =>
+        (latestByManager.get(b.id) ?? 0) - (latestByManager.get(a.id) ?? 0)
+    );
+  }, [managers, messages, workerId]);
 
   useWorkerInboxPreviews(workerId);
 
   return (
     <MobileFrame dir={dir}>
-      <AppListHeader settingsHref={`/invite/${token}/settings`} />
+      <AppListHeader settingsHref={getWorkerSettingsPath(token)} />
 
       <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
-        {managers.length === 0 ? (
+        {sortedManagers.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
             <p className="text-sm text-gray-500">{companyName}</p>
             <p className="mt-2 text-base font-medium text-gray-900">
@@ -66,7 +82,7 @@ function WorkerHome({
             </p>
           </div>
         ) : (
-          managers.map((manager) => (
+          sortedManagers.map((manager) => (
             <ManagerChatListItem
               key={manager.id}
               inviteToken={token}
@@ -146,7 +162,7 @@ function InviteOnboarding({
     setError(undefined);
     try {
       await setWorkerLanguage(worker.id, selectedLang);
-      router.push(`/invite/${token}`);
+      router.push(getWorkerJoinPath(token));
     } catch (error) {
       console.error("[Slang] Failed to set language", error);
       setError(ui.saveLanguageFailed);
@@ -215,7 +231,7 @@ function InviteOnboarding({
       try {
         await verifyEmailOtp(email, tokenValue);
         await acceptWorkerInviteByToken(token);
-        window.location.assign(`/invite/${token}`);
+        window.location.assign(getWorkerJoinPath(token));
       } catch (err) {
         lastOtpAttemptRef.current = "";
         setError(err instanceof Error ? err.message : ui.verifyFailed);
@@ -386,7 +402,7 @@ function InviteOnboarding({
 
 function InvitePageContent({ token }: { token: string }) {
   const isChangingLanguage = useClientSearchParam("changeLang");
-  const { loading, worker, invite } = useInviteBootstrap(token);
+  const { loading, worker, invite, authRequired } = useInviteBootstrap(token);
 
   if (loading) {
     return (
@@ -413,6 +429,7 @@ function InvitePageContent({ token }: { token: string }) {
     worker.language &&
     worker.email &&
     isWorkerJoined(worker) &&
+    !authRequired &&
     !isChangingLanguage;
 
   if (showHome) {

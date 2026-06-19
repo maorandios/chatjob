@@ -27,7 +27,6 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     if (body.language) {
       updates.language = normalizeWorkerLanguage(body.language as LanguageCode);
-      updates.status = "active";
     } else if (body.status === "pending" || body.status === "active") {
       updates.status = body.status;
     }

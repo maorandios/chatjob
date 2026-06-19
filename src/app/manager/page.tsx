@@ -24,6 +24,7 @@ export default function ManagerPage() {
   const ready = useSlangStore((s) => s.ready);
   const managerId = useSlangStore((s) => s.managerId);
   const workers = useSlangStore((s) => s.workers);
+  const messages = useSlangStore((s) => s.messages);
   const contactAliases = useSlangStore((s) => s.contactAliases);
   const loadWorkers = useSlangStore((s) => s.loadWorkers);
   const loadMessagePreviews = useSlangStore((s) => s.loadMessagePreviews);
@@ -45,13 +46,29 @@ export default function ManagerPage() {
 
   useEffect(() => {
     if (ready && !managerId) {
-      router.replace("/manager/login");
+      router.replace("/login");
     }
   }, [ready, managerId, router]);
 
   const filteredWorkers = useMemo(
-    () => filterWorkersByQuery(workers, searchQuery, contactAliases),
-    [workers, searchQuery, contactAliases]
+    () => {
+      const visible = filterWorkersByQuery(workers, searchQuery, contactAliases);
+      if (!managerId) return visible;
+
+      const latestByWorker = new Map<string, number>();
+      for (const message of messages) {
+        if (message.managerId !== managerId) continue;
+        const current = latestByWorker.get(message.workerId) ?? 0;
+        const next = new Date(message.createdAt).getTime();
+        if (next > current) latestByWorker.set(message.workerId, next);
+      }
+
+      return [...visible].sort(
+        (a, b) =>
+          (latestByWorker.get(b.id) ?? 0) - (latestByWorker.get(a.id) ?? 0)
+      );
+    },
+    [workers, searchQuery, contactAliases, managerId, messages]
   );
 
   const handleRefresh = useCallback(async () => {

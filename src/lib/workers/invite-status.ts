@@ -4,7 +4,7 @@ import type { Worker } from "@/types";
 export function isWorkerInvitePending(
   worker: Pick<Worker, "status" | "email">
 ): boolean {
-  return worker.status === "pending" && !worker.email;
+  return worker.status !== "active" || !worker.email;
 }
 
 /** Worker completed invite onboarding and can chat. */

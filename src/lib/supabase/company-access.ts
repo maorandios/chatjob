@@ -1,3 +1,4 @@
+import { normalizeEmail } from "@/lib/auth/email";
 import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { LanguageCode } from "@/types";
@@ -55,6 +56,73 @@ export async function assertSameCompanyParticipants(
   }
 
   return managerCompanyId;
+}
+
+export async function assertActiveConversationParticipants(
+  managerId: string,
+  workerId: string
+): Promise<string | null> {
+  const supabase = getSupabaseAdmin();
+  const [{ data: manager, error: managerError }, { data: worker, error: workerError }] =
+    await Promise.all([
+      supabase
+        .from("managers")
+        .select("company_id, email, onboarding_complete")
+        .eq("id", managerId)
+        .maybeSingle(),
+      supabase
+        .from("workers")
+        .select("company_id, email, status")
+        .eq("id", workerId)
+        .maybeSingle(),
+    ]);
+
+  if (managerError) throw managerError;
+  if (workerError) throw workerError;
+
+  if (!manager || !worker || manager.company_id !== worker.company_id) {
+    return null;
+  }
+  if (!manager.email || !manager.onboarding_complete) {
+    return null;
+  }
+  if (!worker.email || worker.status !== "active") {
+    return null;
+  }
+
+  return manager.company_id;
+}
+
+function getBearerToken(req: Request): string | null {
+  const authorization = req.headers.get("authorization") ?? "";
+  return authorization.match(/^Bearer\s+(.+)$/i)?.[1] ?? null;
+}
+
+export async function assertAuthenticatedWorkerRequest(
+  req: Request,
+  workerId: string
+): Promise<boolean> {
+  const accessToken = getBearerToken(req);
+  if (!accessToken) return false;
+
+  const supabase = getSupabaseAdmin();
+  const [{ data: worker, error: workerError }, { data: authData, error: authError }] =
+    await Promise.all([
+      supabase
+        .from("workers")
+        .select("email, status")
+        .eq("id", workerId)
+        .maybeSingle(),
+      supabase.auth.getUser(accessToken),
+    ]);
+
+  if (workerError) throw workerError;
+  if (authError || !worker?.email || worker.status !== "active") return false;
+
+  const authenticatedEmail = authData.user?.email
+    ? normalizeEmail(authData.user.email)
+    : "";
+  return authenticatedEmail === normalizeEmail(worker.email);
 }
 
 /** Prefer worker language from DB — manager clients often have a stale copy. */

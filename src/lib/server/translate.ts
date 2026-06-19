@@ -148,6 +148,32 @@ export async function translateText(
   };
 }
 
+export async function translateTextOrOriginal(
+  text: string,
+  targetLang: string,
+  sourceLang?: string,
+  options?: TranslateOptions
+): Promise<TranslationResult> {
+  try {
+    return await translateText(text, targetLang, sourceLang, options);
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== "OPENAI_NOT_CONFIGURED") {
+      throw error;
+    }
+
+    const trimmed = text.trim();
+    const normalizedTarget = normalizeDetectedLang(targetLang);
+    const originalLang = normalizeDetectedLang(sourceLang ?? targetLang);
+
+    return {
+      originalText: trimmed,
+      originalLang,
+      translatedText: trimmed,
+      targetLang: normalizedTarget,
+    };
+  }
+}
+
 async function runTranscription(
   openai: ReturnType<typeof getOpenAI>,
   file: File,

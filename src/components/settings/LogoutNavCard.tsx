@@ -18,7 +18,7 @@ export function LogoutNavCard() {
     setLoggingOut(true);
     await signOutSupabaseAuth();
     setOpen(false);
-    router.replace("/manager/login");
+    router.replace("/login");
     logoutManager();
   };
 

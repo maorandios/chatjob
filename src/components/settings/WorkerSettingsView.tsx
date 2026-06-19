@@ -4,6 +4,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { LanguageFlag } from "@/components/worker/LanguageFlag";
 import { getLanguage, getLanguagePickerLabel } from "@/lib/i18n/languages";
 import { getWorkerUi } from "@/lib/i18n/worker-ui";
+import { getWorkerJoinPath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
 import { ChevronRight, CreditCard } from "lucide-react";
 import Link from "next/link";
@@ -51,7 +52,7 @@ export function WorkerSettingsView({
             {ui.yourLanguage}
           </p>
           <Link
-            href={`/invite/${token}?changeLang=1`}
+            href={`${getWorkerJoinPath(token)}?changeLang=1`}
             className="flex w-full items-center justify-between rounded-xl bg-[var(--jobchat-surface)] p-4 hover:bg-gray-100"
           >
             <p className="flex items-center gap-2 font-medium text-gray-900">

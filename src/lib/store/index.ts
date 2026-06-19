@@ -11,6 +11,7 @@ import {
 } from "@/lib/manager-session";
 import { jobChatPersistStorage } from "@/lib/mock/safe-storage";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
+import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import { generateId, normalizePhone } from "@/lib/utils";
 import type {
   Company,
@@ -61,7 +62,11 @@ type SlangState = {
   loadMessages: (
     managerId: string,
     workerId: string,
-    options?: { before?: string; limit?: number }
+    options?: {
+      before?: string;
+      limit?: number;
+      viewerRole?: "manager" | "worker";
+    }
   ) => Promise<{ messages: Message[]; hasMore: boolean }>;
   loadMessagePreviews: (options: {
     managerId?: string;
@@ -179,6 +184,23 @@ function createPendingMessage(
     inputType,
     createdAt: new Date().toISOString(),
     status: "sending",
+  };
+}
+
+async function getAuthHeaders(
+  headers: HeadersInit = {}
+): Promise<HeadersInit> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) return headers;
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.access_token) return headers;
+
+  return {
+    ...headers,
+    Authorization: `Bearer ${session.access_token}`,
   };
 }
 
@@ -454,13 +476,18 @@ export const useSlangStore = create<SlangState>()(
       },
 
       fetchInvite: async (token) => {
-        const res = await fetch(`/api/invites/${encodeURIComponent(token)}`);
-        if (!res.ok) return null;
+        const res = await fetch(`/api/invites/${encodeURIComponent(token)}`, {
+          headers: await getAuthHeaders(),
+        });
+        const data = await res.json().catch(() => ({}));
 
-        const data = await res.json();
+        if (!res.ok && data.code !== "WORKER_AUTH_REQUIRED") return null;
+
         const worker = data.worker as Worker;
         const invite = data.invite as WorkerInvite;
-        const managers = data.managers as Manager[];
+        const managers = (data.managers ?? []) as Manager[];
+
+        if (!worker || !invite) return null;
 
         set((state) => ({
           workers: mergeWorkerList(state.workers, worker),
@@ -469,6 +496,12 @@ export const useSlangStore = create<SlangState>()(
           companyId: invite.companyId,
           companyName: invite.companyName,
         }));
+
+        if (data.code === "WORKER_AUTH_REQUIRED") {
+          throw Object.assign(new Error("WORKER_AUTH_REQUIRED"), {
+            code: "WORKER_AUTH_REQUIRED",
+          });
+        }
 
         void get().loadMessagePreviews({ workerId: worker.id });
 
@@ -485,8 +518,13 @@ export const useSlangStore = create<SlangState>()(
         if (options?.before) {
           params.set("before", options.before);
         }
+        if (options?.viewerRole) {
+          params.set("viewerRole", options.viewerRole);
+        }
 
-        const res = await fetch(`/api/messages?${params.toString()}`);
+        const res = await fetch(`/api/messages?${params.toString()}`, {
+          headers: await getAuthHeaders(),
+        });
         if (!res.ok) throw new Error("Failed to load messages");
 
         const data = await res.json();
@@ -501,7 +539,9 @@ export const useSlangStore = create<SlangState>()(
         if (managerId) params.set("managerId", managerId);
         if (workerId) params.set("workerId", workerId);
 
-        const res = await fetch(`/api/messages/previews?${params.toString()}`);
+        const res = await fetch(`/api/messages/previews?${params.toString()}`, {
+          headers: await getAuthHeaders(),
+        });
         if (!res.ok) return;
 
         const data = await res.json();
@@ -550,7 +590,7 @@ export const useSlangStore = create<SlangState>()(
         const data = await res.json();
         const manager = data.manager as Manager;
         set((state) => ({
-          managers: [manager, ...state.managers],
+          managers: mergeManagerList(state.managers, manager),
         }));
         return manager;
       },
@@ -583,8 +623,8 @@ export const useSlangStore = create<SlangState>()(
         const invite = data.invite as WorkerInvite;
 
         set((state) => ({
-          workers: [worker, ...state.workers],
-          invites: [invite, ...state.invites],
+          workers: mergeWorkerList(state.workers, worker),
+          invites: mergeInviteList(state.invites, invite),
         }));
 
         return worker;
@@ -664,7 +704,7 @@ export const useSlangStore = create<SlangState>()(
         try {
           const res = await fetch("/api/messages", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: await getAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({
               managerId,
               workerId,
@@ -718,7 +758,7 @@ export const useSlangStore = create<SlangState>()(
           const imageUrl = await compressImageFile(file);
           const res = await fetch("/api/messages", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: await getAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({
               managerId,
               workerId,
@@ -771,7 +811,7 @@ export const useSlangStore = create<SlangState>()(
         try {
           const res = await fetch("/api/messages", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: await getAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({
               managerId,
               workerId,
@@ -808,7 +848,7 @@ export const useSlangStore = create<SlangState>()(
       markManagerMessagesRead: async (managerId, workerId) => {
         const res = await fetch("/api/messages/read", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: await getAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ managerId, workerId, viewerRole: "worker" }),
         });
         if (!res.ok) return;
@@ -820,7 +860,7 @@ export const useSlangStore = create<SlangState>()(
       markWorkerMessagesRead: async (managerId, workerId) => {
         const res = await fetch("/api/messages/read", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: await getAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ managerId, workerId, viewerRole: "manager" }),
         });
         if (!res.ok) return;
@@ -1203,4 +1243,16 @@ export function useLastMessage(
 ): Message | undefined {
   const messages = useConversationMessages(managerId, workerId);
   return messages[messages.length - 1];
+}
+
+export function useHasUnreadMessages(
+  managerId: string,
+  workerId: string,
+  viewerRole: "manager" | "worker"
+): boolean {
+  const messages = useConversationMessages(managerId, workerId);
+  return messages.some(
+    (message) =>
+      message.senderRole !== viewerRole && message.status === "sent"
+  );
 }

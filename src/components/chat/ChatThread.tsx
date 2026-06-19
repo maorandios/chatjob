@@ -80,7 +80,8 @@ export function ChatThread({
 }: ChatThreadProps) {
   const { loading, hasMore, loadingOlder, loadOlder } = useChatData(
     managerId,
-    workerId
+    workerId,
+    viewerRole
   );
   const messages = useConversationMessages(managerId, workerId);
   const sendMessage = useSlangStore((s) => s.sendMessage);
@@ -349,7 +350,6 @@ export function ChatThread({
         title={voiceConfirmTitle}
         youSaidLabel={voiceConfirmYouSaid}
         sendLabel={voiceConfirmSend}
-        rerecordLabel={voiceConfirmRerecord}
         isSending={isConfirmingVoice}
         onSend={handleVoiceConfirm}
         onRerecord={() => setVoicePreview(null)}

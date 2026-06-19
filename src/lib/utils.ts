@@ -44,9 +44,9 @@ export function isValidIsraeliPhone(phone: string): boolean {
 
 export function getInviteUrl(token: string): string {
   if (typeof window !== "undefined") {
-    return `${window.location.origin}/invite/${token}`;
+    return `${window.location.origin}${getWorkerJoinPath(token)}`;
   }
-  return `https://chatjob.vercel.app/invite/${token}`;
+  return `https://chatjob.vercel.app${getWorkerJoinPath(token)}`;
 }
 
 export function getManagerJoinUrl(token: string): string {
@@ -54,4 +54,20 @@ export function getManagerJoinUrl(token: string): string {
     return `${window.location.origin}/manager/join/${token}`;
   }
   return `https://chatjob.vercel.app/manager/join/${token}`;
+}
+
+export function getWorkerJoinPath(token: string): string {
+  return `/join/${encodeURIComponent(token)}`;
+}
+
+export function getWorkerSettingsPath(token: string): string {
+  return `${getWorkerJoinPath(token)}/settings`;
+}
+
+export function getWorkerChatPath(token: string, managerId: string): string {
+  return `${getWorkerJoinPath(token)}/chat/${encodeURIComponent(managerId)}`;
+}
+
+export function getManagerChatPath(workerInviteToken: string): string {
+  return `/c/${encodeURIComponent(workerInviteToken)}`;
 }

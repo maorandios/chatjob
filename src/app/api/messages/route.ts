@@ -6,11 +6,12 @@ import {
 } from "@/lib/server/languages";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { apiErrorResponse } from "@/lib/server/api-errors";
-import { translateText } from "@/lib/server/translate";
+import { translateTextOrOriginal } from "@/lib/server/translate";
 import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
-  assertSameCompanyParticipants,
+  assertActiveConversationParticipants,
+  assertAuthenticatedWorkerRequest,
   resolveWorkerLanguageForTranslation,
 } from "@/lib/supabase/company-access";
 import { rowToMessage } from "@/lib/supabase/mappers";
@@ -22,6 +23,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const workerId = searchParams.get("workerId");
     const managerId = searchParams.get("managerId");
+    const viewerRole = searchParams.get("viewerRole");
 
     if (!workerId || !managerId) {
       return NextResponse.json(
@@ -30,9 +32,21 @@ export async function GET(req: Request) {
       );
     }
 
-    const companyId = await assertSameCompanyParticipants(managerId, workerId);
+    const companyId = await assertActiveConversationParticipants(managerId, workerId);
     if (!companyId) {
-      return NextResponse.json({ error: "Invalid conversation" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Both users must complete signup before chatting" },
+        { status: 403 }
+      );
+    }
+    if (
+      viewerRole === "worker" &&
+      !(await assertAuthenticatedWorkerRequest(req, workerId))
+    ) {
+      return NextResponse.json(
+        { error: "Worker login required", code: "WORKER_AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
 
     const supabase = getSupabaseAdmin();
@@ -90,9 +104,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid senderRole" }, { status: 400 });
     }
 
-    const companyId = await assertSameCompanyParticipants(managerId, workerId);
+    const companyId = await assertActiveConversationParticipants(managerId, workerId);
     if (!companyId) {
-      return NextResponse.json({ error: "Invalid conversation" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Both users must complete signup before chatting" },
+        { status: 403 }
+      );
+    }
+    if (
+      senderRole === "worker" &&
+      !(await assertAuthenticatedWorkerRequest(req, workerId))
+    ) {
+      return NextResponse.json(
+        { error: "Worker login required", code: "WORKER_AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
 
     let originalText = String(body.originalText ?? body.text ?? "").trim();
@@ -132,10 +158,15 @@ export async function POST(req: Request) {
         effectiveWorkerLanguage
       );
 
-      const result = await translateText(text, translationTarget, hintedSource, {
-        lockSourceLang: shouldLock,
-        context: Array.isArray(context) ? context : undefined,
-      });
+      const result = await translateTextOrOriginal(
+        text,
+        translationTarget,
+        hintedSource,
+        {
+          lockSourceLang: shouldLock,
+          context: Array.isArray(context) ? context : undefined,
+        }
+      );
 
       originalText = result.originalText;
       originalLang = normalizeDetectedLang(result.originalLang);

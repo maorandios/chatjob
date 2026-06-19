@@ -6,7 +6,7 @@ import {
 } from "@/lib/server/languages";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
 import { apiErrorResponse } from "@/lib/server/api-errors";
-import { translateText } from "@/lib/server/translate";
+import { translateTextOrOriginal } from "@/lib/server/translate";
 import { resolveWorkerLanguageForTranslation } from "@/lib/supabase/company-access";
 import type { LanguageCode, MessageInputType } from "@/types";
 import { NextResponse } from "next/server";
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       originalLang
     );
 
-    const result = await translateText(text, targetLang, hintedSource, {
+    const result = await translateTextOrOriginal(text, targetLang, hintedSource, {
       lockSourceLang: shouldLock,
       context: Array.isArray(context) ? context : undefined,
     });

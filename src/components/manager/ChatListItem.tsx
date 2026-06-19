@@ -4,11 +4,12 @@ import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
 import { Avatar } from "@/components/ui/Avatar";
 import {
   getMessageDisplayText,
+  useHasUnreadMessages,
   useContactDisplayName,
   useLastMessage,
   useSlangStore,
 } from "@/lib/store";
-import { formatListTime, getInviteUrl } from "@/lib/utils";
+import { formatListTime, getInviteUrl, getManagerChatPath } from "@/lib/utils";
 import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Worker } from "@/types";
 import { Send } from "lucide-react";
@@ -28,6 +29,7 @@ const activeCardClassName =
 export function ChatListItem({ worker }: ChatListItemProps) {
   const managerId = useSlangStore((s) => s.managerId) ?? "";
   const lastMessage = useLastMessage(managerId, worker.id);
+  const hasUnread = useHasUnreadMessages(managerId, worker.id, "manager");
   const displayName = useContactDisplayName("manager", worker.id, worker.name);
   const [showInviteSheet, setShowInviteSheet] = useState(false);
 
@@ -80,14 +82,22 @@ export function ChatListItem({ worker }: ChatListItemProps) {
   }
 
   return (
-    <Link href={`/manager/chat/${worker.id}`} className={activeCardClassName}>
+    <Link href={getManagerChatPath(worker.inviteToken)} className={activeCardClassName}>
       <Avatar name={displayName} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate font-medium text-gray-900">{displayName}</p>
-          {time && (
-            <span className="shrink-0 text-xs text-gray-500">{time}</span>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {hasUnread && (
+              <span
+                className="h-2.5 w-2.5 rounded-full bg-[var(--jobchat-accent)]"
+                aria-label="הודעה חדשה"
+              />
+            )}
+            {time && (
+              <span className="text-xs text-gray-500">{time}</span>
+            )}
+          </div>
         </div>
         <p className="truncate text-sm text-gray-500">{preview}</p>
       </div>

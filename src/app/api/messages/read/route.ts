@@ -1,5 +1,8 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { assertSameCompanyParticipants } from "@/lib/supabase/company-access";
+import {
+  assertActiveConversationParticipants,
+  assertAuthenticatedWorkerRequest,
+} from "@/lib/supabase/company-access";
 import { rowToMessage } from "@/lib/supabase/mappers";
 import { NextResponse } from "next/server";
 
@@ -20,9 +23,18 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Invalid viewerRole" }, { status: 400 });
     }
 
-    const companyId = await assertSameCompanyParticipants(managerId, workerId);
+    const companyId = await assertActiveConversationParticipants(managerId, workerId);
     if (!companyId) {
       return NextResponse.json({ error: "Invalid conversation" }, { status: 403 });
+    }
+    if (
+      viewerRole === "worker" &&
+      !(await assertAuthenticatedWorkerRequest(req, workerId))
+    ) {
+      return NextResponse.json(
+        { error: "Worker login required", code: "WORKER_AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
 
     const senderRole = viewerRole === "manager" ? "worker" : "manager";

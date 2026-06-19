@@ -190,7 +190,7 @@ export function ManagerJoinView({
                 <Button
                   fullWidth
                   className="mt-6 !rounded-2xl"
-                  onClick={() => router.push("/manager/login")}
+                  onClick={() => router.push("/login")}
                 >
                   מעבר להתחברות
                 </Button>
@@ -337,7 +337,7 @@ export function ManagerJoinView({
             <p className="mt-6 text-center text-sm text-gray-500">
               כבר יש לכם חשבון?{" "}
               <Link
-                href="/manager/login"
+                href="/login"
                 className="font-medium text-[var(--jobchat-accent)]"
               >
                 התחברות

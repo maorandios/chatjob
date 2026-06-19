@@ -62,7 +62,8 @@ export function useMessagesRealtime(
 
 export function useChatData(
   managerId: string | undefined,
-  workerId: string | undefined
+  workerId: string | undefined,
+  viewerRole: "manager" | "worker" = "manager"
 ) {
   const loadMessages = useSlangStore((s) => s.loadMessages);
   const setConversationMessages = useSlangStore((s) => s.setConversationMessages);
@@ -105,7 +106,10 @@ export function useChatData(
     setHasMore(false);
     oldestCursorRef.current = null;
 
-    void loadMessages(managerId, workerId, { limit: MESSAGE_PAGE_SIZE })
+    void loadMessages(managerId, workerId, {
+      limit: MESSAGE_PAGE_SIZE,
+      viewerRole,
+    })
       .then(({ messages, hasMore: more }) => {
         if (cancelled) return;
         setConversationMessages(managerId, workerId, messages);
@@ -128,7 +132,7 @@ export function useChatData(
     return () => {
       cancelled = true;
     };
-  }, [managerId, workerId, loadMessages, setConversationMessages]);
+  }, [managerId, workerId, viewerRole, loadMessages, setConversationMessages]);
 
   const loadOlder = useCallback(async () => {
     if (!managerId || !workerId || !hasMore || loadingOlder) return;
@@ -136,10 +140,15 @@ export function useChatData(
 
     setLoadingOlder(true);
     try {
-      const { messages, hasMore: more } = await loadMessages(managerId, workerId, {
-        limit: MESSAGE_PAGE_SIZE,
-        before: oldestCursorRef.current,
-      });
+      const { messages, hasMore: more } = await loadMessages(
+        managerId,
+        workerId,
+        {
+          limit: MESSAGE_PAGE_SIZE,
+          before: oldestCursorRef.current,
+          viewerRole,
+        }
+      );
 
       if (messages.length > 0) {
         mergeMessages(messages);
@@ -161,6 +170,7 @@ export function useChatData(
   }, [
     managerId,
     workerId,
+    viewerRole,
     hasMore,
     loadingOlder,
     loadMessages,
@@ -172,7 +182,10 @@ export function useChatData(
   useVisibilityPoll(
     () => {
       if (!managerId || !workerId) return;
-      void loadMessages(managerId, workerId, { limit: MESSAGE_PAGE_SIZE })
+      void loadMessages(managerId, workerId, {
+        limit: MESSAGE_PAGE_SIZE,
+        viewerRole,
+      })
         .then(({ messages }) => {
           if (messages.length > 0) {
             mergeRef.current(messages);
@@ -228,6 +241,7 @@ export function useManagerInboxPreviews() {
 
     const unsubMessages = subscribeToManagerInbox(managerId, (message) => {
       upsertRef.current(message);
+      void loadMessagePreviews({ managerId });
     });
 
     const unsubWorkers = companyId
@@ -240,9 +254,9 @@ export function useManagerInboxPreviews() {
       unsubMessages();
       unsubWorkers();
     };
-  }, [ready, managerId, companyId, refreshInbox]);
+  }, [ready, managerId, companyId, loadMessagePreviews, refreshInbox]);
 
-  useVisibilityPoll(refreshInbox, ready && Boolean(managerId));
+  useVisibilityPoll(refreshInbox, ready && Boolean(managerId), 3_000);
 }
 
 export function useWorkerInboxPreviews(workerId: string | undefined) {
@@ -263,10 +277,11 @@ export function useWorkerInboxPreviews(workerId: string | undefined) {
 
     return subscribeToWorkerInbox(workerId, (message) => {
       upsertRef.current(message);
+      void loadMessagePreviews({ workerId });
     });
-  }, [workerId, refreshInbox]);
+  }, [workerId, loadMessagePreviews, refreshInbox]);
 
-  useVisibilityPoll(refreshInbox, Boolean(workerId));
+  useVisibilityPoll(refreshInbox, Boolean(workerId), 3_000);
 }
 
 export function useInviteBootstrap(token: string | undefined) {
@@ -281,19 +296,36 @@ export function useInviteBootstrap(token: string | undefined) {
   const [fetchState, setFetchState] = useState<
     "idle" | "loading" | "done"
   >("idle");
+  const [authRequired, setAuthRequired] = useState(false);
+  const fetchedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
-    if (worker && invite) {
+    const joinedWorker = worker?.status === "active" && Boolean(worker.email);
+    if (worker && invite && !joinedWorker) {
+      setFetchState("done");
+      return;
+    }
+    if (worker && invite && fetchedTokenRef.current === token) {
       setFetchState("done");
       return;
     }
 
     let cancelled = false;
+    setAuthRequired(false);
     setFetchState("loading");
+    fetchedTokenRef.current = token;
 
     void fetchInvite(token)
       .catch((error) => {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "WORKER_AUTH_REQUIRED"
+        ) {
+          if (!cancelled) setAuthRequired(true);
+          return;
+        }
         console.error("[Slang] Invite fetch failed", error);
       })
       .finally(() => {
@@ -310,5 +342,6 @@ export function useInviteBootstrap(token: string | undefined) {
     worker,
     invite,
     managers,
+    authRequired,
   };
 }

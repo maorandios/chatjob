@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
+  assertAuthenticatedWorkerRequest,
   getManagerCompanyId,
   getWorkerCompanyId,
 } from "@/lib/supabase/company-access";
@@ -69,6 +70,12 @@ export async function GET(req: Request) {
     const companyId = await getWorkerCompanyId(workerId!);
     if (!companyId) {
       return NextResponse.json({ error: "Worker not found" }, { status: 404 });
+    }
+    if (!(await assertAuthenticatedWorkerRequest(req, workerId!))) {
+      return NextResponse.json(
+        { error: "Worker login required", code: "WORKER_AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
 
     const { data, error } = await supabase

@@ -2,7 +2,7 @@
 
 import { Sheet } from "@/components/ui/Sheet";
 import { cn } from "@/lib/utils";
-import { Loader2, Mic, X } from "lucide-react";
+import { Loader2, Mic } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type VoiceConfirmSheetProps = {
@@ -11,7 +11,6 @@ type VoiceConfirmSheetProps = {
   title: string;
   youSaidLabel: string;
   sendLabel: string;
-  rerecordLabel: string;
   isSending?: boolean;
   onSend: (editedTranscript: string) => void | Promise<void>;
   onRerecord: () => void;
@@ -24,7 +23,6 @@ export function VoiceConfirmSheet({
   title,
   youSaidLabel,
   sendLabel,
-  rerecordLabel,
   isSending = false,
   onSend,
   onRerecord,
@@ -47,18 +45,11 @@ export function VoiceConfirmSheet({
       open={open}
       onClose={onRerecord}
       className="rounded-t-[28px] px-6 pb-2 pt-3"
+      showCloseButton={false}
+      dir={dir}
     >
       <div dir={dir}>
-        <div dir="ltr" className="mb-6 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onRerecord}
-            disabled={isSending}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-[var(--jobchat-surface)] disabled:opacity-40"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
+        <div className="mb-6 text-right">
           <h2 className="text-[17px] font-semibold tracking-tight text-gray-900">
             {title}
           </h2>
@@ -106,7 +97,7 @@ export function VoiceConfirmSheet({
             disabled={isSending}
             className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-full bg-[var(--jobchat-surface)] px-3 text-[14px] font-medium text-gray-700 ring-1 ring-[var(--jobchat-border)] transition-all hover:bg-gray-100 active:scale-[0.98] disabled:opacity-40"
           >
-            <span className="truncate">{rerecordLabel}</span>
+            <span className="truncate">ביטול</span>
           </button>
         </div>
       </div>

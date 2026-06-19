@@ -1,4 +1,5 @@
 import { normalizeEmail } from "@/lib/auth/email";
+import { findWorkerAuthByEmail } from "@/lib/auth/find-worker-by-email";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { generateInviteToken } from "@/lib/supabase/tokens";
 
@@ -138,6 +139,11 @@ export async function signupAdminWithEmail(email: string): Promise<string> {
 /** Login to an existing manager, or sign up a new admin + company for new emails. */
 export async function resolveManagerIdForLogin(email: string): Promise<string> {
   const normalized = normalizeEmail(email);
+  const worker = await findWorkerAuthByEmail(normalized);
+  if (worker) {
+    throw new Error("כתובת המייל שייכת לעובד. התחברו דרך מסך העובד.");
+  }
+
   const existing = await findManagerIdByEmail(normalized);
   if (existing) return existing;
 
@@ -158,6 +164,9 @@ function mapResolveManagerError(error: unknown): string {
     return "מסד הנתונים לא מוגדר. הריצו את supabase/schema.sql ב-Supabase.";
   }
   if (msg.includes("טבלאות מסד הנתונים")) {
+    return error.message;
+  }
+  if (msg.includes("שייכת לעובד")) {
     return error.message;
   }
   if (msg.includes("duplicate") || msg.includes("unique")) {

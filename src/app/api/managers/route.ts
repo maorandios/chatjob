@@ -39,11 +39,19 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("managers")
       .select("*")
       .eq("company_id", companyId)
       .order("created_at", { ascending: false });
+
+    if (workerToken) {
+      query = query
+        .not("email", "is", null)
+        .eq("onboarding_complete", true);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

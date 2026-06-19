@@ -13,7 +13,7 @@ export function useRequireManagerSession() {
   useEffect(() => {
     if (!ready) return;
     if (!managerId) {
-      router.replace("/manager/login");
+      router.replace("/login");
     }
   }, [ready, managerId, router]);
 }
@@ -28,7 +28,7 @@ export function useRequireOnboardingComplete() {
   useEffect(() => {
     if (!ready) return;
     if (!managerId) {
-      router.replace("/manager/login");
+      router.replace("/login");
       return;
     }
     if (!onboardingComplete) {
@@ -47,7 +47,7 @@ export function useOnboardingPageGuard() {
   useEffect(() => {
     if (!ready) return;
     if (!managerId) {
-      router.replace("/manager/login");
+      router.replace("/login");
       return;
     }
     if (onboardingComplete) {

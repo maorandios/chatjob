@@ -27,7 +27,7 @@ type ApiErrorBody = { error?: string; code?: string };
 
 function readApiError(data: ApiErrorBody, fallback: string): string {
   if (data.code === "OPENAI_NOT_CONFIGURED") {
-    return "Voice requires OpenAI — add OPENAI_API_KEY in Vercel project settings.";
+    return "OpenAI API key is missing. Add OPENAI_API_KEY to enable translation and voice.";
   }
   return data.error ?? fallback;
 }

@@ -7,15 +7,17 @@ import { AppShell } from "@/components/ui/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { isValidEmail, normalizeEmail } from "@/lib/auth/email";
-import { EMAIL_OTP_LENGTH, isCompleteOtpCode } from "@/lib/auth/otp";
-import { sendManagerLoginOtp } from "@/lib/auth/send-manager-otp";
-import { getPostAuthManagerPath } from "@/lib/auth/post-auth-redirect";
 import {
   resolveManagerIdByEmail,
   signOutSupabaseAuth,
   verifyEmailOtp,
 } from "@/lib/auth/manager-auth";
+import { EMAIL_OTP_LENGTH, isCompleteOtpCode } from "@/lib/auth/otp";
+import { getPostAuthManagerPath } from "@/lib/auth/post-auth-redirect";
+import { sendManagerLoginOtp } from "@/lib/auth/send-manager-otp";
+import { resolveWorkerInviteTokenByEmail } from "@/lib/auth/worker-auth";
 import { useSlangStore } from "@/lib/store";
+import { getWorkerJoinPath } from "@/lib/utils";
 import { KeyRound, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,11 +29,15 @@ const FIELD_ROUNDED = "!rounded-2xl";
 const LOGIN_CARD_CLASS =
   "rounded-3xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-6 shadow-[0_1px_3px_rgba(15,23,42,0.04)]";
 
-export function ManagerLoginView() {
+function isWorkerNotFound(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("לא נמצא עובד");
+}
+
+export function UnifiedLoginView() {
   const router = useRouter();
   const signInManager = useSlangStore((s) => s.signInManager);
+  const logoutManager = useSlangStore((s) => s.logoutManager);
   const [mounted, setMounted] = useState(false);
-
   const [step, setStep] = useState<LoginStep>("form");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -83,23 +89,25 @@ export function ManagerLoginView() {
     }
   };
 
-  const handleResend = async () => {
-    if (resendIn > 0 || sending) return;
-    setSending(true);
-    setError(undefined);
+  const routeByVerifiedEmail = useCallback(async () => {
     try {
-      await sendOtp(email);
-      setOtp("");
-      setResendIn(RESEND_COOLDOWN_SEC);
-      lastOtpAttemptRef.current = "";
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "לא ניתן לשלוח שוב את הקוד"
-      );
-    } finally {
-      setSending(false);
+      const { inviteToken } = await resolveWorkerInviteTokenByEmail(email);
+      logoutManager();
+      setRedirecting(true);
+      window.location.assign(getWorkerJoinPath(inviteToken));
+      return;
+    } catch (workerError) {
+      if (!isWorkerNotFound(workerError)) {
+        throw workerError;
+      }
     }
-  };
+
+    const managerId = await resolveManagerIdByEmail(email);
+    await signInManager(managerId);
+    setRedirecting(true);
+    const { onboardingComplete } = useSlangStore.getState();
+    router.replace(getPostAuthManagerPath(onboardingComplete));
+  }, [email, logoutManager, router, signInManager]);
 
   const handleVerifyOtp = useCallback(
     async (code?: string) => {
@@ -113,11 +121,7 @@ export function ManagerLoginView() {
       setError(undefined);
       try {
         await verifyEmailOtp(email, token);
-        const managerId = await resolveManagerIdByEmail(email);
-        await signInManager(managerId);
-        setRedirecting(true);
-        const { onboardingComplete } = useSlangStore.getState();
-        router.replace(getPostAuthManagerPath(onboardingComplete));
+        await routeByVerifiedEmail();
       } catch (err) {
         await signOutSupabaseAuth();
         lastOtpAttemptRef.current = "";
@@ -126,7 +130,7 @@ export function ManagerLoginView() {
         setVerifying(false);
       }
     },
-    [email, otp, router, signInManager]
+    [email, otp, routeByVerifiedEmail]
   );
 
   useEffect(() => {
@@ -141,7 +145,7 @@ export function ManagerLoginView() {
   if (redirecting) {
     return (
       <AppShell dir="rtl">
-        <div className="flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)] safe-top">
+        <div className="safe-top flex flex-1 flex-col items-center justify-center bg-[var(--jobchat-surface)]">
           <Loader2 className="h-10 w-10 animate-spin text-[var(--jobchat-accent)]" />
           <p className="mt-4 text-sm text-gray-500">מעבירים אותך הלאה...</p>
         </div>
@@ -152,7 +156,7 @@ export function ManagerLoginView() {
   if (!mounted) {
     return (
       <AppShell dir="rtl">
-        <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)] safe-top">
+        <div className="safe-top flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
           <div className="flex shrink-0 flex-col items-center gap-3 px-4 pt-8">
             <LoginGreetingsLottie />
             <AuthBrandLogo size="compact" />
@@ -172,7 +176,7 @@ export function ManagerLoginView() {
 
   return (
     <AppShell dir="rtl">
-      <div className="flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)] safe-top">
+      <div className="safe-top flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
         <div className="flex shrink-0 flex-col items-center gap-3 px-4 pt-8">
           <LoginGreetingsLottie />
           <AuthBrandLogo size="compact" />
@@ -218,8 +222,8 @@ export function ManagerLoginView() {
                   </Button>
 
                   <p className="text-center text-xs leading-relaxed text-gray-400">
-                    הזינו את כתובת המייל שלכם ונשלח אליכם קוד בעל 6 ספרות
-                    להתחברות
+                    הזינו את כתובת המייל שלכם ונשלח אליכם קוד. לאחר האימות
+                    נכניס אתכם אוטומטית כאיש הנהלה או עובד.
                   </p>
                 </div>
               </div>
@@ -271,7 +275,9 @@ export function ManagerLoginView() {
                 <div className="mt-6 flex flex-col items-center gap-2 text-sm">
                   <button
                     type="button"
-                    onClick={() => void handleResend()}
+                    onClick={() => {
+                      if (resendIn <= 0) void handleSendOtp();
+                    }}
                     disabled={sending || resendIn > 0}
                     className="font-medium text-[var(--jobchat-accent)] disabled:text-gray-400"
                   >

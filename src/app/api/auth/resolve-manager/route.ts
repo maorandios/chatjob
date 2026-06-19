@@ -18,6 +18,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ managerId });
   } catch (error) {
     console.error("Resolve manager error:", error);
+    if (error instanceof Error && error.message.includes("שייכת לעובד")) {
+      return NextResponse.json(
+        { error: mapResolveManagerError(error), code: "WORKER_EMAIL" },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: mapResolveManagerError(error) },
       { status: 500 }

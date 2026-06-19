@@ -9,7 +9,7 @@ export function apiErrorResponse(error: unknown, fallback: string) {
   return NextResponse.json(
     {
       error: isOpenAI
-        ? "Voice requires OpenAI API key on the server (OPENAI_API_KEY)."
+        ? "OpenAI API key is missing on the server (OPENAI_API_KEY)."
         : message,
       code: isOpenAI ? OPENAI_ERROR : "REQUEST_FAILED",
     },

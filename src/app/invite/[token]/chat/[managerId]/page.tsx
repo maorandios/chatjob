@@ -14,6 +14,7 @@ import {
   useManagerById,
   useSlangStore,
 } from "@/lib/store";
+import { getWorkerJoinPath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,16 +24,20 @@ export default function WorkerChatPage() {
   const token = params?.token ?? "";
   const managerId = params?.managerId ?? "";
   const router = useRouter();
-  const { loading, worker, invite } = useInviteBootstrap(token);
+  const { loading, worker, invite, authRequired } = useInviteBootstrap(token);
   const manager = useManagerById(managerId);
   const setContactAlias = useSlangStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);
 
   useEffect(() => {
-    if (worker && !worker.language) {
-      router.replace(`/invite/${token}`);
+    if (authRequired) {
+      router.replace(getWorkerJoinPath(token));
+      return;
     }
-  }, [worker, token, router]);
+    if (worker && !worker.language) {
+      router.replace(getWorkerJoinPath(token));
+    }
+  }, [authRequired, worker, token, router]);
 
   const displayName = useContactDisplayName(
     "worker",
@@ -71,7 +76,7 @@ export default function WorkerChatPage() {
       <ChatHeader
         name={displayName}
         subtitle={displayPhone}
-        backHref={`/invite/${token}`}
+        backHref={getWorkerJoinPath(token)}
         dir={dir}
         showOnline={false}
         onProfileClick={() => setShowContactSheet(true)}
