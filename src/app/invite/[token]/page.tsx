@@ -1,12 +1,12 @@
 "use client";
 
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { ChatListSkeleton } from "@/components/chat/ChatListSkeleton";
 import { KeyRound, Loader2 } from "lucide-react";
 import { AppListHeader } from "@/components/settings/AppListHeader";
 import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { MobileFrame } from "@/components/ui/MobileFrame";
 import { LanguagePicker } from "@/components/worker/LanguagePicker";
 import { ManagerChatListItem } from "@/components/worker/ManagerChatListItem";
@@ -411,7 +411,10 @@ function InvitePageContent({ token }: { token: string }) {
   if (loading) {
     return (
       <MobileFrame>
-        <AppLoadingState />
+        <AppListHeader settingsHref={getWorkerSettingsPath(token)} />
+        <div className="min-h-0 flex-1 bg-[var(--jobchat-surface)]">
+          <ChatListSkeleton />
+        </div>
       </MobileFrame>
     );
   }

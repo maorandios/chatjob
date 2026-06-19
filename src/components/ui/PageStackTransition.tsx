@@ -25,6 +25,13 @@ type PageStackTransitionProps = {
   dir?: "ltr" | "rtl";
 };
 
+function getRouteMotionDir(pathname: string): "ltr" | "rtl" {
+  if (pathname.startsWith("/join") || pathname.startsWith("/invite")) {
+    return "ltr";
+  }
+  return "rtl";
+}
+
 export function PageStackTransition({
   children,
   dir = "rtl",
@@ -72,7 +79,7 @@ export function PageStackTransition({
   }, [routeKey, children]);
 
   const direction = directionRef.current;
-  const motionDir = dir === "rtl" ? "rtl" : "ltr";
+  const motionDir = dir ?? getRouteMotionDir(pathname);
 
   return (
     <div className="page-stack-host">

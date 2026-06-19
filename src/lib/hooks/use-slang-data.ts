@@ -338,7 +338,10 @@ export function useInviteBootstrap(token: string | undefined) {
   }, [token, worker, invite, fetchInvite]);
 
   return {
-    loading: Boolean(token) && fetchState === "loading",
+    loading:
+      Boolean(token) &&
+      (fetchState === "loading" ||
+        (fetchState === "idle" && (!worker || !invite))),
     worker,
     invite,
     managers,
