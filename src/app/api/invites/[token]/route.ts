@@ -42,6 +42,7 @@ export async function GET(req: Request, context: RouteContext) {
       email: undefined,
       employeeNumber: undefined,
       address: undefined,
+      profileImageUrl: undefined,
     };
     const workerEmail = typeof workerRow.email === "string" ? workerRow.email : "";
     const requiresWorkerSession =

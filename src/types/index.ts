@@ -15,6 +15,8 @@ export type ContactAliasEntry = {
   phone?: string;
 };
 
+export type ContactRole = "manager" | "worker" | "self";
+
 /** @deprecated Legacy persisted shape — string meant name-only alias */
 export type ContactAliasValue = ContactAliasEntry | string;
 
@@ -57,6 +59,7 @@ export type Worker = {
   language?: LanguageCode;
   status: WorkerStatus;
   inviteToken: string;
+  profileImageUrl?: string;
 };
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "failed";

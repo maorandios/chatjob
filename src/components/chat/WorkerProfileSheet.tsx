@@ -22,6 +22,7 @@ type WorkerProfileSheetProps = {
   onClose: () => void;
   displayName: string;
   displayPhone: string;
+  imageUrl?: string;
   copyPhone: string;
   employeeNumber?: string;
   address?: string;
@@ -63,12 +64,14 @@ function ProfileField({
 function ProfileHero({
   displayName,
   displayPhone,
+  imageUrl,
   onCopyPhone,
   phoneCopiedLabel,
   dir,
 }: {
   displayName: string;
   displayPhone: string;
+  imageUrl?: string;
   onCopyPhone: () => void;
   phoneCopiedLabel: string;
   dir: "ltr" | "rtl";
@@ -76,7 +79,7 @@ function ProfileHero({
   return (
     <div className="flex flex-col items-center text-center">
       <div className="rounded-full p-1 ring-4 ring-[var(--jobchat-accent-light)]">
-        <Avatar name={displayName} size="xl" />
+        <Avatar name={displayName} size="xl" imageUrl={imageUrl} />
       </div>
       <p className="mt-5 text-[22px] font-semibold tracking-tight text-gray-900">
         {displayName}
@@ -99,6 +102,7 @@ export function WorkerProfileSheet({
   onClose,
   displayName,
   displayPhone,
+  imageUrl,
   copyPhone,
   employeeNumber,
   address,
@@ -192,6 +196,7 @@ export function WorkerProfileSheet({
                 <ProfileHero
                   displayName={displayName}
                   displayPhone={displayPhone}
+                  imageUrl={imageUrl}
                   onCopyPhone={handleCopyPhone}
                   phoneCopiedLabel={phoneCopiedLabel}
                   dir={dir}
@@ -225,6 +230,7 @@ export function WorkerProfileSheet({
               <ProfileHero
                 displayName={displayName}
                 displayPhone={displayPhone}
+                imageUrl={imageUrl}
                 onCopyPhone={handleCopyPhone}
                 phoneCopiedLabel={phoneCopiedLabel}
                 dir={dir}

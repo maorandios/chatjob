@@ -18,6 +18,7 @@ import type {
   ContactAliasEntry,
   ContactAliasValue,
   ContactAliases,
+  ContactRole,
   Invite,
   LanguageCode,
   Manager,
@@ -110,11 +111,16 @@ type SlangState = {
   ) => Promise<Message>;
   markManagerMessagesRead: (managerId: string, workerId: string) => Promise<void>;
   markWorkerMessagesRead: (managerId: string, workerId: string) => Promise<void>;
+  loadContactAliases: (
+    ownerRole: "manager" | "worker",
+    ownerId: string
+  ) => Promise<void>;
   setContactAlias: (
     viewerRole: "manager" | "worker",
     contactId: string,
-    profile: ContactAliasEntry
-  ) => void;
+    profile: ContactAliasEntry,
+    options?: { contactRole?: ContactRole; ownerId?: string }
+  ) => Promise<void>;
   updateWorkerProfile: (
     workerId: string,
     profile: {
@@ -137,6 +143,7 @@ type SlangState = {
     companyNumber: string;
   }) => Promise<void>;
   uploadManagerProfileImage: (file: File) => Promise<void>;
+  uploadWorkerProfileImage: (workerId: string, file: File) => Promise<void>;
   upsertMessage: (message: Message) => void;
   mergeMessages: (messages: Message[]) => void;
   upsertWorker: (worker: Worker) => void;
@@ -226,6 +233,35 @@ function mergeInviteList(invites: Invite[], invite: Invite): Invite[] {
   const next = [...invites];
   next[index] = invite;
   return next;
+}
+
+function mergeContactAlias(
+  aliases: ContactAliases,
+  viewerRole: "manager" | "worker",
+  contactId: string,
+  profile: ContactAliasEntry
+): ContactAliases {
+  const roleAliases = { ...aliases[viewerRole] };
+  const existing = normalizeContactAliasEntry(roleAliases[contactId]);
+  const next: ContactAliasEntry = { ...existing };
+
+  if (profile.name !== undefined) {
+    next.name = profile.name.trim() || undefined;
+  }
+  if (profile.phone !== undefined) {
+    next.phone = profile.phone.trim() || undefined;
+  }
+
+  if (!next.name && !next.phone) {
+    delete roleAliases[contactId];
+  } else {
+    roleAliases[contactId] = next;
+  }
+
+  return {
+    ...aliases,
+    [viewerRole]: roleAliases,
+  };
 }
 
 function resolveCompanyId(
@@ -390,6 +426,7 @@ export const useSlangStore = create<SlangState>()(
             bootstrapError: null,
           });
           void get().loadMessagePreviews({ managerId: manager.id });
+          void get().loadContactAliases("manager", manager.id);
         };
 
         async function requestBootstrap(payload: {
@@ -503,6 +540,7 @@ export const useSlangStore = create<SlangState>()(
           });
         }
 
+        await get().loadContactAliases("worker", worker.id);
         void get().loadMessagePreviews({ workerId: worker.id });
 
         return { worker, invite, managers };
@@ -869,32 +907,68 @@ export const useSlangStore = create<SlangState>()(
         get().mergeMessages(data.messages as Message[]);
       },
 
-      setContactAlias: (viewerRole, contactId, profile) => {
-        set((state) => {
-          const roleAliases = { ...state.contactAliases[viewerRole] };
-          const existing = normalizeContactAliasEntry(roleAliases[contactId]);
-          const next: ContactAliasEntry = { ...existing };
-
-          if (profile.name !== undefined) {
-            next.name = profile.name.trim() || undefined;
-          }
-          if (profile.phone !== undefined) {
-            next.phone = profile.phone.trim() || undefined;
-          }
-
-          if (!next.name && !next.phone) {
-            delete roleAliases[contactId];
-          } else {
-            roleAliases[contactId] = next;
-          }
-
-          return {
-            contactAliases: {
-              ...state.contactAliases,
-              [viewerRole]: roleAliases,
-            },
-          };
+      loadContactAliases: async (ownerRole, ownerId) => {
+        const params = new URLSearchParams({ ownerRole, ownerId });
+        const res = await fetch(`/api/contact-aliases?${params.toString()}`, {
+          headers: await getAuthHeaders(),
         });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const aliases = data.aliases as ContactAliases;
+        if (!aliases) return;
+
+        set((state) => ({
+          contactAliases: {
+            manager:
+              ownerRole === "manager"
+                ? aliases.manager
+                : state.contactAliases.manager,
+            worker:
+              ownerRole === "worker"
+                ? aliases.worker
+                : state.contactAliases.worker,
+          },
+        }));
+      },
+
+      setContactAlias: async (viewerRole, contactId, profile, options) => {
+        const state = get();
+        const ownerId =
+          options?.ownerId ??
+          (viewerRole === "manager"
+            ? state.managerId
+            : state.workers.find((worker) => worker.id === contactId)?.id ??
+              state.workers[0]?.id);
+
+        set((current) => ({
+          contactAliases: mergeContactAlias(
+            current.contactAliases,
+            viewerRole,
+            contactId,
+            profile
+          ),
+        }));
+
+        if (!ownerId) return;
+
+        const contactRole =
+          options?.contactRole ??
+          (viewerRole === "manager" ? "worker" : "manager");
+        const res = await fetch("/api/contact-aliases", {
+          method: "PUT",
+          headers: await getAuthHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            ownerRole: viewerRole,
+            ownerId,
+            contactRole,
+            contactId,
+            name: profile.name ?? "",
+            phone: profile.phone ?? "",
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to save contact alias");
       },
 
       updateWorkerProfile: async (workerId, profile) => {
@@ -1043,6 +1117,27 @@ export const useSlangStore = create<SlangState>()(
         set((state) => ({
           managerProfileImageUrl: profileImageUrl,
           managers: mergeManagerList(state.managers, manager),
+        }));
+      },
+
+      uploadWorkerProfileImage: async (workerId, file) => {
+        const imageDataUrl = await compressImageFile(file);
+        const res = await fetch(
+          `/api/workers/${encodeURIComponent(workerId)}/profile-image`,
+          {
+            method: "POST",
+            headers: await getAuthHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ imageDataUrl }),
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to upload profile image");
+
+        const data = await res.json();
+        const worker = data.worker as Worker;
+
+        set((state) => ({
+          workers: mergeWorkerList(state.workers, worker),
         }));
       },
 

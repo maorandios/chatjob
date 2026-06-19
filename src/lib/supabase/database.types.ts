@@ -84,6 +84,7 @@ export type Database = {
           language: string | null;
           status: string;
           invite_token: string;
+          profile_image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -97,6 +98,7 @@ export type Database = {
           language?: string | null;
           status?: string;
           invite_token: string;
+          profile_image_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -110,7 +112,47 @@ export type Database = {
           language?: string | null;
           status?: string;
           invite_token?: string;
+          profile_image_url?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      contact_aliases: {
+        Row: {
+          id: string;
+          company_id: string;
+          owner_role: string;
+          owner_id: string;
+          contact_role: string;
+          contact_id: string;
+          display_name: string | null;
+          display_phone: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          owner_role: string;
+          owner_id: string;
+          contact_role: string;
+          contact_id: string;
+          display_name?: string | null;
+          display_phone?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          company_id?: string;
+          owner_role?: string;
+          owner_id?: string;
+          contact_role?: string;
+          contact_id?: string;
+          display_name?: string | null;
+          display_phone?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

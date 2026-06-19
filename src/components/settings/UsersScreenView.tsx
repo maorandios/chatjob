@@ -117,6 +117,7 @@ export function UsersScreenView() {
                 key={worker.id}
                 name={worker.name}
                 phone={worker.phone}
+                imageUrl={worker.profileImageUrl}
                 mutedAvatar={isWorkerInvitePending(worker)}
                 onPress={() => setEditingWorker(worker)}
                 pendingInvite={isWorkerInvitePending(worker)}
@@ -188,6 +189,7 @@ export function UsersScreenView() {
           onClose={() => setEditingWorker(null)}
           displayName={editingWorker.name}
           displayPhone={editingWorker.phone}
+          imageUrl={editingWorker.profileImageUrl}
           copyPhone={editingWorker.phone}
           employeeNumber={editingWorker.employeeNumber}
           address={editingWorker.address}

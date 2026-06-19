@@ -48,6 +48,7 @@ export function rowToWorker(row: DbWorker): Worker {
     language: (row.language as LanguageCode | null) ?? undefined,
     status: row.status as Worker["status"],
     inviteToken: row.invite_token,
+    profileImageUrl: row.profile_image_url ?? undefined,
   };
 }
 

@@ -76,6 +76,7 @@ export default function WorkerChatPage() {
       <ChatHeader
         name={displayName}
         subtitle={displayPhone}
+        imageUrl={manager.profileImageUrl}
         backHref={getWorkerJoinPath(token)}
         dir={dir}
         showOnline={false}
@@ -120,7 +121,7 @@ export default function WorkerChatPage() {
           setContactAlias("worker", managerId, {
             name: profile.name === manager.name ? "" : profile.name,
             phone: profile.phone === manager.phone ? "" : profile.phone,
-          })
+          }, { ownerId: worker.id, contactRole: "manager" })
         }
         namePlaceholder={ui.contactNamePlaceholder}
         phonePlaceholder={ui.contactPhonePlaceholder}

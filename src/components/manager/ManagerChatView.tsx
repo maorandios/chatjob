@@ -2,7 +2,7 @@
 
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatThread } from "@/components/chat/ChatThread";
-import { WorkerProfileSheet } from "@/components/chat/WorkerProfileSheet";
+import { ContactNameSheet } from "@/components/chat/ContactNameSheet";
 import { AppShell } from "@/components/ui/AppShell";
 import { useRequireOnboardingComplete } from "@/lib/hooks/use-manager-access";
 import {
@@ -25,7 +25,7 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
   const managerId = useSlangStore((s) => s.managerId);
   const ready = useSlangStore((s) => s.ready);
   const worker = useWorkerById(workerId);
-  const updateWorkerProfile = useSlangStore((s) => s.updateWorkerProfile);
+  const setContactAlias = useSlangStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);
   const displayName = useContactDisplayName(
     "manager",
@@ -71,6 +71,7 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
       <ChatHeader
         name={displayName}
         subtitle={displayPhone}
+        imageUrl={worker.profileImageUrl}
         backHref="/manager"
         dir="rtl"
         showOnline={false}
@@ -94,15 +95,21 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
         dir="rtl"
       />
 
-      <WorkerProfileSheet
+      <ContactNameSheet
         open={showContactSheet}
         onClose={() => setShowContactSheet(false)}
+        originalPhone={worker.phone}
         displayName={displayName}
         displayPhone={displayPhone}
-        copyPhone={worker.phone}
-        employeeNumber={worker.employeeNumber}
-        address={worker.address}
-        onSave={(profile) => updateWorkerProfile(workerId, profile)}
+        onSave={(profile) =>
+          setContactAlias("manager", workerId, {
+            name: profile.name === worker.name ? "" : profile.name,
+            phone: profile.phone === worker.phone ? "" : profile.phone,
+          }, { contactRole: "worker" })
+        }
+        namePlaceholder="שם איש קשר"
+        phonePlaceholder="מספר טלפון"
+        saveLabel="שמירה"
         phoneCopiedLabel="מספר טלפון הועתק"
         dir="rtl"
       />

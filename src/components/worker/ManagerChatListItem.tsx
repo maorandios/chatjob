@@ -41,7 +41,7 @@ export function ManagerChatListItem({
       href={getWorkerChatPath(inviteToken, manager.id)}
       className="flex items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/15 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-white/25 active:bg-white/30"
     >
-      <Avatar name={displayName} />
+      <Avatar name={displayName} imageUrl={manager.profileImageUrl} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate font-medium text-gray-900">{displayName}</p>

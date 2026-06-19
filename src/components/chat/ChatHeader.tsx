@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 type ChatHeaderProps = {
   name: string;
   subtitle?: string;
+  imageUrl?: string;
   backHref?: string;
   dir?: "ltr" | "rtl";
   showOnline?: boolean;
@@ -20,17 +21,19 @@ type ChatHeaderProps = {
 function ProfileContent({
   name,
   subtitle,
+  imageUrl,
   showOnline,
   isRtl,
 }: {
   name: string;
   subtitle?: string;
+  imageUrl?: string;
   showOnline: boolean;
   isRtl: boolean;
 }) {
   return (
     <>
-      <Avatar name={name} size="sm" />
+      <Avatar name={name} size="sm" imageUrl={imageUrl} />
       <div className={cn("min-w-0", isRtl ? "text-right" : "text-left")}>
         <p className="truncate text-base font-semibold text-gray-900">{name}</p>
         {subtitle && (
@@ -54,6 +57,7 @@ function ProfileContent({
 export function ChatHeader({
   name,
   subtitle,
+  imageUrl,
   backHref,
   dir = "rtl",
   showOnline = true,
@@ -78,6 +82,7 @@ export function ChatHeader({
     <ProfileContent
       name={name}
       subtitle={subtitle}
+      imageUrl={imageUrl}
       showOnline={showOnline}
       isRtl={isRtl}
     />

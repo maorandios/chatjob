@@ -48,6 +48,7 @@ export function ChatListItem({ worker }: ChatListItemProps) {
         <div className={pendingCardClassName}>
           <Avatar
             name={displayName}
+            imageUrl={worker.profileImageUrl}
             className="bg-gray-200 text-gray-500"
           />
           <div className="min-w-0 flex-1">
@@ -83,7 +84,7 @@ export function ChatListItem({ worker }: ChatListItemProps) {
 
   return (
     <Link href={getManagerChatPath(worker.inviteToken)} className={activeCardClassName}>
-      <Avatar name={displayName} />
+      <Avatar name={displayName} imageUrl={worker.profileImageUrl} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate font-medium text-gray-900">{displayName}</p>
