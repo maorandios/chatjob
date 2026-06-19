@@ -210,7 +210,7 @@ export function ManagerJoinView({
           <AuthBrandLogo size="compact" />
         </div>
 
-        <div className="mt-10 shrink-0 px-4 pb-8">
+        <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-10">
           <div className="mx-auto w-full max-w-sm">
             {step === "form" ? (
               <div className={JOIN_CARD_CLASS}>

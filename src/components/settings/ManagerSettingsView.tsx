@@ -3,7 +3,6 @@
 import { AdminCompanyDetailsCard } from "@/components/settings/AdminCompanyDetailsCard";
 import { AdminPersonalProfileCard } from "@/components/settings/AdminPersonalProfileCard";
 import { LogoutNavCard } from "@/components/settings/LogoutNavCard";
-import { PaymentsNavCard } from "@/components/settings/PaymentsNavCard";
 import { UsersNavCard } from "@/components/settings/UsersNavCard";
 import { useSlangStore } from "@/lib/store";
 
@@ -19,11 +18,7 @@ export function ManagerSettingsView() {
 
         {isAdmin && <UsersNavCard />}
 
-        {isAdmin && <PaymentsNavCard />}
-
         <LogoutNavCard />
-
-        <p className="pb-4 text-center text-xs text-gray-400">Slang</p>
       </div>
     </div>
   );

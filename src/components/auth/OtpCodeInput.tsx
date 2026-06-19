@@ -24,6 +24,7 @@ export function OtpCodeInput({
   error,
 }: OtpCodeInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!disabled) {
@@ -36,8 +37,18 @@ export function OtpCodeInput({
     .split("")
     .slice(0, EMAIL_OTP_LENGTH);
 
+  const scrollIntoView = () => {
+    window.setTimeout(() => {
+      containerRef.current?.scrollIntoView({
+        block: "center",
+        inline: "nearest",
+        behavior: "smooth",
+      });
+    }, 120);
+  };
+
   return (
-    <div className="w-full">
+    <div ref={containerRef} className="w-full scroll-my-24">
       <div className="relative">
         <input
           ref={inputRef}
@@ -48,6 +59,8 @@ export function OtpCodeInput({
           value={value}
           disabled={disabled}
           suppressHydrationWarning
+          onFocus={scrollIntoView}
+          onClick={scrollIntoView}
           onChange={(e) => {
             const next = e.target.value
               .replace(/\D/g, "")

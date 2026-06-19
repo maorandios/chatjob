@@ -279,7 +279,7 @@ function InviteOnboarding({
           )}
 
           {stage === "email" && (
-            <div className="flex min-h-0 flex-1 flex-col justify-center">
+            <div className="chat-scrollbar flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-4">
               <div className="rounded-3xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-6 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                 <h2 className="text-center text-xl font-semibold text-gray-900">
                   {ui.verifyEmailTitle}
@@ -309,7 +309,7 @@ function InviteOnboarding({
           )}
 
           {stage === "otp" && (
-            <div className="flex min-h-0 flex-1 flex-col justify-center">
+            <div className="chat-scrollbar flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-4">
               <div className="rounded-3xl border border-[var(--jobchat-border)] bg-white/25 px-5 py-6 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                 <div className="mb-6 flex flex-col items-center text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">

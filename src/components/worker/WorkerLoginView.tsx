@@ -106,7 +106,7 @@ export function WorkerLoginView() {
         <AuthBrandLogo size="compact" />
       </div>
 
-      <div className="mt-6 shrink-0 px-4 pb-8">
+      <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6">
         <div className="mx-auto w-full max-w-sm">
           {step === "form" ? (
             <div className={CARD_CLASS}>
