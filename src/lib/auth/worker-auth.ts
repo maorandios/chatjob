@@ -22,6 +22,10 @@ export async function resolveWorkerInviteTokenByEmail(email: string): Promise<{
     );
   }
 
+  if (data.found === false) {
+    throw new Error("לא נמצא עובד עם כתובת המייל הזאת");
+  }
+
   if (
     typeof data.inviteToken !== "string" ||
     !data.inviteToken ||

@@ -32,7 +32,6 @@ export function AuthBrandLogo({
         alt="Kling"
         width={dims.width}
         height={dims.height}
-        priority
         className={dims.className}
       />
     </div>

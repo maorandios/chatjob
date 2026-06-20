@@ -84,10 +84,8 @@ export function Sheet({
   useEffect(() => {
     if (open) {
       setMounted(true);
-      const frame = requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true));
-      });
-      return () => cancelAnimationFrame(frame);
+      const timeout = window.setTimeout(() => setVisible(true), 20);
+      return () => window.clearTimeout(timeout);
     }
 
     setVisible(false);

@@ -13,7 +13,7 @@ import { filterWorkersByQuery } from "@/lib/contacts/filter-workers";
 import { useManagerInboxPreviews } from "@/lib/hooks/use-slang-data";
 import { useSlangStore } from "@/lib/store";
 import { getInviteUrl, getManagerJoinUrl } from "@/lib/utils";
-import { MessageCircle, Plus } from "lucide-react";
+import { MessageCircle, Settings2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRequireOnboardingComplete } from "@/lib/hooks/use-manager-access";
 import { useRouter } from "next/navigation";
@@ -33,11 +33,13 @@ export default function ManagerPage() {
   const isAdmin = useSlangStore((s) => s.isAdmin);
   const addManager = useSlangStore((s) => s.addManager);
   const addWorker = useSlangStore((s) => s.addWorker);
+  const sendMessage = useSlangStore((s) => s.sendMessage);
   const { showToast } = useToast();
 
   const [showAdd, setShowAdd] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [lastInvite, setLastInvite] = useState<{
     name: string;
     url: string;
@@ -126,6 +128,45 @@ export default function ManagerPage() {
     }
   };
 
+  const handleBroadcastSubmit = async ({
+    workerIds,
+    text,
+  }: {
+    workerIds: string[];
+    text: string;
+  }) => {
+    if (!managerId || workerIds.length === 0) return;
+    const recipients = workers.filter((worker) => workerIds.includes(worker.id));
+    setIsBroadcasting(true);
+    try {
+      const results = await Promise.allSettled(
+        recipients.map((worker) =>
+          sendMessage(
+            managerId,
+            worker.id,
+            "manager",
+            text,
+            worker.language
+          )
+        )
+      );
+      const failed = results.filter((result) => result.status === "rejected").length;
+      const sent = results.length - failed;
+      setShowAdd(false);
+      showToast(
+        failed > 0
+          ? `נשלח ל-${sent} עובדים, נכשל ל-${failed}`
+          : `נשלח ל-${sent} עובדים`
+      );
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "שליחת ההודעה נכשלה"
+      );
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
   if (!ready || !managerId) {
     return (
       <AppShell dir="rtl">
@@ -185,24 +226,33 @@ export default function ManagerPage() {
         </>
       )}
 
-      {canAddMember && (
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 border-t border-[var(--jobchat-border)] bg-white px-4 py-3"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
         <button
           type="button"
           onClick={() => setShowAdd(true)}
-          disabled={isAdding}
-          className="absolute start-6 bottom-6 z-30 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white shadow-[0_4px_20px_rgba(0,60,255,0.35)] active:scale-95 disabled:opacity-60"
-          style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
-          aria-label="Add member"
+          disabled={isAdding || isBroadcasting}
+          className="pointer-events-auto flex min-h-11 w-full touch-manipulation items-center justify-center gap-2 rounded-xl px-5 text-base font-semibold text-gray-700 active:bg-gray-100 disabled:opacity-60"
+          aria-label="פעולות"
         >
-          <Plus className="h-6 w-6" />
+          <Settings2 className="h-5 w-5" />
+          פעולות
         </button>
-      )}
+      </div>
 
       <AddWorkerSheet
         open={showAdd}
         loading={isAdding}
+        broadcasting={isBroadcasting}
         onClose={() => setShowAdd(false)}
         onSubmit={(data) => void handleAddMember(data)}
+        workers={workers}
+        contactAliases={contactAliases}
+        onBroadcastSubmit={(data) => void handleBroadcastSubmit(data)}
+        disableManagement={!canAddMember}
+        disableWorker={!canAddMember}
       />
 
       {lastInvite && (

@@ -17,7 +17,7 @@ export function AppListHeader({ settingsHref }: AppListHeaderProps) {
           width={120}
           height={32}
           priority
-          style={{ width: "auto", height: 32 }}
+          style={{ width: 120, height: "auto" }}
         />
         <UserSettingsButton href={settingsHref} />
       </div>
