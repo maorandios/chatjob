@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "קלינג",
     short_name: "קלינג",
     description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
-    start_url: "/demo",
+    start_url: "/login",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
