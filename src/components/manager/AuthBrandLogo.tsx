@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 type AuthBrandLogoProps = {
   className?: string;
   size?: "default" | "compact";
+  variant?: "default" | "en";
 };
 
 const sizes = {
@@ -22,13 +23,15 @@ const sizes = {
 export function AuthBrandLogo({
   className,
   size = "default",
+  variant = "default",
 }: AuthBrandLogoProps) {
   const dims = sizes[size];
+  const src = variant === "en" ? "/klinglogo-en.svg" : "/klinglogo.svg";
 
   return (
     <div className={cn("flex justify-center px-2", className)}>
       <Image
-        src="/klinglogo.svg"
+        src={src}
         alt="Kling"
         width={dims.width}
         height={dims.height}

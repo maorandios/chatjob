@@ -72,7 +72,7 @@ function WorkerHome({
 
   return (
     <MobileFrame dir={dir}>
-      <AppListHeader settingsHref={getWorkerSettingsPath(token)} />
+      <AppListHeader settingsHref={getWorkerSettingsPath(token)} variant="en" />
 
       <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
         {sortedManagers.length === 0 ? (
@@ -261,7 +261,7 @@ function InviteOnboarding({
     <MobileFrame dir={dir}>
       <div className="safe-top flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
         <div className="flex shrink-0 flex-col items-center justify-center px-4 pt-8 pb-4">
-          <AuthBrandLogo size="compact" />
+          <AuthBrandLogo size="compact" variant="en" />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col px-4 pb-6">
@@ -411,7 +411,7 @@ function InvitePageContent({ token }: { token: string }) {
   if (loading) {
     return (
       <MobileFrame>
-        <AppListHeader settingsHref={getWorkerSettingsPath(token)} />
+        <AppListHeader settingsHref={getWorkerSettingsPath(token)} variant="en" />
         <div className="min-h-0 flex-1 bg-[var(--jobchat-surface)]">
           <ChatListSkeleton />
         </div>

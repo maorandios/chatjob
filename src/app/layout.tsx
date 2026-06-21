@@ -8,14 +8,19 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Slang",
-    template: "%s | Slang",
+    default: "קלינג",
+    template: "%s | קלינג",
   },
   description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
-  applicationName: "Slang",
+  applicationName: "קלינג",
+  icons: {
+    icon: "/fav.svg",
+    shortcut: "/fav.svg",
+    apple: "/fav.svg",
+  },
   appleWebApp: {
     capable: true,
-    title: "Slang",
+    title: "קלינג",
     statusBarStyle: "default",
   },
   formatDetection: {

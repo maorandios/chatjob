@@ -103,7 +103,7 @@ export function WorkerLoginView() {
   return (
     <div className="safe-top flex min-h-0 flex-1 flex-col bg-[var(--jobchat-surface)]">
       <div className="flex shrink-0 flex-col items-center justify-center px-4 pt-8 pb-4">
-        <AuthBrandLogo size="compact" />
+        <AuthBrandLogo size="compact" variant="en" />
       </div>
 
       <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-6">
