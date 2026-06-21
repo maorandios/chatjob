@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Slang",
-    short_name: "Slang",
+    name: "קלינג",
+    short_name: "קלינג",
     description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
     start_url: "/demo",
     scope: "/",
@@ -31,6 +31,11 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/apple-icon",
         sizes: "180x180",
         type: "image/png",
+      },
+      {
+        src: "/fav.svg",
+        sizes: "any",
+        type: "image/svg+xml",
       },
     ],
   };
