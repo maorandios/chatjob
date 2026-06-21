@@ -14,10 +14,7 @@ export const metadata: Metadata = {
   description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
   applicationName: "קלינג",
   icons: {
-    icon: [
-      { url: "/fav.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/icon", type: "image/png", sizes: "512x512" },
-    ],
+    icon: [{ url: "/fav.svg", type: "image/svg+xml", sizes: "any" }],
     shortcut: "/fav.svg",
     apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
   },

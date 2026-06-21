@@ -33,7 +33,7 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
       {
-        src: "/fav.svg",
+        src: "/app-desktop-logo.svg",
         sizes: "any",
         type: "image/svg+xml",
       },
