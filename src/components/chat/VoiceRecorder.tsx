@@ -22,6 +22,7 @@ type VoiceRecorderProps = {
   processingLabel?: string;
   analyzingLabel?: string;
   recordingLabel?: string;
+  readyLabel?: string;
   finishRecordingLabel?: string;
   deleteRecordingLabel?: string;
   maxDurationLabel?: string;
@@ -52,6 +53,7 @@ export function VoiceRecorder({
   processingLabel = "מעבד...",
   analyzingLabel = "ממיר הקלטה לטקסט",
   recordingLabel = "מקליט...",
+  readyLabel = "הקלטה מוכנה",
   finishRecordingLabel = "סיים",
   deleteRecordingLabel = "מחק",
   maxDurationLabel = "הגעת למקסימום 20 שניות",
@@ -331,6 +333,7 @@ export function VoiceRecorder({
           elapsedMs={elapsedMs}
           maxSec={MAX_RECORD_SEC}
           label={pendingBlob ? "סיים או ביטול" : recordingLabel}
+          readyLabel={readyLabel}
           analyzingLabel={analyzingLabel}
           finishLabel={finishRecordingLabel}
           deleteLabel={deleteRecordingLabel}

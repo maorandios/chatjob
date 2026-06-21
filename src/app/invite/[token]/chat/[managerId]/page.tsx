@@ -105,6 +105,7 @@ export default function WorkerChatPage() {
         processingLabel={ui.sending}
         analyzingLabel={ui.analyzingVoice}
         recordingLabel={ui.recording}
+        recordingReadyLabel={ui.recordingReady}
         finishRecordingLabel={ui.finishRecording}
         deleteRecordingLabel={ui.deleteRecording}
         maxDurationLabel={ui.maxDurationRecording}
@@ -114,6 +115,7 @@ export default function WorkerChatPage() {
         voiceConfirmYouSaid={ui.voiceConfirmYouSaid}
         voiceConfirmSend={ui.voiceConfirmSend}
         voiceConfirmRerecord={ui.voiceConfirmRerecord}
+        voiceConfirmCancel={ui.cancel}
         recordingTooShortLabel={ui.recordingTooShort}
         attachImageTitle={ui.attachImageTitle}
         takePhotoLabel={ui.takePhotoLabel}

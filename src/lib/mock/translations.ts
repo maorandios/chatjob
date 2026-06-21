@@ -12,6 +12,7 @@ const phrases: PhraseMap = {
     ro: "Bună, ce mai faci azi?",
     ar: "مرحباً، كيف حالك اليوم؟",
     ru: "Привет, как дела сегодня?",
+    zh: "你好，今天怎么样？",
   },
   "הגעתי לאתר": {
     he: "הגעתי לאתר",
@@ -22,6 +23,7 @@ const phrases: PhraseMap = {
     ro: "Am ajuns pe șantier",
     ar: "وصلت إلى الموقع",
     ru: "Я прибыл на объект",
+    zh: "我已到达现场",
   },
   "אני בדרך": {
     he: "אני בדרך",
@@ -32,6 +34,7 @@ const phrases: PhraseMap = {
     ro: "Sunt pe drum",
     ar: "أنا في الطريق",
     ru: "Я в пути",
+    zh: "我在路上",
   },
   "יש בעיה": {
     he: "יש בעיה",
@@ -42,6 +45,7 @@ const phrases: PhraseMap = {
     ro: "Este o problemă",
     ar: "هناك مشكلة",
     ru: "Есть проблема",
+    zh: "有问题",
   },
   "תודה, הכל בסדר": {
     he: "תודה, הכל בסדר",
@@ -52,6 +56,7 @@ const phrases: PhraseMap = {
     ro: "Mulțumesc, totul e în regulă",
     ar: "شكراً، كل شيء بخير",
     ru: "Спасибо, всё в порядке",
+    zh: "谢谢，一切正常",
   },
   "מחר תתחיל בשעה 7": {
     he: "מחר תתחיל בשעה 7",
@@ -62,6 +67,7 @@ const phrases: PhraseMap = {
     ro: "Mâine începi la ora 7",
     ar: "غداً تبدأ الساعة 7",
     ru: "Завтра начинаешь в 7",
+    zh: "明天 7 点开始",
   },
 };
 
@@ -101,6 +107,7 @@ export function mockTranslate(
     ro: "Română",
     ar: "العربية",
     ru: "Русский",
+    zh: "中文",
   };
 
   if (toLang === "he") {

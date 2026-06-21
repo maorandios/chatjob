@@ -19,6 +19,7 @@ export type WorkerUiStrings = {
   voiceComingSoon: string;
   sending: string;
   recording: string;
+  recordingReady: string;
   finishRecording: string;
   deleteRecording: string;
   maxDurationRecording: string;
@@ -71,6 +72,8 @@ export type WorkerUiStrings = {
   saving: string;
   invalidInvite: string;
   invalidInviteSubtitle: string;
+  installBannerText: string;
+  installBannerAction: string;
 };
 
 const emailVerificationStrings = {
@@ -214,6 +217,26 @@ const emailVerificationStrings = {
     verifyFailed: "Проверка не удалась",
     saving: "Сохранение...",
   },
+  zh: {
+    verifyEmailTitle: "验证邮箱",
+    verifyEmailSubtitle: "要进入应用，请验证你的个人邮箱。",
+    emailLabel: "邮箱地址",
+    sendVerificationCode: "发送验证码",
+    enterCodeTitle: "输入验证码",
+    enterCodeSentPrefix: "我们已发送 {length} 位验证码到",
+    resendCode: "重新发送验证码",
+    resendInSeconds: "{seconds} 秒后重新发送",
+    changeEmail: "更换邮箱",
+    verifying: "正在验证...",
+    verifyAndContinue: "验证并继续",
+    invalidEmail: "请输入有效的邮箱地址",
+    otpDigitsRequired: "请输入 {length} 位验证码",
+    saveLanguageFailed: "无法保存语言，请重试。",
+    sendOtpFailed: "无法发送验证码",
+    resendOtpFailed: "无法重新发送验证码",
+    verifyFailed: "验证失败",
+    saving: "正在保存...",
+  },
 } as const;
 
 type BaseWorkerUiStrings = Omit<
@@ -240,6 +263,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "ข้อความเสียง - เร็วๆ นี้",
     sending: "กำลังส่ง...",
     recording: "กำลังบันทึก...",
+    recordingReady: "บันทึกเสียงพร้อมแล้ว",
     finishRecording: "เสร็จ",
     deleteRecording: "ลบ",
     maxDurationRecording: "ถึงขีดจำกัด 20 วินาที",
@@ -274,6 +298,8 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "เข้าสู่แชท",
     invalidInvite: "הזמנה לא תקינה",
     invalidInviteSubtitle: "קישור ההזמנה אינו פעיל",
+    installBannerText: "เพื่อประสบการณ์ที่ดีที่สุด ให้ติดตั้ง Kling",
+    installBannerAction: "ติดตั้ง",
   },
   hi: {
     continue: "जारी रखें",
@@ -293,6 +319,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "वॉइस मैसेज - जल्द आ रहा है",
     sending: "भेजा जा रहा है...",
     recording: "रिकॉर्डिंग...",
+    recordingReady: "रिकॉर्डिंग तैयार है",
     finishRecording: "समाप्त",
     deleteRecording: "हटाएं",
     maxDurationRecording: "20 सेकंड की सीमा पूरी",
@@ -327,6 +354,8 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "चैट में जाएँ",
     invalidInvite: "अमान्य निमंत्रण",
     invalidInviteSubtitle: "निमंत्रण लिंक काम नहीं कर रहा",
+    installBannerText: "बेहतर अनुभव के लिए, Kling इंस्टॉल करें",
+    installBannerAction: "इंस्टॉल",
   },
   si: {
     continue: "ඉදිරියට",
@@ -346,6 +375,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "හඬ පණිවිඩ - ඉක්මනින්",
     sending: "යවමින්...",
     recording: "පටිගත කරමින්...",
+    recordingReady: "හඬ පටිගත කිරීම සූදානම්",
     finishRecording: "අවසන්",
     deleteRecording: "මකන්න",
     maxDurationRecording: "තත්පර 20 සීමාව පිරුණා",
@@ -380,6 +410,8 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "චැට්ටට යන්න",
     invalidInvite: "වලංගු නොවන ආරාධනාව",
     invalidInviteSubtitle: "ආරාධනා සබැඳිය ක්‍රියා නොකරයි",
+    installBannerText: "හොඳම අත්දැකීම සඳහා Kling ස්ථාපනය කරන්න",
+    installBannerAction: "ස්ථාපනය",
   },
   ro: {
     continue: "Continuă",
@@ -399,6 +431,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "Mesaj vocal - în curând",
     sending: "Se trimite...",
     recording: "Se înregistrează...",
+    recordingReady: "Înregistrarea este gata",
     finishRecording: "Gata",
     deleteRecording: "Șterge",
     maxDurationRecording: "Limita de 20 secunde atinsă",
@@ -433,6 +466,8 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "Intră în chat",
     invalidInvite: "Invitație invalidă",
     invalidInviteSubtitle: "Linkul de invitație nu este activ",
+    installBannerText: "Pentru cea mai bună experiență, instalează Kling",
+    installBannerAction: "Instalează",
   },
   en: {
     continue: "Continue",
@@ -452,6 +487,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "Voice message - coming soon",
     sending: "Sending...",
     recording: "Recording...",
+    recordingReady: "Recording ready",
     finishRecording: "Done",
     deleteRecording: "Delete",
     maxDurationRecording: "20 second limit reached",
@@ -486,6 +522,8 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "Enter chat",
     invalidInvite: "Invalid invitation",
     invalidInviteSubtitle: "This invite link is not active",
+    installBannerText: "For the best experience, install Kling",
+    installBannerAction: "Install",
   },
   ar: {
     continue: "متابعة",
@@ -505,6 +543,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "رسالة صوتية - قريباً",
     sending: "جارٍ الإرسال...",
     recording: "جارٍ التسجيل...",
+    recordingReady: "التسجيل جاهز",
     finishRecording: "إنهاء",
     deleteRecording: "حذف",
     maxDurationRecording: "تم الوصول إلى 20 ثانية",
@@ -539,6 +578,8 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "دخول المحادثة",
     invalidInvite: "دعوة غير صالحة",
     invalidInviteSubtitle: "رابط الدعوة غير نشط",
+    installBannerText: "لأفضل تجربة استخدام، ثبّت Kling",
+    installBannerAction: "تثبيت",
   },
   ru: {
     continue: "Продолжить",
@@ -558,6 +599,7 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     voiceComingSoon: "Голосовое сообщение - скоро",
     sending: "Отправка...",
     recording: "Запись...",
+    recordingReady: "Запись готова",
     finishRecording: "Готово",
     deleteRecording: "Удалить",
     maxDurationRecording: "Лимит 20 секунд",
@@ -592,6 +634,64 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     joinChat: "Войти в чат",
     invalidInvite: "Недействительное приглашение",
     invalidInviteSubtitle: "Ссылка приглашения не активна",
+    installBannerText: "Для лучшего опыта установите Kling",
+    installBannerAction: "Установить",
+  },
+  zh: {
+    continue: "继续",
+    chooseLanguage: "选择你的语言",
+    chooseLanguageSubtitle: "你会用这种语言查看翻译后的消息",
+    invitedBy: "邀请人",
+    invitedToSlang: "加入 Slang",
+    active: "在线",
+    sendMessageTo: "发送消息给",
+    translatedFromHebrew: "由希伯来语翻译",
+    settings: "设置",
+    yourName: "你的名字",
+    yourLanguage: "你的语言",
+    changeLanguage: "更改语言",
+    help: "帮助",
+    prototype: "Slang Prototype",
+    voiceComingSoon: "语音消息 - 即将推出",
+    sending: "正在发送...",
+    recording: "正在录音...",
+    recordingReady: "录音已准备好",
+    finishRecording: "完成",
+    deleteRecording: "删除",
+    maxDurationRecording: "已达到 20 秒限制",
+    analyzingVoice: "正在分析...",
+    micError: "无法访问麦克风",
+    sendFailed: "发送失败",
+    voiceConfirmTitle: "确认语音消息",
+    voiceConfirmYouSaid: "语音转文字",
+    voiceConfirmSend: "发送消息",
+    voiceConfirmRerecord: "重新录音",
+    recordingTooShort: "太短了，请再按住久一点",
+    quickReplyArrived: "我到了",
+    quickReplyOnWay: "我在路上",
+    quickReplyProblem: "有问题",
+    messagePlaceholder: "输入消息...",
+    attachImageTitle: "发送照片",
+    takePhotoLabel: "拍照",
+    chooseGalleryLabel: "从相册选择",
+    imageSendFailed: "照片发送失败",
+    noMessagesYet: "还没有消息",
+    contactNameTitle: "联系人姓名",
+    contactNameOriginal: "原始姓名",
+    contactNamePlaceholder: "你想使用的名字",
+    contactPhoneOriginal: "电话号码",
+    contactPhonePlaceholder: "电话号码",
+    contactPhoneCopied: "电话号码已复制",
+    contactNameSave: "保存",
+    cancel: "取消",
+    editProfileTitle: "编辑个人资料",
+    logout: "退出登录",
+    logoutConfirm: "你确定要退出登录吗？",
+    joinChat: "进入聊天",
+    invalidInvite: "邀请无效",
+    invalidInviteSubtitle: "此邀请链接未激活",
+    installBannerText: "为了获得最佳体验，请安装 Kling",
+    installBannerAction: "安装",
   },
 };
 

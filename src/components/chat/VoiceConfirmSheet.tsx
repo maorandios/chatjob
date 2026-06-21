@@ -11,6 +11,7 @@ type VoiceConfirmSheetProps = {
   title: string;
   youSaidLabel: string;
   sendLabel: string;
+  cancelLabel: string;
   isSending?: boolean;
   onSend: (editedTranscript: string) => void | Promise<void>;
   onRerecord: () => void;
@@ -23,6 +24,7 @@ export function VoiceConfirmSheet({
   title,
   youSaidLabel,
   sendLabel,
+  cancelLabel,
   isSending = false,
   onSend,
   onRerecord,
@@ -49,7 +51,12 @@ export function VoiceConfirmSheet({
       dir={dir}
     >
       <div dir={dir}>
-        <div className="mb-6 text-right">
+        <div
+          className={cn(
+            "mb-6",
+            dir === "rtl" ? "text-right" : "text-left"
+          )}
+        >
           <h2 className="text-[17px] font-semibold tracking-tight text-gray-900">
             {title}
           </h2>
@@ -97,7 +104,7 @@ export function VoiceConfirmSheet({
             disabled={isSending}
             className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-full bg-[var(--jobchat-surface)] px-3 text-[14px] font-medium text-gray-700 ring-1 ring-[var(--jobchat-border)] transition-all hover:bg-gray-100 active:scale-[0.98] disabled:opacity-40"
           >
-            <span className="truncate">ביטול</span>
+            <span className="truncate">{cancelLabel}</span>
           </button>
         </div>
       </div>

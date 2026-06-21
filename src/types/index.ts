@@ -6,6 +6,7 @@ export const LANGUAGE_CODES = [
   "si",
   "ro",
   "ar",
+  "zh",
 ] as const;
 
 export type LanguageCode = (typeof LANGUAGE_CODES)[number];

@@ -32,6 +32,7 @@ type ChatThreadProps = {
   processingLabel?: string;
   analyzingLabel?: string;
   recordingLabel?: string;
+  recordingReadyLabel?: string;
   finishRecordingLabel?: string;
   deleteRecordingLabel?: string;
   maxDurationLabel?: string;
@@ -41,6 +42,7 @@ type ChatThreadProps = {
   voiceConfirmYouSaid?: string;
   voiceConfirmSend?: string;
   voiceConfirmRerecord?: string;
+  voiceConfirmCancel?: string;
   recordingTooShortLabel?: string;
   attachImageTitle?: string;
   takePhotoLabel?: string;
@@ -61,6 +63,7 @@ export function ChatThread({
   processingLabel,
   analyzingLabel,
   recordingLabel,
+  recordingReadyLabel = "הקלטה מוכנה",
   finishRecordingLabel,
   deleteRecordingLabel,
   maxDurationLabel,
@@ -70,6 +73,7 @@ export function ChatThread({
   voiceConfirmYouSaid = "המרת הקלטה לטקסט",
   voiceConfirmSend = "שלח הודעה",
   voiceConfirmRerecord = "הקלטה חוזרת",
+  voiceConfirmCancel = "ביטול",
   recordingTooShortLabel = "הקלטה קצרה מדי — נסה שוב",
   attachImageTitle = "שליחת תמונה",
   takePhotoLabel = "צלם תמונה",
@@ -249,6 +253,7 @@ export function ChatThread({
           processingLabel={processingLabel}
           analyzingLabel={analyzingLabel}
           recordingLabel={recordingLabel}
+          readyLabel={recordingReadyLabel}
           finishRecordingLabel={finishRecordingLabel}
           deleteRecordingLabel={deleteRecordingLabel}
           maxDurationLabel={maxDurationLabel}
@@ -330,6 +335,7 @@ export function ChatThread({
         processingLabel={processingLabel}
         analyzingLabel={analyzingLabel}
         recordingLabel={recordingLabel}
+        readyLabel={recordingReadyLabel}
         finishRecordingLabel={finishRecordingLabel}
         deleteRecordingLabel={deleteRecordingLabel}
         maxDurationLabel={maxDurationLabel}
@@ -350,6 +356,7 @@ export function ChatThread({
         title={voiceConfirmTitle}
         youSaidLabel={voiceConfirmYouSaid}
         sendLabel={voiceConfirmSend}
+        cancelLabel={voiceConfirmCancel}
         isSending={isConfirmingVoice}
         onSend={handleVoiceConfirm}
         onRerecord={() => setVoicePreview(null)}

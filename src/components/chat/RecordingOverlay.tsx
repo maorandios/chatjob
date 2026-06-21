@@ -13,6 +13,7 @@ type RecordingOverlayProps = {
   elapsedMs: number;
   maxSec: number;
   label: string;
+  readyLabel: string;
   analyzingLabel: string;
   finishLabel: string;
   deleteLabel: string;
@@ -26,6 +27,7 @@ export function RecordingOverlay({
   elapsedMs,
   maxSec,
   label,
+  readyLabel,
   analyzingLabel,
   finishLabel,
   deleteLabel,
@@ -112,7 +114,7 @@ export function RecordingOverlay({
             <>
               {isReady ? (
                 <p className="mt-5 text-lg font-semibold text-white">
-                  הקלטה מוכנה
+                  {readyLabel}
                 </p>
               ) : (
                 <div className="mx-auto mt-5 h-1.5 w-64 overflow-hidden rounded-full bg-white/20">

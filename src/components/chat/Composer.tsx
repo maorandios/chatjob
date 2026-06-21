@@ -15,6 +15,7 @@ type ComposerProps = {
   processingLabel?: string;
   analyzingLabel?: string;
   recordingLabel?: string;
+  readyLabel?: string;
   finishRecordingLabel?: string;
   deleteRecordingLabel?: string;
   maxDurationLabel?: string;
@@ -45,6 +46,7 @@ export function Composer({
   processingLabel = "שולח...",
   analyzingLabel = "ממיר הקלטה לטקסט",
   recordingLabel = "מקליט...",
+  readyLabel = "הקלטה מוכנה",
   finishRecordingLabel = "סיים",
   deleteRecordingLabel = "מחק",
   maxDurationLabel = "הגעת למקסימום 20 שניות",
@@ -169,6 +171,7 @@ export function Composer({
               processingLabel={processingLabel}
               analyzingLabel={analyzingLabel}
               recordingLabel={recordingLabel}
+              readyLabel={readyLabel}
               finishRecordingLabel={finishRecordingLabel}
               deleteRecordingLabel={deleteRecordingLabel}
               maxDurationLabel={maxDurationLabel}

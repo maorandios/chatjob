@@ -72,7 +72,10 @@ function WorkerHome({
 
   return (
     <MobileFrame dir={dir}>
-      <AppListHeader settingsHref={getWorkerSettingsPath(token)} variant="en" />
+      <AppListHeader
+        settingsHref={getWorkerSettingsPath(token)}
+        variant="en"
+      />
 
       <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
         {sortedManagers.length === 0 ? (

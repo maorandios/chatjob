@@ -81,6 +81,12 @@ a,
   box-shadow: 0 calc(-1 * env(safe-area-inset-top, 0px)) 0 0 #ffffff;
 }
 
+.install-banner + .chrome-top,
+.install-banner + .app-root .chrome-top {
+  padding-top: 0;
+  box-shadow: none;
+}
+
 .chrome-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background-color: #ffffff;

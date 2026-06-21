@@ -59,6 +59,14 @@ export const WORKER_LANGUAGES: LanguageOption[] = [
     countryCode: "SA",
     dir: "rtl",
   },
+  {
+    code: "zh",
+    englishName: "Chinese",
+    countryName: "China",
+    nativeName: "中文",
+    countryCode: "CN",
+    dir: "ltr",
+  },
 ];
 
 /** @deprecated use WORKER_LANGUAGES */
