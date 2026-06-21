@@ -45,13 +45,13 @@ export function InstallAppBanner({
       className="install-banner chrome-top shrink-0 bg-white px-4 py-4"
     >
       <div className="flex min-h-12 items-center gap-3">
-        <p className="min-w-0 flex-1 truncate text-start text-[13px] font-medium leading-5 text-gray-600">
+        <p className="min-w-0 flex-1 truncate text-start text-[13px] font-medium leading-5 text-[#FF4400]">
           {text}
         </p>
         <button
           type="button"
           onClick={onInstallClick}
-          className="flex h-10 shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-[var(--jobchat-accent-light)] px-4 text-[13px] font-semibold text-[var(--jobchat-accent)] active:scale-[0.98]"
+          className="flex h-10 shrink-0 touch-manipulation items-center gap-1.5 rounded-full border border-[#FF4400] bg-[#FFE0D5] px-4 text-[13px] font-semibold text-[#FF4400] active:scale-[0.98]"
         >
           <Download className="h-3.5 w-3.5" strokeWidth={2.1} />
           {actionLabel}
