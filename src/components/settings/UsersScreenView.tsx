@@ -7,6 +7,7 @@ import { TeamMemberRow } from "@/components/settings/TeamMemberRow";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
+import { getInviteShareText } from "@/lib/invites/share-text";
 import { useSlangStore } from "@/lib/store";
 import { cn, getInviteUrl } from "@/lib/utils";
 import { isWorkerInvitePending } from "@/lib/workers/invite-status";
@@ -216,7 +217,10 @@ export function UsersScreenView() {
           title="קישור הצטרפות"
           subtitle={`שלחו ל-${inviteWorker.name} את קישור ההזמנה`}
           showCelebration={false}
-          whatsappText={`${inviteWorker.name}, הוזמנת ל-Slang: ${getInviteUrl(inviteWorker.inviteToken)}`}
+          whatsappText={getInviteShareText(
+            inviteWorker.name,
+            getInviteUrl(inviteWorker.inviteToken)
+          )}
         />
       )}
     </>

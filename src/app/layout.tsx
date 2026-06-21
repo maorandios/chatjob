@@ -18,6 +18,27 @@ export const metadata: Metadata = {
     shortcut: "/fav.svg",
     apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
   },
+  openGraph: {
+    title: "קלינג",
+    description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
+    siteName: "קלינג",
+    images: [
+      {
+        url: "/kling-og.png",
+        width: 1200,
+        height: 630,
+        alt: "קלינג",
+      },
+    ],
+    locale: "he_IL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "קלינג",
+    description: "תקשורת פשוטה בין מנהלים לעובדים זרים",
+    images: ["/kling-og.png"],
+  },
   appleWebApp: {
     capable: true,
     title: "קלינג",

@@ -9,6 +9,7 @@ import {
   useLastMessage,
   useSlangStore,
 } from "@/lib/store";
+import { getInviteShareText } from "@/lib/invites/share-text";
 import { formatListTime, getInviteUrl, getManagerChatPath } from "@/lib/utils";
 import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Worker } from "@/types";
@@ -76,7 +77,7 @@ export function ChatListItem({ worker }: ChatListItemProps) {
           title="קישור הצטרפות"
           subtitle={`שלחו ל-${displayName} את קישור ההזמנה`}
           showCelebration={false}
-          whatsappText={`${displayName}, הוזמנת ל-Slang: ${inviteUrl}`}
+          whatsappText={getInviteShareText(displayName, inviteUrl)}
         />
       </>
     );

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { TopPillNotice } from "@/components/ui/TopPillNotice";
 import { useToast } from "@/components/ui/Toast";
+import { getInviteShareText } from "@/lib/invites/share-text";
 import { Check, Copy, MessageCircleCheck } from "lucide-react";
 import { useState } from "react";
 
@@ -32,10 +33,11 @@ export function InviteReadySheet({
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
   const [copyNoticeKey, setCopyNoticeKey] = useState(0);
+  const shareText = whatsappText ?? getInviteShareText(memberName, inviteUrl);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await navigator.clipboard.writeText(shareText);
       setCopied(true);
       setCopyNoticeKey((key) => key + 1);
       setTimeout(() => setCopied(false), 2000);
@@ -45,9 +47,7 @@ export function InviteReadySheet({
   };
 
   const handleWhatsApp = () => {
-    const text = encodeURIComponent(
-      whatsappText ?? `${memberName}, הוזמנת ל-Slang: ${inviteUrl}`
-    );
+    const text = encodeURIComponent(shareText);
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   };
 

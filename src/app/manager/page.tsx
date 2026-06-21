@@ -11,6 +11,7 @@ import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { useToast } from "@/components/ui/Toast";
 import { filterWorkersByQuery } from "@/lib/contacts/filter-workers";
 import { useManagerInboxPreviews } from "@/lib/hooks/use-slang-data";
+import { getInviteShareText } from "@/lib/invites/share-text";
 import { useSlangStore } from "@/lib/store";
 import { getInviteUrl, getManagerJoinUrl } from "@/lib/utils";
 import { MessageCircle, Settings2 } from "lucide-react";
@@ -262,11 +263,7 @@ export default function ManagerPage() {
           memberName={lastInvite.name}
           inviteUrl={lastInvite.url}
           kind={lastInvite.kind}
-          whatsappText={
-            lastInvite.kind === "manager"
-              ? `${lastInvite.name}, הוזמנת כמנהל ב-Slang: ${lastInvite.url}`
-              : `${lastInvite.name}, הוזמנת ל-Slang: ${lastInvite.url}`
-          }
+          whatsappText={getInviteShareText(lastInvite.name, lastInvite.url)}
         />
       )}
     </AppShell>
