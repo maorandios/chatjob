@@ -1,6 +1,5 @@
 "use client";
 
-import { RecordingOverlay } from "@/components/chat/RecordingOverlay";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { Loader2, Mic } from "lucide-react";
@@ -53,9 +52,6 @@ export function VoiceRecorder({
   processingLabel = "מעבד...",
   analyzingLabel = "ממיר הקלטה לטקסט",
   recordingLabel = "מקליט...",
-  readyLabel = "הקלטה מוכנה",
-  finishRecordingLabel = "סיים",
-  deleteRecordingLabel = "מחק",
   maxDurationLabel = "הגעת למקסימום 20 שניות",
   errorLabel = "לא ניתן לגשת למיקרופון",
   tooShortLabel = "הקלטה קצרה מדי — נסה שוב",
@@ -66,7 +62,6 @@ export function VoiceRecorder({
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -87,7 +82,6 @@ export function VoiceRecorder({
     if (!recorder || recorder.state === "inactive") {
       setIsRecording(false);
       setElapsedMs(0);
-      setPendingBlob(null);
       return;
     }
 
@@ -104,7 +98,6 @@ export function VoiceRecorder({
     chunksRef.current = [];
     mediaRecorderRef.current = null;
     stoppingRef.current = false;
-    setPendingBlob(null);
   }, [cleanupStream]);
 
   const stopRecordingForDecision = useCallback(
@@ -113,7 +106,6 @@ export function VoiceRecorder({
 
       const recorder = mediaRecorderRef.current;
       if (!recorder || recorder.state === "inactive") {
-        if (pendingBlob) return;
         setIsRecording(false);
         setElapsedMs(0);
         return;
@@ -154,56 +146,32 @@ export function VoiceRecorder({
         return;
       }
 
-      setPendingBlob(blob);
       setElapsedMs(duration);
+      setIsAnalyzing(true);
       stoppingRef.current = false;
+      try {
+        await onRecorded(blob);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : errorLabel);
+      } finally {
+        setIsAnalyzing(false);
+        setElapsedMs(0);
+      }
     },
     [
       cleanupStream,
       errorLabel,
       maxDurationLabel,
-      pendingBlob,
+      onRecorded,
       showToast,
       tooShortLabel,
     ]
   );
 
-  const finishRecording = useCallback(async () => {
-    if (isRecording) {
-      await stopRecordingForDecision();
-      return;
-    }
-
-    if (!pendingBlob || isAnalyzing) return;
-
-    setIsAnalyzing(true);
-    try {
-      await onRecorded(pendingBlob);
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : errorLabel);
-    } finally {
-      setIsAnalyzing(false);
-      setElapsedMs(0);
-      setPendingBlob(null);
-      stoppingRef.current = false;
-    }
-  },
-    [
-      errorLabel,
-      isAnalyzing,
-      isRecording,
-      onRecorded,
-      pendingBlob,
-      showToast,
-      stopRecordingForDecision,
-    ]
-  );
-
   const startRecording = useCallback(async () => {
-    if (disabled || isAnalyzing || isRecording || pendingBlob) return;
+    if (disabled || isAnalyzing || isRecording) return;
 
     try {
-      setPendingBlob(null);
       const pressToken = pressTokenRef.current;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -243,12 +211,12 @@ export function VoiceRecorder({
     errorLabel,
     isAnalyzing,
     isRecording,
-    pendingBlob,
     showToast,
   ]);
 
-  const showOverlay = isRecording || isAnalyzing || Boolean(pendingBlob);
   const isBusy = isAnalyzing;
+  const isActive = isRecording || isAnalyzing;
+  const progress = Math.min(elapsedMs / MAX_RECORD_MS, 1);
 
   useEffect(() => {
     if (!isRecording) return;
@@ -267,7 +235,7 @@ export function VoiceRecorder({
   }, [isRecording, stopRecordingForDecision]);
 
   const handlePressStart = (event: PointerEvent<HTMLButtonElement>) => {
-    if (disabled || isAnalyzing || isRecording || pendingBlob) return;
+    if (disabled || isAnalyzing || isRecording) return;
     event.preventDefault();
     isPressingRef.current = true;
     pressTokenRef.current += 1;
@@ -327,20 +295,36 @@ export function VoiceRecorder({
         )}
       </button>
 
-      {showOverlay && (
-        <RecordingOverlay
-          phase={isAnalyzing ? "analyzing" : pendingBlob ? "ready" : "recording"}
-          elapsedMs={elapsedMs}
-          maxSec={MAX_RECORD_SEC}
-          label={pendingBlob ? "סיים או ביטול" : recordingLabel}
-          readyLabel={readyLabel}
-          analyzingLabel={analyzingLabel}
-          finishLabel={finishRecordingLabel}
-          deleteLabel={deleteRecordingLabel}
-          onFinish={() => void finishRecording()}
-          onDelete={() => void cancelRecording()}
+      {isActive && (
+        <div
           dir={dir}
-        />
+          className="pointer-events-none absolute inset-x-3 top-1/2 z-10 -translate-y-1/2 rounded-[26px] border border-[var(--jobchat-border)] bg-white px-3 py-2 shadow-[0_4px_18px_rgba(15,23,42,0.10)]"
+          aria-live="polite"
+        >
+          <div className="flex min-h-11 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent)] text-white">
+              {isAnalyzing ? (
+                <Loader2 className="h-[18px] w-[18px] animate-spin" />
+              ) : (
+                <Mic className="h-[18px] w-[18px]" strokeWidth={2.25} />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-gray-800">
+                {isAnalyzing ? analyzingLabel : recordingLabel}
+              </p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--jobchat-accent-light)]">
+                <div
+                  className={cn(
+                    "h-full rounded-full bg-[var(--jobchat-accent)] transition-[width] duration-100 ease-linear",
+                    isAnalyzing && "animate-pulse"
+                  )}
+                  style={{ width: `${isAnalyzing ? 100 : progress * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
