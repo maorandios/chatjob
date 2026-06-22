@@ -148,7 +148,7 @@ export function AuthenticatedInstallBanner() {
 
     return (
       <InstallAppBanner
-        text="עבור חווית שימוש מיטבית, התקינו את קלינג"
+        text="עבור חווית שימוש מיטבית, הורידו את האפליקציה לנייד"
         actionLabel="התקנה"
         installLabels={MANAGER_INSTALL_LABELS}
         dir="rtl"

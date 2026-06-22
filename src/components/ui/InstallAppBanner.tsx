@@ -56,19 +56,15 @@ export function InstallAppBanner({
           dir={dir}
           className="install-banner chrome-top shrink-0 bg-white px-4 py-4"
         >
-          <div className="flex min-h-12 items-center gap-3">
-            <p className="min-w-0 flex-1 truncate text-start text-[13px] font-medium leading-5 text-[#FF4400]">
-              {text}
-            </p>
-            <button
-              type="button"
-              onClick={handleInstallClick}
-              className="flex h-10 shrink-0 touch-manipulation items-center gap-1.5 rounded-full border border-[#FF4400] bg-[#FFE0D5] px-4 text-[13px] font-semibold text-[#FF4400] active:scale-[0.98]"
-            >
-              <Download className="h-3.5 w-3.5" strokeWidth={2.1} />
-              {actionLabel}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            aria-label={actionLabel}
+            className="flex min-h-10 w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-[#FF4400] bg-[#FFE0D5] px-4 text-[13px] font-semibold leading-5 text-[#FF4400] active:scale-[0.98]"
+          >
+            <span className="min-w-0 truncate">{text}</span>
+            <Download className="h-3.5 w-3.5 shrink-0" strokeWidth={2.1} />
+          </button>
         </div>
       )}
 
