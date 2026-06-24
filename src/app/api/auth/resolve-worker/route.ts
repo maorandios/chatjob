@@ -3,6 +3,7 @@ import {
   findWorkerAuthByEmail,
   mapResolveWorkerError,
 } from "@/lib/auth/find-worker-by-email";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -19,10 +20,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ found: false });
     }
 
+    const supabase = getSupabaseAdmin();
+    const { data: membership, error: membershipError } = await supabase
+      .from("worker_company_memberships")
+      .select("invite_token")
+      .eq("worker_id", worker.id)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+
     return NextResponse.json({
       found: true,
       workerId: worker.id,
-      inviteToken: worker.invite_token,
+      inviteToken: membership?.invite_token ?? worker.invite_token,
     });
   } catch (error) {
     console.error("Resolve worker error:", error);

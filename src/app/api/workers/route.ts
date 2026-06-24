@@ -4,9 +4,15 @@ import {
   getManagerCompanyId,
 } from "@/lib/supabase/company-access";
 import { rowToWorker, rowToWorkerInvite } from "@/lib/supabase/mappers";
+import {
+  ensureWorkerCompanyMembership,
+  getAccessibleWorkersForCompany,
+} from "@/lib/supabase/worker-memberships";
 import { generateInviteToken } from "@/lib/supabase/tokens";
 import { normalizePhone } from "@/lib/utils";
 import { NextResponse } from "next/server";
+
+type WorkerRow = Parameters<typeof rowToWorker>[0];
 
 export async function GET(req: Request) {
   try {
@@ -22,17 +28,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
-      .from("workers")
-      .select("*")
-      .eq("company_id", companyId)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
     return NextResponse.json({
-      workers: (data ?? []).map(rowToWorker),
+      workers: await getAccessibleWorkersForCompany(companyId),
     });
   } catch (error) {
     console.error("List workers error:", error);
@@ -46,6 +43,7 @@ export async function POST(req: Request) {
     const requestingManagerId = String(body.managerId ?? "");
     const name = String(body.name ?? "").trim();
     const phone = normalizePhone(String(body.phone ?? ""));
+    const email = String(body.email ?? "").trim().toLowerCase();
     const employeeNumber = String(body.employeeNumber ?? "").trim();
     const address = String(body.address ?? "").trim();
 
@@ -63,21 +61,58 @@ export async function POST(req: Request) {
 
     const inviteToken = generateInviteToken();
 
-    const { data: workerRow, error: workerError } = await supabase
-      .from("workers")
-      .insert({
-        company_id: companyId,
-        name,
-        phone,
-        employee_number: employeeNumber || null,
-        address: address || null,
-        status: "pending",
-        invite_token: inviteToken,
-      })
-      .select("*")
-      .single();
+    let workerRow: WorkerRow | null = null;
+    if (email) {
+      const { data, error } = await supabase
+        .from("workers")
+        .select("*")
+        .eq("email", email)
+        .maybeSingle();
 
-    if (workerError) throw workerError;
+      if (error) throw error;
+      workerRow = data;
+    }
+
+    if (!workerRow) {
+      const { data, error } = await supabase
+        .from("workers")
+        .select("*")
+        .eq("phone", phone)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      workerRow = data;
+    }
+
+    if (!workerRow) {
+      const { data, error: workerError } = await supabase
+        .from("workers")
+        .insert({
+          company_id: companyId,
+          name,
+          phone,
+          email: email || null,
+          employee_number: employeeNumber || null,
+          address: address || null,
+          status: email ? "active" : "pending",
+          invite_token: generateInviteToken(),
+        })
+        .select("*")
+        .single();
+
+      if (workerError) throw workerError;
+      workerRow = data;
+    }
+
+    const membership = await ensureWorkerCompanyMembership({
+      workerId: workerRow.id,
+      companyId,
+      createdByManagerId: requestingManagerId,
+      inviteToken,
+      status: "pending",
+    });
 
     const { data: company, error: companyError } = await supabase
       .from("companies")
@@ -87,8 +122,8 @@ export async function POST(req: Request) {
 
     if (companyError) throw companyError;
 
-    const worker = rowToWorker(workerRow);
-    const invite = rowToWorkerInvite(workerRow, company);
+    const worker = rowToWorker(workerRow, membership);
+    const invite = rowToWorkerInvite(workerRow, company, membership);
 
     return NextResponse.json({ worker, invite });
   } catch (error) {

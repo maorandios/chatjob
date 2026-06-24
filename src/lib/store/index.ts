@@ -270,9 +270,9 @@ function resolveCompanyId(
   workerId: string
 ): string {
   return (
-    state.companyId ||
-    state.workers.find((w) => w.id === workerId)?.companyId ||
     state.managers.find((m) => m.id === managerId)?.companyId ||
+    state.workers.find((w) => w.id === workerId)?.companyId ||
+    state.companyId ||
     ""
   );
 }

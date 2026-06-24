@@ -4,6 +4,10 @@ import {
   getManagerCompanyId,
 } from "@/lib/supabase/company-access";
 import { rowToManager } from "@/lib/supabase/mappers";
+import {
+  getManagersForWorkerMemberships,
+  getWorkerMembershipByInviteToken,
+} from "@/lib/supabase/worker-memberships";
 import { generateInviteToken } from "@/lib/supabase/tokens";
 import { normalizePhone } from "@/lib/utils";
 import { NextResponse } from "next/server";
@@ -20,14 +24,31 @@ export async function GET(req: Request) {
     if (managerId) {
       companyId = await getManagerCompanyId(managerId);
     } else if (workerToken) {
+      const membership = await getWorkerMembershipByInviteToken(workerToken);
+      if (membership) {
+        const managers = await getManagersForWorkerMemberships(
+          membership.worker_id,
+          membership.company_id
+        );
+
+        return NextResponse.json({ managers });
+      }
+
       const { data: worker, error } = await supabase
         .from("workers")
-        .select("company_id")
+        .select("id, company_id")
         .eq("invite_token", workerToken)
         .maybeSingle();
 
       if (error) throw error;
-      companyId = worker?.company_id ?? null;
+      if (worker) {
+        const managers = await getManagersForWorkerMemberships(
+          worker.id,
+          worker.company_id
+        );
+
+        return NextResponse.json({ managers });
+      }
     } else {
       return NextResponse.json(
         { error: "managerId or workerToken required" },

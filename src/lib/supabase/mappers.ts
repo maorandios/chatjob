@@ -12,6 +12,8 @@ type DbCompany = Database["public"]["Tables"]["companies"]["Row"];
 type DbManager = Database["public"]["Tables"]["managers"]["Row"];
 type DbWorker = Database["public"]["Tables"]["workers"]["Row"];
 type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
+type DbWorkerCompanyMembership =
+  Database["public"]["Tables"]["worker_company_memberships"]["Row"];
 
 export function companyFromRow(row: DbCompany): Company {
   return {
@@ -36,18 +38,24 @@ export function rowToManager(row: DbManager): Manager {
   };
 }
 
-export function rowToWorker(row: DbWorker): Worker {
+export function rowToWorker(
+  row: DbWorker,
+  membership?: Pick<
+    DbWorkerCompanyMembership,
+    "company_id" | "invite_token" | "status"
+  >
+): Worker {
   return {
     id: row.id,
-    companyId: row.company_id,
+    companyId: membership?.company_id ?? row.company_id,
     name: row.name,
     phone: row.phone,
     email: row.email ?? undefined,
     employeeNumber: row.employee_number ?? undefined,
     address: row.address ?? undefined,
     language: (row.language as LanguageCode | null) ?? undefined,
-    status: row.status as Worker["status"],
-    inviteToken: row.invite_token,
+    status: (membership?.status ?? row.status) as Worker["status"],
+    inviteToken: membership?.invite_token ?? row.invite_token,
     profileImageUrl: row.profile_image_url ?? undefined,
   };
 }
@@ -70,9 +78,13 @@ export function rowToMessage(row: DbMessage): Message {
   };
 }
 
-export function rowToWorkerInvite(row: DbWorker, company: DbCompany): WorkerInvite {
+export function rowToWorkerInvite(
+  row: DbWorker,
+  company: DbCompany,
+  membership?: Pick<DbWorkerCompanyMembership, "invite_token">
+): WorkerInvite {
   return {
-    token: row.invite_token,
+    token: membership?.invite_token ?? row.invite_token,
     workerId: row.id,
     companyId: company.id,
     companyName: company.name,

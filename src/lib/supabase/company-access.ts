@@ -32,6 +32,18 @@ export async function assertManagerIsAdmin(
 
 export async function getWorkerCompanyId(workerId: string): Promise<string | null> {
   const supabase = getSupabaseAdmin();
+  const { data: membership, error: membershipError } = await supabase
+    .from("worker_company_memberships")
+    .select("company_id")
+    .eq("worker_id", workerId)
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (membership?.company_id) return membership.company_id;
+
   const { data, error } = await supabase
     .from("workers")
     .select("company_id")
@@ -46,15 +58,20 @@ export async function assertSameCompanyParticipants(
   managerId: string,
   workerId: string
 ): Promise<string | null> {
-  const [managerCompanyId, workerCompanyId] = await Promise.all([
-    getManagerCompanyId(managerId),
-    getWorkerCompanyId(workerId),
-  ]);
+  const managerCompanyId = await getManagerCompanyId(managerId);
+  if (!managerCompanyId) return null;
 
-  if (!managerCompanyId || !workerCompanyId || managerCompanyId !== workerCompanyId) {
-    return null;
-  }
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("worker_company_memberships")
+    .select("id")
+    .eq("worker_id", workerId)
+    .eq("company_id", managerCompanyId)
+    .neq("status", "revoked")
+    .maybeSingle();
 
+  if (error) throw error;
+  if (!data) return null;
   return managerCompanyId;
 }
 
@@ -72,7 +89,7 @@ export async function assertActiveConversationParticipants(
         .maybeSingle(),
       supabase
         .from("workers")
-        .select("company_id, email, status")
+        .select("email, status")
         .eq("id", workerId)
         .maybeSingle(),
     ]);
@@ -80,7 +97,7 @@ export async function assertActiveConversationParticipants(
   if (managerError) throw managerError;
   if (workerError) throw workerError;
 
-  if (!manager || !worker || manager.company_id !== worker.company_id) {
+  if (!manager || !worker) {
     return null;
   }
   if (!manager.email || !manager.onboarding_complete) {
@@ -89,6 +106,17 @@ export async function assertActiveConversationParticipants(
   if (!worker.email || worker.status !== "active") {
     return null;
   }
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("worker_company_memberships")
+    .select("id")
+    .eq("worker_id", workerId)
+    .eq("company_id", manager.company_id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (!membership) return null;
 
   return manager.company_id;
 }

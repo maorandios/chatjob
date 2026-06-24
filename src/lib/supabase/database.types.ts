@@ -117,6 +117,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      worker_company_memberships: {
+        Row: {
+          id: string;
+          worker_id: string;
+          company_id: string;
+          invite_token: string;
+          status: string;
+          relationship_type: string;
+          created_by_manager_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          worker_id: string;
+          company_id: string;
+          invite_token: string;
+          status?: string;
+          relationship_type?: string;
+          created_by_manager_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          worker_id?: string;
+          company_id?: string;
+          invite_token?: string;
+          status?: string;
+          relationship_type?: string;
+          created_by_manager_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       contact_aliases: {
         Row: {
           id: string;

@@ -1,6 +1,5 @@
 import {
   assertAuthenticatedWorkerRequest,
-  getWorkerCompanyId,
 } from "@/lib/supabase/company-access";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { rowToWorker } from "@/lib/supabase/mappers";
@@ -23,23 +22,28 @@ export async function POST(req: Request, context: RouteContext) {
       return NextResponse.json({ error: "Invalid image" }, { status: 400 });
     }
 
-    const companyId = await getWorkerCompanyId(id);
-    if (!companyId) {
+    const supabase = getSupabaseAdmin();
+    const { data: existingWorker, error: existingWorkerError } = await supabase
+      .from("workers")
+      .select("company_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (existingWorkerError) throw existingWorkerError;
+    if (!existingWorker?.company_id) {
       return NextResponse.json({ error: "Worker not found" }, { status: 404 });
     }
 
     const profileImageUrl = await uploadWorkerProfileImage(
-      companyId,
+      existingWorker.company_id,
       id,
       imageDataUrl
     );
 
-    const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("workers")
       .select("*")
       .eq("id", id)
-      .eq("company_id", companyId)
       .single();
 
     if (error) throw error;

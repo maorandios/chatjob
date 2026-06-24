@@ -1,6 +1,6 @@
 -- Slang app schema — run in Supabase SQL Editor (fresh database)
--- Company → managers (one is_admin) + workers; team size unlimited until billing
--- Messages are 1:1 between one manager and one worker (same company)
+-- Company → managers (one is_admin) + worker memberships; team size unlimited until billing
+-- Messages are 1:1 between one manager and one worker through an active company membership
 
 create extension if not exists "pgcrypto";
 
@@ -62,6 +62,46 @@ create unique index if not exists workers_email_unique_idx
   on workers(lower(email))
   where email is not null;
 
+create table if not exists worker_company_memberships (
+  id uuid primary key default gen_random_uuid(),
+  worker_id uuid not null references workers(id) on delete cascade,
+  company_id uuid not null references companies(id) on delete cascade,
+  invite_token text not null unique,
+  status text not null default 'pending' check (status in ('pending', 'active', 'revoked')),
+  relationship_type text not null default 'direct',
+  created_by_manager_id uuid references managers(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(worker_id, company_id)
+);
+
+create index if not exists worker_company_memberships_worker_id_idx
+  on worker_company_memberships(worker_id);
+create index if not exists worker_company_memberships_company_id_idx
+  on worker_company_memberships(company_id);
+create index if not exists worker_company_memberships_invite_token_idx
+  on worker_company_memberships(invite_token);
+
+insert into worker_company_memberships (
+  worker_id,
+  company_id,
+  invite_token,
+  status,
+  relationship_type,
+  created_at,
+  updated_at
+)
+select
+  id,
+  company_id,
+  invite_token,
+  case when status = 'active' then 'active' else 'pending' end,
+  'direct',
+  created_at,
+  now()
+from workers
+on conflict (worker_id, company_id) do nothing;
+
 create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
   company_id uuid not null references companies(id) on delete cascade,
@@ -115,17 +155,24 @@ language plpgsql
 as $$
 declare
   manager_company uuid;
-  worker_company uuid;
+  active_membership uuid;
 begin
   select company_id into manager_company from managers where id = NEW.manager_id;
-  select company_id into worker_company from workers where id = NEW.worker_id;
 
-  if manager_company is null or worker_company is null then
+  if manager_company is null then
     raise exception 'SLANG_INVALID_PARTICIPANTS';
   end if;
 
-  if manager_company <> worker_company then
-    raise exception 'SLANG_CROSS_COMPANY_MESSAGE';
+  select id
+  into active_membership
+  from worker_company_memberships
+  where worker_id = NEW.worker_id
+    and company_id = manager_company
+    and status = 'active'
+  limit 1;
+
+  if active_membership is null then
+    raise exception 'SLANG_INACTIVE_WORKER_MEMBERSHIP';
   end if;
 
   NEW.company_id := manager_company;
@@ -198,6 +245,7 @@ $$;
 
 alter publication supabase_realtime add table messages;
 alter publication supabase_realtime add table workers;
+alter publication supabase_realtime add table worker_company_memberships;
 
 -- ---------------------------------------------------------------------------
 -- RLS (prototype — API uses service role)
@@ -206,6 +254,7 @@ alter publication supabase_realtime add table workers;
 alter table companies enable row level security;
 alter table managers enable row level security;
 alter table workers enable row level security;
+alter table worker_company_memberships enable row level security;
 alter table messages enable row level security;
 
 drop policy if exists "slang_read_companies" on companies;
@@ -218,6 +267,10 @@ drop policy if exists "slang_read_workers" on workers;
 drop policy if exists "slang_insert_workers" on workers;
 drop policy if exists "slang_update_workers" on workers;
 drop policy if exists "slang_delete_workers" on workers;
+drop policy if exists "slang_read_worker_company_memberships" on worker_company_memberships;
+drop policy if exists "slang_insert_worker_company_memberships" on worker_company_memberships;
+drop policy if exists "slang_update_worker_company_memberships" on worker_company_memberships;
+drop policy if exists "slang_delete_worker_company_memberships" on worker_company_memberships;
 drop policy if exists "slang_read_messages" on messages;
 drop policy if exists "slang_insert_messages" on messages;
 drop policy if exists "slang_update_messages" on messages;
@@ -233,6 +286,10 @@ create policy "slang_read_workers" on workers for select using (true);
 create policy "slang_insert_workers" on workers for insert with check (true);
 create policy "slang_update_workers" on workers for update using (true);
 create policy "slang_delete_workers" on workers for delete using (true);
+create policy "slang_read_worker_company_memberships" on worker_company_memberships for select using (true);
+create policy "slang_insert_worker_company_memberships" on worker_company_memberships for insert with check (true);
+create policy "slang_update_worker_company_memberships" on worker_company_memberships for update using (true);
+create policy "slang_delete_worker_company_memberships" on worker_company_memberships for delete using (true);
 create policy "slang_read_messages" on messages for select using (true);
 create policy "slang_insert_messages" on messages for insert with check (true);
 create policy "slang_update_messages" on messages for update using (true);

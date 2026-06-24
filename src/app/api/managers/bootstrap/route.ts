@@ -4,7 +4,8 @@ import {
   DEFAULT_ADMIN_PHONE,
   DEFAULT_COMPANY_NAME,
 } from "@/lib/mock/seed";
-import { companyFromRow, rowToManager, rowToWorker } from "@/lib/supabase/mappers";
+import { companyFromRow, rowToManager } from "@/lib/supabase/mappers";
+import { getAccessibleWorkersForCompany } from "@/lib/supabase/worker-memberships";
 import { generateInviteToken } from "@/lib/supabase/tokens";
 import { NextResponse } from "next/server";
 
@@ -23,26 +24,21 @@ export async function POST(req: Request) {
     const supabase = getSupabaseAdmin();
 
     async function loadTeam(companyId: string) {
-      const [{ data: managers, error: managersError }, { data: workers, error: workersError }] =
+      const [{ data: managers, error: managersError }, workers] =
         await Promise.all([
           supabase
             .from("managers")
             .select("*")
             .eq("company_id", companyId)
             .order("created_at", { ascending: false }),
-          supabase
-            .from("workers")
-            .select("*")
-            .eq("company_id", companyId)
-            .order("created_at", { ascending: false }),
+          getAccessibleWorkersForCompany(companyId),
         ]);
 
       if (managersError) throw managersError;
-      if (workersError) throw workersError;
 
       return {
         managers: (managers ?? []).map(rowToManager),
-        workers: (workers ?? []).map(rowToWorker),
+        workers,
       };
     }
 

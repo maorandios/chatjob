@@ -111,22 +111,23 @@ export async function DELETE(req: Request, context: RouteContext) {
     }
 
     const supabase = getSupabaseAdmin();
-    const { data: worker, error: lookupError } = await supabase
-      .from("workers")
-      .select("company_id")
-      .eq("id", id)
+    const { data: membership, error: lookupError } = await supabase
+      .from("worker_company_memberships")
+      .select("id")
+      .eq("worker_id", id)
+      .eq("company_id", adminCheck.companyId)
+      .neq("status", "revoked")
       .maybeSingle();
 
     if (lookupError) throw lookupError;
-    if (!worker) {
+    if (!membership) {
       return NextResponse.json({ error: "Worker not found" }, { status: 404 });
     }
 
-    if (worker.company_id !== adminCheck.companyId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { error } = await supabase.from("workers").delete().eq("id", id);
+    const { error } = await supabase
+      .from("worker_company_memberships")
+      .update({ status: "revoked", updated_at: new Date().toISOString() })
+      .eq("id", membership.id);
     if (error) throw error;
 
     return NextResponse.json({ ok: true });
