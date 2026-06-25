@@ -243,9 +243,32 @@ $$;
 -- Realtime
 -- ---------------------------------------------------------------------------
 
-alter publication supabase_realtime add table messages;
-alter publication supabase_realtime add table workers;
-alter publication supabase_realtime add table worker_company_memberships;
+do $$
+begin
+  alter publication supabase_realtime add table messages;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end;
+$$;
+
+do $$
+begin
+  alter publication supabase_realtime add table workers;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end;
+$$;
+
+do $$
+begin
+  alter publication supabase_realtime add table worker_company_memberships;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end;
+$$;
 
 -- ---------------------------------------------------------------------------
 -- RLS (prototype — API uses service role)
@@ -259,6 +282,7 @@ alter table messages enable row level security;
 
 drop policy if exists "slang_read_companies" on companies;
 drop policy if exists "slang_insert_companies" on companies;
+drop policy if exists "slang_update_companies" on companies;
 drop policy if exists "slang_read_managers" on managers;
 drop policy if exists "slang_insert_managers" on managers;
 drop policy if exists "slang_update_managers" on managers;
