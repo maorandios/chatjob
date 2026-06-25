@@ -42,14 +42,19 @@ export function rowToWorker(
   row: DbWorker,
   membership?: Pick<
     DbWorkerCompanyMembership,
-    "company_id" | "invite_token" | "status"
+    | "company_id"
+    | "invite_token"
+    | "status"
+    | "display_name"
+    | "display_phone"
+    | "private_note"
   >
 ): Worker {
   return {
     id: row.id,
     companyId: membership?.company_id ?? row.company_id,
-    name: row.name,
-    phone: row.phone,
+    name: membership?.display_name?.trim() || row.name,
+    phone: membership?.display_phone?.trim() || row.phone,
     email: row.email ?? undefined,
     employeeNumber: row.employee_number ?? undefined,
     address: row.address ?? undefined,
@@ -57,6 +62,7 @@ export function rowToWorker(
     status: (membership?.status ?? row.status) as Worker["status"],
     inviteToken: membership?.invite_token ?? row.invite_token,
     profileImageUrl: row.profile_image_url ?? undefined,
+    privateNote: membership?.private_note ?? undefined,
   };
 }
 

@@ -125,6 +125,9 @@ export type Database = {
           invite_token: string;
           status: string;
           relationship_type: string;
+          display_name: string | null;
+          display_phone: string | null;
+          private_note: string | null;
           created_by_manager_id: string | null;
           created_at: string;
           updated_at: string;
@@ -136,6 +139,9 @@ export type Database = {
           invite_token: string;
           status?: string;
           relationship_type?: string;
+          display_name?: string | null;
+          display_phone?: string | null;
+          private_note?: string | null;
           created_by_manager_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -147,6 +153,9 @@ export type Database = {
           invite_token?: string;
           status?: string;
           relationship_type?: string;
+          display_name?: string | null;
+          display_phone?: string | null;
+          private_note?: string | null;
           created_by_manager_id?: string | null;
           created_at?: string;
           updated_at?: string;

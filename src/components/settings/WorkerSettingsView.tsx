@@ -12,7 +12,7 @@ import { getWorkerUi, type WorkerUiStrings } from "@/lib/i18n/worker-ui";
 import { useContactDisplayName, useSlangStore } from "@/lib/store";
 import { getWorkerJoinPath, getWorkerSettingsLanguagePath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
-import { ChevronRight, LogOut, Pencil } from "lucide-react";
+import { ChevronRight, LogOut, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,6 +21,7 @@ type WorkerSettingsViewProps = {
   token: string;
   workerId: string;
   workerName: string;
+  workerEmail?: string;
   workerImageUrl?: string;
   language: LanguageCode;
   dir?: "ltr" | "rtl";
@@ -30,6 +31,7 @@ export function WorkerSettingsView({
   token,
   workerId,
   workerName,
+  workerEmail,
   workerImageUrl,
   language,
   dir = "ltr",
@@ -39,6 +41,7 @@ export function WorkerSettingsView({
   const lang = getLanguage(language);
   const displayName = useContactDisplayName("worker", workerId, workerName);
   const setContactAlias = useSlangStore((s) => s.setContactAlias);
+  const deleteWorkerAccount = useSlangStore((s) => s.deleteWorkerAccount);
   const uploadWorkerProfileImage = useSlangStore(
     (s) => s.uploadWorkerProfileImage
   );
@@ -47,7 +50,9 @@ export function WorkerSettingsView({
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showLogoutSheet, setShowLogoutSheet] = useState(false);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleSaveName = async (nextName: string) => {
     if (!nextName || savingName) return;
@@ -88,6 +93,19 @@ export function WorkerSettingsView({
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await deleteWorkerAccount(workerId);
+      await signOutSupabaseAuth();
+      setShowDeleteSheet(false);
+      router.replace("/login");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <>
       <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto bg-[var(--jobchat-surface)] px-4 py-5">
@@ -121,6 +139,11 @@ export function WorkerSettingsView({
                 <p className="mt-5 text-[22px] font-semibold tracking-tight text-gray-900">
                   {displayName}
                 </p>
+              {workerEmail && (
+                <p className="mt-1 text-xs text-gray-400" dir="ltr">
+                  {workerEmail}
+                </p>
+              )}
                 <p className="mt-1.5 text-[15px] text-gray-500">{ui.yourName}</p>
               </div>
             </div>
@@ -153,19 +176,40 @@ export function WorkerSettingsView({
           </section>
 
           <section>
-            <button
-              type="button"
-              onClick={() => setShowLogoutSheet(true)}
-              className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
-                <LogOut className="h-5 w-5 text-[var(--jobchat-accent)]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900">{ui.logout}</p>
-              </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutSheet(true)}
+                className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
+                  <LogOut className="h-5 w-5 text-[var(--jobchat-accent)]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900">{ui.logout}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDeleteSheet(true)}
+                className="flex w-full items-center gap-3 rounded-2xl border border-red-100 bg-red-50/70 px-4 py-4 text-start transition-colors active:bg-red-50"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100">
+                  <Trash2 className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-red-700">
+                    {ui.deleteAccount}
+                  </p>
+                  <p className="mt-0.5 text-xs text-red-400">
+                    {ui.deleteAccountSubtitle}
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-red-300" aria-hidden />
+              </button>
+            </div>
           </section>
         </div>
       </div>
@@ -215,6 +259,43 @@ export function WorkerSettingsView({
               className="!rounded-2xl"
             >
               {ui.logout}
+            </Button>
+          </div>
+        </div>
+      </Sheet>
+
+      <Sheet
+        open={showDeleteSheet}
+        onClose={() => !deleting && setShowDeleteSheet(false)}
+        dir={dir}
+        showCloseButton={false}
+      >
+        <div dir={dir} className="space-y-5">
+          <div className="text-center">
+            <p className="text-[17px] font-semibold leading-snug text-gray-900">
+              {ui.deleteAccountConfirmTitle}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">
+              {ui.deleteAccountConfirmBody}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={() => setShowDeleteSheet(false)}
+              disabled={deleting}
+              className="!rounded-2xl text-gray-600"
+            >
+              {ui.cancel}
+            </Button>
+            <Button
+              fullWidth
+              onClick={() => void handleDeleteAccount()}
+              disabled={deleting}
+              className="!rounded-2xl bg-red-500 hover:bg-red-600"
+            >
+              {ui.deleteAccountAction}
             </Button>
           </div>
         </div>

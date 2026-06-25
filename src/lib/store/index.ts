@@ -73,19 +73,22 @@ type SlangState = {
     managerId?: string;
     workerId?: string;
   }) => Promise<void>;
+  loadManagersForWorker: (workerToken: string) => Promise<void>;
   setConversationMessages: (
     managerId: string,
     workerId: string,
     messages: Message[]
   ) => void;
-  addManager: (name: string, phone: string) => Promise<Manager>;
+  addManager: (name: string, phone?: string) => Promise<Manager>;
   addWorker: (
     name: string,
-    phone: string,
-    profile?: { employeeNumber?: string; address?: string }
+    phone?: string,
+    profile?: { privateNote?: string }
   ) => Promise<Worker>;
   removeManager: (managerId: string) => Promise<void>;
   removeWorker: (workerId: string) => Promise<void>;
+  deleteManagerAccount: () => Promise<void>;
+  deleteWorkerAccount: (workerId: string) => Promise<void>;
   setWorkerLanguage: (workerId: string, language: LanguageCode) => Promise<void>;
   sendMessage: (
     managerId: string,
@@ -126,8 +129,7 @@ type SlangState = {
     profile: {
       name: string;
       phone: string;
-      employeeNumber?: string;
-      address?: string;
+      privateNote?: string;
     }
   ) => Promise<void>;
   updateManagerProfile: (profile: {
@@ -589,6 +591,19 @@ export const useSlangStore = create<SlangState>()(
         }
       },
 
+      loadManagersForWorker: async (workerToken) => {
+        if (!workerToken) return;
+
+        const params = new URLSearchParams({ workerToken });
+        const res = await fetch(`/api/managers?${params.toString()}`, {
+          headers: await getAuthHeaders(),
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        set({ managers: (data.managers ?? []) as Manager[] });
+      },
+
       setConversationMessages: (managerId, workerId, messages) => {
         set((state) => {
           const pending = state.messages.filter(
@@ -600,7 +615,11 @@ export const useSlangStore = create<SlangState>()(
           const other = state.messages.filter(
             (m) => !(m.managerId === managerId && m.workerId === workerId)
           );
-          return { messages: [...other, ...messages, ...pending] };
+          const byId = new Map<string, Message>();
+          for (const message of [...messages, ...pending]) {
+            byId.set(message.id, message);
+          }
+          return { messages: [...other, ...Array.from(byId.values())] };
         });
       },
 
@@ -616,7 +635,7 @@ export const useSlangStore = create<SlangState>()(
           body: JSON.stringify({
             managerId,
             name: name.trim(),
-            phone: normalizePhone(phone),
+            phone: normalizePhone(phone ?? ""),
           }),
         });
 
@@ -645,9 +664,8 @@ export const useSlangStore = create<SlangState>()(
           body: JSON.stringify({
             managerId,
             name: name.trim(),
-            phone: normalizePhone(phone),
-            employeeNumber: profile?.employeeNumber ?? "",
-            address: profile?.address ?? "",
+            phone: normalizePhone(phone ?? ""),
+            privateNote: profile?.privateNote ?? "",
           }),
         });
 
@@ -700,6 +718,44 @@ export const useSlangStore = create<SlangState>()(
         set((state) => ({
           workers: state.workers.filter((w) => w.id !== workerId),
           invites: state.invites.filter((i) => i.workerId !== workerId),
+        }));
+      },
+
+      deleteManagerAccount: async () => {
+        const managerId = get().managerId;
+        if (!managerId) throw new Error("Not authenticated");
+
+        const res = await fetch(
+          `/api/managers/${encodeURIComponent(managerId)}?managerId=${encodeURIComponent(managerId)}`,
+          {
+            method: "DELETE",
+            headers: await getAuthHeaders(),
+          }
+        );
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to delete account");
+        }
+
+        get().logoutManager();
+      },
+
+      deleteWorkerAccount: async (workerId) => {
+        const res = await fetch(`/api/workers/${encodeURIComponent(workerId)}`, {
+          method: "DELETE",
+          headers: await getAuthHeaders(),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to delete account");
+        }
+
+        set((state) => ({
+          workers: state.workers.filter((worker) => worker.id !== workerId),
+          invites: state.invites.filter((invite) => invite.workerId !== workerId),
+          managers: [],
+          messages: state.messages.filter((message) => message.workerId !== workerId),
+          contactAliases: { manager: {}, worker: {} },
         }));
       },
 
@@ -982,8 +1038,7 @@ export const useSlangStore = create<SlangState>()(
             managerId,
             name: profile.name,
             phone: normalizePhone(profile.phone),
-            employeeNumber: profile.employeeNumber ?? "",
-            address: profile.address ?? "",
+            privateNote: profile.privateNote ?? "",
           }),
         });
 
@@ -993,16 +1048,14 @@ export const useSlangStore = create<SlangState>()(
         const worker = data.worker as Worker;
         get().upsertWorker(worker);
 
-        set((state) => {
-          const roleAliases = { ...state.contactAliases.manager };
-          delete roleAliases[workerId];
-          return {
-            contactAliases: {
-              ...state.contactAliases,
-              manager: roleAliases,
-            },
-          };
-        });
+        set((state) => ({
+          contactAliases: mergeContactAlias(
+            state.contactAliases,
+            "manager",
+            workerId,
+            { name: profile.name, phone: profile.phone }
+          ),
+        }));
       },
 
       updateManagerProfile: async (profile) => {
@@ -1201,12 +1254,16 @@ export function selectMessagesForConversation(
   managerId: string,
   workerId: string
 ): Message[] {
-  return messages
-    .filter((m) => m.managerId === managerId && m.workerId === workerId)
-    .sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
+  const byId = new Map<string, Message>();
+  for (const message of messages) {
+    if (message.managerId !== managerId || message.workerId !== workerId) continue;
+    byId.set(message.id, message);
+  }
+
+  return Array.from(byId.values()).sort(
+    (a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
 }
 
 /** @deprecated Use selectMessagesForConversation */
@@ -1214,12 +1271,16 @@ export function selectMessagesForWorker(
   messages: Message[],
   workerId: string
 ): Message[] {
-  return messages
-    .filter((m) => m.workerId === workerId)
-    .sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
+  const byId = new Map<string, Message>();
+  for (const message of messages) {
+    if (message.workerId !== workerId) continue;
+    byId.set(message.id, message);
+  }
+
+  return Array.from(byId.values()).sort(
+    (a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
 }
 
 export function getMessageDisplayText(

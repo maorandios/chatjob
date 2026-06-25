@@ -68,7 +68,7 @@ function WorkerHome({
     );
   }, [managers, messages, workerId]);
 
-  useWorkerInboxPreviews(workerId);
+  useWorkerInboxPreviews(workerId, token);
 
   return (
     <MobileFrame dir={dir}>

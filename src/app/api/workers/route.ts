@@ -44,10 +44,9 @@ export async function POST(req: Request) {
     const name = String(body.name ?? "").trim();
     const phone = normalizePhone(String(body.phone ?? ""));
     const email = String(body.email ?? "").trim().toLowerCase();
-    const employeeNumber = String(body.employeeNumber ?? "").trim();
-    const address = String(body.address ?? "").trim();
+    const privateNote = String(body.privateNote ?? "").trim();
 
-    if (!requestingManagerId || !name || !phone) {
+    if (!requestingManagerId || !name) {
       return NextResponse.json({ error: "Invalid worker data" }, { status: 400 });
     }
 
@@ -73,7 +72,7 @@ export async function POST(req: Request) {
       workerRow = data;
     }
 
-    if (!workerRow) {
+    if (!workerRow && phone) {
       const { data, error } = await supabase
         .from("workers")
         .select("*")
@@ -94,8 +93,6 @@ export async function POST(req: Request) {
           name,
           phone,
           email: email || null,
-          employee_number: employeeNumber || null,
-          address: address || null,
           status: email ? "active" : "pending",
           invite_token: generateInviteToken(),
         })
@@ -112,7 +109,27 @@ export async function POST(req: Request) {
       createdByManagerId: requestingManagerId,
       inviteToken,
       status: "pending",
+      displayName: name,
+      displayPhone: phone,
+      privateNote,
     });
+
+    const { error: aliasError } = await supabase.from("contact_aliases").upsert(
+      {
+        company_id: companyId,
+        owner_role: "manager",
+        owner_id: requestingManagerId,
+        contact_role: "worker",
+        contact_id: workerRow.id,
+        display_name: name,
+        display_phone: phone || null,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "owner_role,owner_id,contact_role,contact_id",
+      }
+    );
+    if (aliasError) throw aliasError;
 
     const { data: company, error: companyError } = await supabase
       .from("companies")

@@ -102,6 +102,7 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
         originalPhone={worker.phone}
         displayName={displayName}
         displayPhone={displayPhone}
+        email={worker.email}
         onSave={(profile) =>
           setContactAlias("manager", workerId, {
             name: profile.name === worker.name ? "" : profile.name,

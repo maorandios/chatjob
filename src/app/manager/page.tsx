@@ -89,19 +89,17 @@ export default function ManagerPage() {
     name,
     phone,
     userType,
-    employeeNumber,
-    address,
+    privateNote,
   }: {
     name: string;
-    phone: string;
+    phone?: string;
     userType: "management" | "worker";
-    employeeNumber?: string;
-    address?: string;
+    privateNote?: string;
   }) => {
     setIsAdding(true);
     try {
       if (userType === "management") {
-        const manager = await addManager(name, phone);
+        const manager = await addManager(name, phone ?? "");
         setLastInvite({
           name: manager.name,
           url: getManagerJoinUrl(manager.inviteToken),
@@ -109,11 +107,10 @@ export default function ManagerPage() {
         });
       } else {
         const worker = await addWorker(name, phone, {
-          employeeNumber,
-          address,
+          privateNote,
         });
         setLastInvite({
-          name: worker.name,
+          name,
           url: getInviteUrl(worker.inviteToken),
           kind: "worker",
         });

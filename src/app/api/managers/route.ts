@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     const name = String(body.name ?? "").trim();
     const phone = normalizePhone(String(body.phone ?? ""));
 
-    if (!requestingManagerId || !name || !phone) {
+    if (!requestingManagerId || !name) {
       return NextResponse.json({ error: "Invalid manager data" }, { status: 400 });
     }
 

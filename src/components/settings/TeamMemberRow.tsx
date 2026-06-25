@@ -9,6 +9,7 @@ const actionButtonClassName =
 type TeamMemberRowProps = {
   name: string;
   phone: string;
+  email?: string;
   imageUrl?: string;
   onPress?: () => void;
   canRemove?: boolean;
@@ -21,6 +22,7 @@ type TeamMemberRowProps = {
 export function TeamMemberRow({
   name,
   phone,
+  email,
   imageUrl,
   onPress,
   canRemove,
@@ -43,9 +45,16 @@ export function TeamMemberRow({
         className="min-w-0 flex-1 text-start active:opacity-70"
       >
         <p className="truncate text-sm font-medium text-gray-900">{name}</p>
-        <p className="block w-full truncate text-end text-xs text-gray-500" dir="ltr">
-          {phone}
-        </p>
+        {phone && (
+          <p className="block w-full truncate text-end text-xs text-gray-500" dir="ltr">
+            {phone}
+          </p>
+        )}
+        {email && (
+          <p className="block w-full truncate text-end text-xs text-gray-400" dir="ltr">
+            {email}
+          </p>
+        )}
       </button>
       <div className="flex shrink-0 items-center">
         {pendingInvite && onSendInvite && (

@@ -131,6 +131,7 @@ export default function WorkerChatPage() {
         originalPhone={manager.phone}
         displayName={displayName}
         displayPhone={displayPhone}
+        email={manager.email}
         onSave={(profile) =>
           setContactAlias("worker", managerId, {
             name: profile.name === manager.name ? "" : profile.name,

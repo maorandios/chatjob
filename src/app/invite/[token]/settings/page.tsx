@@ -51,6 +51,7 @@ export default function WorkerSettingsPage() {
         token={token}
         workerId={worker.id}
         workerName={worker.name}
+        workerEmail={worker.email}
         workerImageUrl={worker.profileImageUrl}
         language={language}
         dir={dir}

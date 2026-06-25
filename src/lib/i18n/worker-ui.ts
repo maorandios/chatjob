@@ -51,6 +51,11 @@ export type WorkerUiStrings = {
   editProfileTitle: string;
   logout: string;
   logoutConfirm: string;
+  deleteAccount: string;
+  deleteAccountSubtitle: string;
+  deleteAccountConfirmTitle: string;
+  deleteAccountConfirmBody: string;
+  deleteAccountAction: string;
   joinChat: string;
   verifyEmailTitle: string;
   verifyEmailSubtitle: string;
@@ -295,6 +300,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "แก้ไขโปรไฟล์",
     logout: "ออกจากระบบ",
     logoutConfirm: "ต้องการออกจากระบบไหม?",
+    deleteAccount: "ลบบัญชีของฉัน",
+    deleteAccountSubtitle: "ลบผู้ใช้นี้ออกจากแอป",
+    deleteAccountConfirmTitle: "ต้องการลบบัญชีของคุณไหม?",
+    deleteAccountConfirmBody:
+      "ผู้ใช้ของคุณจะถูกลบออกจากแอป และคุณจะไม่สามารถเข้าถึงแชทเหล่านี้ได้",
+    deleteAccountAction: "ลบบัญชี",
     joinChat: "เข้าสู่แชท",
     invalidInvite: "הזמנה לא תקינה",
     invalidInviteSubtitle: "קישור ההזמנה אינו פעיל",
@@ -351,6 +362,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "प्रोफ़ाइल संपादित करें",
     logout: "लॉग आउट",
     logoutConfirm: "क्या आप लॉग आउट करना चाहते हैं?",
+    deleteAccount: "मेरा अकाउंट हटाएँ",
+    deleteAccountSubtitle: "इस यूज़र को ऐप से हटाएँ",
+    deleteAccountConfirmTitle: "अपना अकाउंट हटाना है?",
+    deleteAccountConfirmBody:
+      "आपका यूज़र ऐप से हट जाएगा और आप इन चैट्स तक पहुँच खो देंगे।",
+    deleteAccountAction: "अकाउंट हटाएँ",
     joinChat: "चैट में जाएँ",
     invalidInvite: "अमान्य निमंत्रण",
     invalidInviteSubtitle: "निमंत्रण लिंक काम नहीं कर रहा",
@@ -407,6 +424,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "පැතිකඩ සංස්කරණය",
     logout: "ඉවත් වන්න",
     logoutConfirm: "ඔබට ඉවත් වීමට අවශ්‍යද?",
+    deleteAccount: "මගේ ගිණුම මකන්න",
+    deleteAccountSubtitle: "මෙම පරිශීලකයා යෙදුමෙන් ඉවත් කරන්න",
+    deleteAccountConfirmTitle: "ඔබේ ගිණුම මකන්නද?",
+    deleteAccountConfirmBody:
+      "ඔබේ පරිශීලකයා යෙදුමෙන් ඉවත් වන අතර මෙම කතාබස් වෙත ප්‍රවේශය අහිමි වේ.",
+    deleteAccountAction: "ගිණුම මකන්න",
     joinChat: "චැට්ටට යන්න",
     invalidInvite: "වලංගු නොවන ආරාධනාව",
     invalidInviteSubtitle: "ආරාධනා සබැඳිය ක්‍රියා නොකරයි",
@@ -463,6 +486,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "Editează profilul",
     logout: "Deconectare",
     logoutConfirm: "Vrei să te deconectezi?",
+    deleteAccount: "Șterge contul meu",
+    deleteAccountSubtitle: "Elimină acest utilizator din aplicație",
+    deleteAccountConfirmTitle: "Ștergi contul?",
+    deleteAccountConfirmBody:
+      "Utilizatorul tău va fi eliminat din aplicație și vei pierde accesul la aceste conversații.",
+    deleteAccountAction: "Șterge contul",
     joinChat: "Intră în chat",
     invalidInvite: "Invitație invalidă",
     invalidInviteSubtitle: "Linkul de invitație nu este activ",
@@ -519,6 +548,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "Edit profile",
     logout: "Log out",
     logoutConfirm: "Do you want to log out?",
+    deleteAccount: "Delete my account",
+    deleteAccountSubtitle: "Remove this user from the app",
+    deleteAccountConfirmTitle: "Delete your account?",
+    deleteAccountConfirmBody:
+      "Your user will be removed from the app and you will lose access to these chats.",
+    deleteAccountAction: "Delete account",
     joinChat: "Enter chat",
     invalidInvite: "Invalid invitation",
     invalidInviteSubtitle: "This invite link is not active",
@@ -575,6 +610,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "تعديل الملف الشخصي",
     logout: "تسجيل الخروج",
     logoutConfirm: "هل تريد تسجيل الخروج؟",
+    deleteAccount: "حذف حسابي",
+    deleteAccountSubtitle: "إزالة هذا المستخدم من التطبيق",
+    deleteAccountConfirmTitle: "هل تريد حذف حسابك؟",
+    deleteAccountConfirmBody:
+      "ستتم إزالة المستخدم الخاص بك من التطبيق وستفقد الوصول إلى هذه المحادثات.",
+    deleteAccountAction: "حذف الحساب",
     joinChat: "دخول المحادثة",
     invalidInvite: "دعوة غير صالحة",
     invalidInviteSubtitle: "رابط الدعوة غير نشط",
@@ -631,6 +672,12 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "Редактировать профиль",
     logout: "Выйти",
     logoutConfirm: "Хотите выйти из аккаунта?",
+    deleteAccount: "Удалить мой аккаунт",
+    deleteAccountSubtitle: "Удалить этого пользователя из приложения",
+    deleteAccountConfirmTitle: "Удалить аккаунт?",
+    deleteAccountConfirmBody:
+      "Ваш пользователь будет удален из приложения, и вы потеряете доступ к этим чатам.",
+    deleteAccountAction: "Удалить аккаунт",
     joinChat: "Войти в чат",
     invalidInvite: "Недействительное приглашение",
     invalidInviteSubtitle: "Ссылка приглашения не активна",
@@ -687,6 +734,11 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     editProfileTitle: "编辑个人资料",
     logout: "退出登录",
     logoutConfirm: "你确定要退出登录吗？",
+    deleteAccount: "删除我的账号",
+    deleteAccountSubtitle: "从应用中移除此用户",
+    deleteAccountConfirmTitle: "删除你的账号？",
+    deleteAccountConfirmBody: "你的用户将从应用中移除，并且你将无法访问这些聊天。",
+    deleteAccountAction: "删除账号",
     joinChat: "进入聊天",
     invalidInvite: "邀请无效",
     invalidInviteSubtitle: "此邀请链接未激活",

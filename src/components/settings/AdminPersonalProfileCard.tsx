@@ -12,6 +12,9 @@ export function AdminPersonalProfileCard() {
   const managerId = useSlangStore((s) => s.managerId);
   const managerName = useSlangStore((s) => s.managerName);
   const managerPhone = useSlangStore((s) => s.managerPhone);
+  const managerEmail = useSlangStore(
+    (s) => s.managers.find((manager) => manager.id === s.managerId)?.email
+  );
   const profileImage = useSlangStore((s) => s.managerProfileImageUrl);
   const updateManagerProfile = useSlangStore((s) => s.updateManagerProfile);
   const uploadManagerProfileImage = useSlangStore(
@@ -70,6 +73,11 @@ export function AdminPersonalProfileCard() {
             <p className="mt-1.5 text-[15px] text-gray-500" dir="ltr">
               {managerPhone}
             </p>
+            {managerEmail && (
+              <p className="mt-1 text-xs text-gray-400" dir="ltr">
+                {managerEmail}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -79,6 +87,7 @@ export function AdminPersonalProfileCard() {
         onClose={() => setShowEditSheet(false)}
         name={managerName}
         phone={managerPhone}
+        email={managerEmail}
         onSave={(profile) => updateManagerProfile(profile)}
       />
 

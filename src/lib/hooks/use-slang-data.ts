@@ -259,8 +259,12 @@ export function useManagerInboxPreviews() {
   useVisibilityPoll(refreshInbox, ready && Boolean(managerId), 3_000);
 }
 
-export function useWorkerInboxPreviews(workerId: string | undefined) {
+export function useWorkerInboxPreviews(
+  workerId: string | undefined,
+  workerToken?: string
+) {
   const loadMessagePreviews = useSlangStore((s) => s.loadMessagePreviews);
+  const loadManagersForWorker = useSlangStore((s) => s.loadManagersForWorker);
   const upsertMessage = useSlangStore((s) => s.upsertMessage);
   const upsertRef = useRef(upsertMessage);
   upsertRef.current = upsertMessage;
@@ -268,7 +272,10 @@ export function useWorkerInboxPreviews(workerId: string | undefined) {
   const refreshInbox = useCallback(() => {
     if (!workerId) return;
     void loadMessagePreviews({ workerId });
-  }, [workerId, loadMessagePreviews]);
+    if (workerToken) {
+      void loadManagersForWorker(workerToken);
+    }
+  }, [workerId, workerToken, loadMessagePreviews, loadManagersForWorker]);
 
   useEffect(() => {
     if (!workerId) return;

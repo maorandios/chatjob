@@ -7,11 +7,19 @@ create table if not exists worker_company_memberships (
   invite_token text not null unique,
   status text not null default 'pending' check (status in ('pending', 'active', 'revoked')),
   relationship_type text not null default 'direct',
+  display_name text,
+  display_phone text,
+  private_note text,
   created_by_manager_id uuid references managers(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique(worker_id, company_id)
 );
+
+alter table worker_company_memberships
+  add column if not exists display_name text,
+  add column if not exists display_phone text,
+  add column if not exists private_note text;
 
 create index if not exists worker_company_memberships_worker_id_idx
   on worker_company_memberships(worker_id);

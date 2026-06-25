@@ -13,8 +13,7 @@ import { useEffect, useState } from "react";
 export type WorkerProfileSave = {
   name: string;
   phone: string;
-  employeeNumber: string;
-  address: string;
+  privateNote: string;
 };
 
 type WorkerProfileSheetProps = {
@@ -22,10 +21,10 @@ type WorkerProfileSheetProps = {
   onClose: () => void;
   displayName: string;
   displayPhone: string;
+  email?: string;
   imageUrl?: string;
   copyPhone: string;
-  employeeNumber?: string;
-  address?: string;
+  privateNote?: string;
   onSave: (data: WorkerProfileSave) => void | Promise<void>;
   phoneCopiedLabel: string;
   dir?: "ltr" | "rtl";
@@ -102,10 +101,10 @@ export function WorkerProfileSheet({
   onClose,
   displayName,
   displayPhone,
+  email,
   imageUrl,
   copyPhone,
-  employeeNumber,
-  address,
+  privateNote,
   onSave,
   phoneCopiedLabel,
   dir = "rtl",
@@ -114,10 +113,7 @@ export function WorkerProfileSheet({
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(displayName);
   const [phone, setPhone] = useState(displayPhone);
-  const [employeeNumberDraft, setEmployeeNumberDraft] = useState(
-    employeeNumber ?? ""
-  );
-  const [addressDraft, setAddressDraft] = useState(address ?? "");
+  const [privateNoteDraft, setPrivateNoteDraft] = useState(privateNote ?? "");
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
   const [copyNoticeKey, setCopyNoticeKey] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -125,8 +121,7 @@ export function WorkerProfileSheet({
   const resetForm = () => {
     setName(displayName);
     setPhone(displayPhone);
-    setEmployeeNumberDraft(employeeNumber ?? "");
-    setAddressDraft(address ?? "");
+    setPrivateNoteDraft(privateNote ?? "");
     setErrors({});
   };
 
@@ -134,7 +129,7 @@ export function WorkerProfileSheet({
     if (!open) return;
     setEditing(false);
     resetForm();
-  }, [open, displayName, displayPhone, employeeNumber, address]);
+  }, [open, displayName, displayPhone, privateNote]);
 
   const handleCopyPhone = async () => {
     try {
@@ -158,7 +153,7 @@ export function WorkerProfileSheet({
   const handleSave = async () => {
     const nextErrors: { name?: string; phone?: string } = {};
     if (!name.trim()) nextErrors.name = "נא להזין שם";
-    if (!isValidIsraeliPhone(phone)) {
+    if (phone.trim() && !isValidIsraeliPhone(phone)) {
       nextErrors.phone = "נא להזין מספר טלפון תקין (9-10 ספרות)";
     }
     if (Object.keys(nextErrors).length > 0) {
@@ -171,8 +166,7 @@ export function WorkerProfileSheet({
       await onSave({
         name: name.trim(),
         phone: phone.trim(),
-        employeeNumber: employeeNumberDraft.trim(),
-        address: addressDraft.trim(),
+        privateNote: privateNoteDraft.trim(),
       });
       setEditing(false);
     } finally {
@@ -180,8 +174,7 @@ export function WorkerProfileSheet({
     }
   };
 
-  const employeeDisplay = displayValue(employeeNumber);
-  const addressDisplay = displayValue(address);
+  const privateNoteDisplay = displayValue(privateNote);
 
   return (
     <>
@@ -201,17 +194,17 @@ export function WorkerProfileSheet({
                   phoneCopiedLabel={phoneCopiedLabel}
                   dir={dir}
                 />
+                {email && (
+                  <p className="-mt-4 text-center text-xs text-gray-400" dir="ltr">
+                    {email}
+                  </p>
+                )}
 
                 <div className="flex flex-col items-center gap-5">
                   <ProfileField
-                    label="מספר עובד"
-                    value={employeeDisplay}
-                    muted={!employeeNumber?.trim()}
-                  />
-                  <ProfileField
-                    label="כתובת"
-                    value={addressDisplay}
-                    muted={!address?.trim()}
+                    label="תיאור קצר"
+                    value={privateNoteDisplay}
+                    muted={!privateNote?.trim()}
                   />
                 </div>
               </div>
@@ -257,17 +250,10 @@ export function WorkerProfileSheet({
                 />
                 <Input
                   dir={dir}
-                  label="מספר עובד"
-                  placeholder="מספר עובד"
-                  value={employeeNumberDraft}
-                  onChange={(e) => setEmployeeNumberDraft(e.target.value)}
-                />
-                <Input
-                  dir={dir}
-                  label="כתובת"
-                  placeholder="כתובת"
-                  value={addressDraft}
-                  onChange={(e) => setAddressDraft(e.target.value)}
+                  label="תיאור קצר"
+                  placeholder="הערה פרטית לצוות"
+                  value={privateNoteDraft}
+                  onChange={(e) => setPrivateNoteDraft(e.target.value)}
                 />
               </div>
 

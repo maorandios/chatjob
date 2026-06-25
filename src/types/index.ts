@@ -61,6 +61,7 @@ export type Worker = {
   status: WorkerStatus;
   inviteToken: string;
   profileImageUrl?: string;
+  privateNote?: string;
 };
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "failed";

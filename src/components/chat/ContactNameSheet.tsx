@@ -21,6 +21,7 @@ type ContactNameSheetProps = {
   originalPhone: string;
   displayName: string;
   displayPhone: string;
+  email?: string;
   onSave: (data: ContactProfileSave) => void | Promise<void>;
   namePlaceholder: string;
   phonePlaceholder: string;
@@ -35,6 +36,7 @@ export function ContactNameSheet({
   originalPhone,
   displayName,
   displayPhone,
+  email,
   onSave,
   namePlaceholder,
   phonePlaceholder,
@@ -68,7 +70,7 @@ export function ContactNameSheet({
   const handleSave = async () => {
     const nextErrors: { name?: string; phone?: string } = {};
     if (!name.trim()) nextErrors.name = "נא להזין שם";
-    if (!isValidIsraeliPhone(phone)) {
+    if (phone.trim() && !isValidIsraeliPhone(phone)) {
       nextErrors.phone = "נא להזין מספר טלפון תקין (9-10 ספרות)";
     }
     if (Object.keys(nextErrors).length > 0) {
@@ -103,6 +105,11 @@ export function ContactNameSheet({
               <p className="mt-4 text-lg font-semibold text-gray-900">
                 {displayName}
               </p>
+              {email && (
+                <p className="mt-1 text-xs text-gray-400" dir="ltr">
+                  {email}
+                </p>
+              )}
               <div className="mt-1.5 flex items-center justify-center gap-2">
                 <p className="text-sm text-gray-600" dir={dir}>
                   {displayPhone}

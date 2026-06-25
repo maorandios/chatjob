@@ -23,10 +23,9 @@ export type UserType = "management" | "worker";
 
 export type AddMemberSubmit = {
   name: string;
-  phone: string;
+  phone?: string;
   userType: UserType;
-  employeeNumber?: string;
-  address?: string;
+  privateNote?: string;
 };
 
 type AddWorkerSheetProps = {
@@ -82,8 +81,7 @@ export function AddWorkerSheet({
   const [userType, setUserType] = useState<UserType | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [employeeNumber, setEmployeeNumber] = useState("");
-  const [address, setAddress] = useState("");
+  const [privateNote, setPrivateNote] = useState("");
   const [broadcastQuery, setBroadcastQuery] = useState("");
   const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
   const [broadcastText, setBroadcastText] = useState("");
@@ -94,8 +92,7 @@ export function AddWorkerSheet({
     setUserType(null);
     setName("");
     setPhone("");
-    setEmployeeNumber("");
-    setAddress("");
+    setPrivateNote("");
     setBroadcastQuery("");
     setSelectedWorkerIds([]);
     setBroadcastText("");
@@ -134,7 +131,7 @@ export function AddWorkerSheet({
 
     const nextErrors: { name?: string; phone?: string } = {};
     if (!name.trim()) nextErrors.name = "נא להזין שם";
-    if (!isValidIsraeliPhone(phone)) {
+    if (phone.trim() && !isValidIsraeliPhone(phone)) {
       nextErrors.phone = "נא להזין מספר טלפון תקין (9-10 ספרות)";
     }
     if (Object.keys(nextErrors).length > 0) {
@@ -144,11 +141,9 @@ export function AddWorkerSheet({
 
     onSubmit({
       name: name.trim(),
-      phone: phone.trim(),
+      phone: phone.trim() || undefined,
       userType,
-      employeeNumber:
-        userType === "worker" ? employeeNumber.trim() : undefined,
-      address: userType === "worker" ? address.trim() : undefined,
+      privateNote: privateNote.trim() || undefined,
     });
   };
 
@@ -216,7 +211,11 @@ export function AddWorkerSheet({
             פעולות
           </p>
           <div className="space-y-3">
-            {TYPE_OPTIONS.map((option) => {
+            {TYPE_OPTIONS.filter((option) => {
+              if (option.value === "management") return !disableManagement;
+              if (option.value === "worker") return !disableWorker;
+              return true;
+            }).map((option) => {
               const disabled =
                 (option.value === "management" && disableManagement) ||
                 (option.value === "worker" && disableWorker);
@@ -431,24 +430,13 @@ export function AddWorkerSheet({
             error={errors.phone}
           />
 
-          {userType === "worker" && (
-            <>
-              <Input
-                dir="rtl"
-                label="מספר עובד"
-                placeholder="מספר עובד"
-                value={employeeNumber}
-                onChange={(e) => setEmployeeNumber(e.target.value)}
-              />
-              <Input
-                dir="rtl"
-                label="כתובת"
-                placeholder="כתובת"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </>
-          )}
+          <Input
+            dir="rtl"
+            label="תיאור קצר"
+            placeholder="הערה פרטית לצוות"
+            value={privateNote}
+            onChange={(e) => setPrivateNote(e.target.value)}
+          />
 
           <Button fullWidth onClick={handleSubmit} className="!rounded-2xl">
             צור הזמנה

@@ -2,13 +2,14 @@
 
 import { TeamMemberRow } from "@/components/settings/TeamMemberRow";
 import { useToast } from "@/components/ui/Toast";
-import { useSlangStore } from "@/lib/store";
+import { getContactDisplayName, useSlangStore } from "@/lib/store";
 import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Manager, Worker } from "@/types";
 
 export function TeamListSection() {
   const managers = useSlangStore((s) => s.managers);
   const workers = useSlangStore((s) => s.workers);
+  const contactAliases = useSlangStore((s) => s.contactAliases);
   const managerId = useSlangStore((s) => s.managerId);
   const removeManager = useSlangStore((s) => s.removeManager);
   const removeWorker = useSlangStore((s) => s.removeWorker);
@@ -47,6 +48,7 @@ export function TeamListSection() {
               key={manager.id}
               name={manager.name}
               phone={manager.phone}
+              email={manager.email}
               canRemove={!manager.isAdmin && manager.id !== managerId}
               onRemove={() => void handleRemoveManager(manager)}
             />
@@ -68,8 +70,14 @@ export function TeamListSection() {
             {workers.map((worker) => (
               <TeamMemberRow
                 key={worker.id}
-                name={worker.name}
+                name={getContactDisplayName(
+                  contactAliases,
+                  "manager",
+                  worker.id,
+                  worker.name
+                )}
                 phone={worker.phone}
+                email={worker.email}
                 mutedAvatar={isWorkerInvitePending(worker)}
                 pendingInvite={isWorkerInvitePending(worker)}
                 canRemove

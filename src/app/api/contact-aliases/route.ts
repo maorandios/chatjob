@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   assertAuthenticatedWorkerRequest,
+  assertSameCompanyParticipants,
   getManagerCompanyId,
   getWorkerCompanyId,
 } from "@/lib/supabase/company-access";
@@ -33,7 +34,7 @@ function toContactAliases(
   return aliases;
 }
 
-async function resolveOwnerCompany(
+async function resolveOwnerCompanyForList(
   req: Request,
   ownerRole: OwnerRole,
   ownerId: string
@@ -45,7 +46,7 @@ async function resolveOwnerCompany(
   if (!(await assertAuthenticatedWorkerRequest(req, ownerId))) {
     return null;
   }
-  return getWorkerCompanyId(ownerId);
+  return "";
 }
 
 async function resolveContactCompany(
@@ -66,18 +67,23 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Invalid owner" }, { status: 400 });
     }
 
-    const companyId = await resolveOwnerCompany(req, ownerRole, ownerId);
-    if (!companyId) {
+    const companyId = await resolveOwnerCompanyForList(req, ownerRole, ownerId);
+    if (companyId === null) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+    let query = supabase
       .from("contact_aliases")
       .select("contact_role, contact_id, display_name, display_phone")
-      .eq("company_id", companyId)
       .eq("owner_role", ownerRole)
       .eq("owner_id", ownerId);
+
+    if (companyId) {
+      query = query.eq("company_id", companyId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -112,19 +118,44 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Invalid alias" }, { status: 400 });
     }
 
-    const companyId = await resolveOwnerCompany(req, ownerRole, ownerId);
+    if (
+      ownerRole === "worker" &&
+      !(await assertAuthenticatedWorkerRequest(req, ownerId))
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const companyId =
+      ownerRole === "manager"
+        ? await getManagerCompanyId(ownerId)
+        : contactRole === "manager"
+          ? await getManagerCompanyId(contactId)
+          : await getWorkerCompanyId(ownerId);
+
     if (!companyId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const effectiveContactRole =
       contactRole === "self" && ownerRole === "worker" ? "worker" : contactRole;
-    const contactCompanyId = await resolveContactCompany(
-      effectiveContactRole,
-      contactId
-    );
-    if (!contactCompanyId || contactCompanyId !== companyId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (ownerRole === "manager" && effectiveContactRole === "worker") {
+      const accessCompanyId = await assertSameCompanyParticipants(ownerId, contactId);
+      if (accessCompanyId !== companyId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } else if (ownerRole === "worker" && effectiveContactRole === "manager") {
+      const accessCompanyId = await assertSameCompanyParticipants(contactId, ownerId);
+      if (accessCompanyId !== companyId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } else {
+      const contactCompanyId = await resolveContactCompany(
+        effectiveContactRole,
+        contactId
+      );
+      if (!contactCompanyId || contactCompanyId !== companyId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const supabase = getSupabaseAdmin();

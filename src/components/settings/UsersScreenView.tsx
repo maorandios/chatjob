@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
 import { getInviteShareText } from "@/lib/invites/share-text";
-import { useSlangStore } from "@/lib/store";
+import { getContactDisplayName, useSlangStore } from "@/lib/store";
 import { cn, getInviteUrl } from "@/lib/utils";
 import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Manager, Worker } from "@/types";
@@ -31,6 +31,7 @@ export function UsersScreenView() {
 
   const managers = useSlangStore((s) => s.managers);
   const workers = useSlangStore((s) => s.workers);
+  const contactAliases = useSlangStore((s) => s.contactAliases);
   const managerId = useSlangStore((s) => s.managerId);
   const removeManager = useSlangStore((s) => s.removeManager);
   const removeWorker = useSlangStore((s) => s.removeWorker);
@@ -101,6 +102,7 @@ export function UsersScreenView() {
                   key={manager.id}
                   name={manager.name}
                   phone={manager.phone}
+                  email={manager.email}
                   imageUrl={manager.profileImageUrl}
                   onPress={() => setEditingManager(manager)}
                   canRemove={!manager.isAdmin && manager.id !== managerId}
@@ -113,22 +115,32 @@ export function UsersScreenView() {
           ) : workers.length === 0 ? (
             <EmptyState message="אין עובדים רשומים" />
           ) : (
-            workers.map((worker) => (
-              <TeamMemberRow
-                key={worker.id}
-                name={worker.name}
-                phone={worker.phone}
-                imageUrl={worker.profileImageUrl}
-                mutedAvatar={isWorkerInvitePending(worker)}
-                onPress={() => setEditingWorker(worker)}
-                pendingInvite={isWorkerInvitePending(worker)}
-                onSendInvite={() => setInviteWorker(worker)}
-                canRemove
-                onRemove={() =>
-                  setDeleteTarget({ kind: "worker", user: worker })
-                }
-              />
-            ))
+            workers.map((worker) => {
+              const displayName = getContactDisplayName(
+                contactAliases,
+                "manager",
+                worker.id,
+                worker.name
+              );
+
+              return (
+                <TeamMemberRow
+                  key={worker.id}
+                  name={displayName}
+                  phone={worker.phone}
+                  email={worker.email}
+                  imageUrl={worker.profileImageUrl}
+                  mutedAvatar={isWorkerInvitePending(worker)}
+                  onPress={() => setEditingWorker(worker)}
+                  pendingInvite={isWorkerInvitePending(worker)}
+                  onSendInvite={() => setInviteWorker(worker)}
+                  canRemove
+                  onRemove={() =>
+                    setDeleteTarget({ kind: "worker", user: worker })
+                  }
+                />
+              );
+            })
           )}
         </div>
       </div>
@@ -173,6 +185,7 @@ export function UsersScreenView() {
           onClose={() => setEditingManager(null)}
           name={editingManager.name}
           phone={editingManager.phone}
+          email={editingManager.email}
           onSave={async (profile) => {
             try {
               await handleSaveManager(profile);
@@ -188,12 +201,17 @@ export function UsersScreenView() {
         <WorkerProfileSheet
           open
           onClose={() => setEditingWorker(null)}
-          displayName={editingWorker.name}
+          displayName={getContactDisplayName(
+            contactAliases,
+            "manager",
+            editingWorker.id,
+            editingWorker.name
+          )}
           displayPhone={editingWorker.phone}
+          email={editingWorker.email}
           imageUrl={editingWorker.profileImageUrl}
           copyPhone={editingWorker.phone}
-          employeeNumber={editingWorker.employeeNumber}
-          address={editingWorker.address}
+          privateNote={editingWorker.privateNote}
           onSave={async (profile) => {
             try {
               await updateWorkerProfile(editingWorker.id, profile);
@@ -211,14 +229,29 @@ export function UsersScreenView() {
         <InviteReadySheet
           open
           onClose={() => setInviteWorker(null)}
-          memberName={inviteWorker.name}
+          memberName={getContactDisplayName(
+            contactAliases,
+            "manager",
+            inviteWorker.id,
+            inviteWorker.name
+          )}
           inviteUrl={getInviteUrl(inviteWorker.inviteToken)}
           kind="worker"
           title="קישור הצטרפות"
-          subtitle={`שלחו ל-${inviteWorker.name} את קישור ההזמנה`}
+          subtitle={`שלחו ל-${getContactDisplayName(
+            contactAliases,
+            "manager",
+            inviteWorker.id,
+            inviteWorker.name
+          )} את קישור ההזמנה`}
           showCelebration={false}
           whatsappText={getInviteShareText(
-            inviteWorker.name,
+            getContactDisplayName(
+              contactAliases,
+              "manager",
+              inviteWorker.id,
+              inviteWorker.name
+            ),
             getInviteUrl(inviteWorker.inviteToken)
           )}
         />

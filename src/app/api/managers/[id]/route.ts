@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { normalizeEmail } from "@/lib/auth/email";
 import {
   assertManagerIsAdmin,
   getManagerCompanyId,
@@ -63,7 +64,7 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     if (body.phone !== undefined) {
       const phone = normalizePhone(String(body.phone));
-      if (!isValidIsraeliPhone(phone)) {
+      if (phone && !isValidIsraeliPhone(phone)) {
         return NextResponse.json({ error: "Invalid phone" }, { status: 400 });
       }
       updates.phone = phone;
@@ -101,10 +102,43 @@ export async function DELETE(req: Request, context: RouteContext) {
     }
 
     if (id === managerId) {
-      return NextResponse.json(
-        { error: "לא ניתן להסיר את עצמך" },
-        { status: 400 }
-      );
+      const supabase = getSupabaseAdmin();
+      const authorization = req.headers.get("authorization") ?? "";
+      const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+      if (!accessToken) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const [
+        { data: manager, error: managerError },
+        {
+          data: { user },
+          error: authError,
+        },
+      ] = await Promise.all([
+        supabase.from("managers").select("email").eq("id", id).maybeSingle(),
+        supabase.auth.getUser(accessToken),
+      ]);
+
+      if (managerError) throw managerError;
+      const authenticatedEmail = user?.email ? normalizeEmail(user.email) : "";
+      if (
+        authError ||
+        !manager?.email ||
+        normalizeEmail(manager.email) !== authenticatedEmail
+      ) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      await supabase
+        .from("contact_aliases")
+        .delete()
+        .or(`owner_id.eq.${id},contact_id.eq.${id}`);
+
+      const { error } = await supabase.from("managers").delete().eq("id", id);
+      if (error) throw error;
+
+      return NextResponse.json({ ok: true });
     }
 
     const adminCheck = await assertManagerIsAdmin(managerId);

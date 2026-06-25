@@ -93,12 +93,18 @@ export async function ensureWorkerCompanyMembership({
   createdByManagerId,
   inviteToken = generateInviteToken(),
   status = "pending",
+  displayName,
+  displayPhone,
+  privateNote,
 }: {
   workerId: string;
   companyId: string;
   createdByManagerId?: string;
   inviteToken?: string;
   status?: "pending" | "active";
+  displayName?: string;
+  displayPhone?: string;
+  privateNote?: string;
 }): Promise<WorkerMembershipRow> {
   const supabase = getSupabaseAdmin();
   const { data: existing, error: existingError } = await supabase
@@ -118,6 +124,10 @@ export async function ensureWorkerCompanyMembership({
       .update({
         invite_token: inviteToken,
         status,
+        display_name: displayName?.trim() || existing.display_name,
+        display_phone: displayPhone?.trim() || existing.display_phone,
+        private_note:
+          privateNote !== undefined ? privateNote.trim() || null : existing.private_note,
         created_by_manager_id: createdByManagerId ?? existing.created_by_manager_id,
         updated_at: new Date().toISOString(),
       })
@@ -137,6 +147,9 @@ export async function ensureWorkerCompanyMembership({
       invite_token: inviteToken,
       status,
       relationship_type: "direct",
+      display_name: displayName?.trim() || null,
+      display_phone: displayPhone?.trim() || null,
+      private_note: privateNote?.trim() || null,
       created_by_manager_id: createdByManagerId ?? null,
     })
     .select("*")

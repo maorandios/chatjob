@@ -16,6 +16,7 @@ type ManagerProfileEditSheetProps = {
   onClose: () => void;
   name: string;
   phone: string;
+  email?: string;
   onSave: (data: ManagerProfileSave) => void | Promise<void>;
 };
 
@@ -24,6 +25,7 @@ export function ManagerProfileEditSheet({
   onClose,
   name: initialName,
   phone: initialPhone,
+  email,
   onSave,
 }: ManagerProfileEditSheetProps) {
   const [name, setName] = useState(initialName);
@@ -41,7 +43,7 @@ export function ManagerProfileEditSheet({
   const handleSave = async () => {
     const nextErrors: { name?: string; phone?: string } = {};
     if (!name.trim()) nextErrors.name = "נא להזין שם";
-    if (!isValidIsraeliPhone(phone)) {
+    if (phone.trim() && !isValidIsraeliPhone(phone)) {
       nextErrors.phone = "נא להזין מספר טלפון תקין (9-10 ספרות)";
     }
     if (Object.keys(nextErrors).length > 0) {
@@ -64,6 +66,11 @@ export function ManagerProfileEditSheet({
         <p className="text-center text-[17px] font-semibold text-gray-900">
           עריכת פרטים אישיים
         </p>
+        {email && (
+          <p className="-mt-2 text-center text-xs text-gray-400" dir="ltr">
+            {email}
+          </p>
+        )}
         <Input
           dir="rtl"
           label="שם מלא"
