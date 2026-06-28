@@ -1,7 +1,7 @@
 "use client";
 
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type PushUserRole = "manager" | "worker";
 
@@ -10,6 +10,16 @@ type UsePushNotificationsOptions = {
   userRole?: PushUserRole;
   userId?: string;
 };
+
+type PushRegistrationState =
+  | "unsupported"
+  | "missing-key"
+  | "default"
+  | "denied"
+  | "granted"
+  | "subscribing"
+  | "subscribed"
+  | "failed";
 
 function urlBase64ToArrayBuffer(value: string): ArrayBuffer {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -56,24 +66,28 @@ export function usePushNotifications({
   userRole,
   userId,
 }: UsePushNotificationsOptions) {
-  useEffect(() => {
-    if (!enabled || !userRole || !userId) return;
-    if (!isPushSupported()) return;
+  const supported = useMemo(() => isPushSupported(), []);
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const [state, setState] = useState<PushRegistrationState>(() => {
+    if (!supported) return "unsupported";
+    if (!publicKey) return "missing-key";
+    return Notification.permission;
+  });
 
-    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!publicKey) return;
-    const applicationServerKey = urlBase64ToArrayBuffer(publicKey);
+  const subscribe = useCallback(
+    async (requestPermission: boolean) => {
+      if (!enabled || !userRole || !userId || !supported || !publicKey) return;
 
-    let cancelled = false;
-
-    async function registerPush() {
       try {
         const permission =
-          Notification.permission === "default"
+          Notification.permission === "default" && requestPermission
             ? await Notification.requestPermission()
             : Notification.permission;
 
-        if (cancelled || permission !== "granted") return;
+        setState(permission);
+        if (permission !== "granted") return;
+
+        setState("subscribing");
 
         const registration = await navigator.serviceWorker.register("/sw.js");
         const existing = await registration.pushManager.getSubscription();
@@ -81,12 +95,10 @@ export function usePushNotifications({
           existing ??
           (await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey,
+            applicationServerKey: urlBase64ToArrayBuffer(publicKey),
           }));
 
-        if (cancelled) return;
-
-        await fetch("/api/push-subscriptions", {
+        const response = await fetch("/api/push-subscriptions", {
           method: "POST",
           headers: await getAuthHeaders(),
           body: JSON.stringify({
@@ -95,16 +107,35 @@ export function usePushNotifications({
             subscription: subscription.toJSON(),
           }),
         });
+
+        if (!response.ok) {
+          throw new Error("Failed to save push subscription");
+        }
+
+        setState("subscribed");
       } catch (error) {
+        setState("failed");
         console.warn("[Slang] Push registration failed", error);
       }
+    },
+    [enabled, publicKey, supported, userId, userRole]
+  );
+
+  useEffect(() => {
+    if (!enabled || !supported || !publicKey) return;
+
+    if (Notification.permission === "granted") {
+      const timeout = window.setTimeout(() => {
+        void subscribe(false);
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
     }
+  }, [enabled, publicKey, subscribe, supported]);
 
-    void registerPush();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled, userRole, userId]);
+  return {
+    state,
+    requestPermissionAndSubscribe: () => subscribe(true),
+  };
 }
 
