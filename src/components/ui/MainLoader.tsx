@@ -33,7 +33,7 @@ export function MainLoader({ className = "h-20 w-20" }: MainLoaderProps) {
   if (!animationData) {
     return (
       <div
-        className={`${className} animate-pulse rounded-full bg-[var(--jobchat-accent-light)]`}
+        className={`${className} rounded-full bg-[var(--jobchat-accent-light)]`}
         aria-hidden
       />
     );

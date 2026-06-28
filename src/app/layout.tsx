@@ -1,5 +1,6 @@
 import { ToastProvider } from "@/components/ui/Toast";
 import { PageStackTransition } from "@/components/ui/PageStackTransition";
+import { PushNotificationRegistrar } from "@/components/ui/PushNotificationRegistrar";
 import { LEGACY_POLYFILL_SCRIPT } from "@/lib/legacy-polyfills";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
@@ -79,6 +80,7 @@ export default function RootLayout({
       </head>
       <body className="flex h-full min-h-0 flex-col">
         <ToastProvider>
+          <PushNotificationRegistrar />
           <div className="flex min-h-0 flex-1 flex-col">
             <Suspense fallback={children}>
               <PageStackTransition>{children}</PageStackTransition>

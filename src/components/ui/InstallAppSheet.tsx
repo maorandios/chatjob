@@ -93,7 +93,6 @@ export function InstallAppSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      title={labels.title}
       dir={dir}
       className="px-5 pb-4 pt-3"
       showCloseButton={false}
@@ -120,7 +119,7 @@ export function InstallAppSheet({
                 />
               ) : (
                 <div className="flex h-44 flex-col items-center justify-center gap-2 px-6 text-center">
-                  <Smartphone className="h-9 w-9 text-[#FF4400]" />
+                  <Smartphone className="h-9 w-9 text-[var(--jobchat-accent)]" />
                   <p className="text-sm font-medium text-gray-700">
                     iPhone install guide
                   </p>
@@ -131,7 +130,7 @@ export function InstallAppSheet({
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-2">
               <InstallStep icon={<Share />} text={labels.iosStepShare} />
               <InstallStep icon={<ExternalLink />} text={labels.iosStepHome} />
               <InstallStep icon={<CheckCircle2 />} text={labels.iosStepDone} />
@@ -140,7 +139,7 @@ export function InstallAppSheet({
         ) : (
           <>
             <div className="text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE0D5] text-[#FF4400]">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)] text-[var(--jobchat-accent)]">
                 <Download className="h-6 w-6" />
               </div>
               <p className="text-base font-semibold text-gray-900">
@@ -181,11 +180,11 @@ export function InstallAppSheet({
 
 function InstallStep({ icon, text }: { icon: ReactElement; text: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-[var(--jobchat-surface)] px-4 py-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#FF4400] shadow-sm">
+    <div className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl bg-[var(--jobchat-surface)] px-2 py-3 text-center">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[var(--jobchat-accent)] shadow-sm">
         {icon}
       </span>
-      <p className="min-w-0 flex-1 text-sm font-medium leading-relaxed text-gray-700">
+      <p className="text-xs font-medium leading-snug text-gray-700">
         {text}
       </p>
     </div>

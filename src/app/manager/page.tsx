@@ -1,11 +1,11 @@
 "use client";
 
-import { ChatListSkeleton } from "@/components/chat/ChatListSkeleton";
 import { AddWorkerSheet } from "@/components/manager/AddWorkerSheet";
 import { ChatListItem } from "@/components/manager/ChatListItem";
 import { ContactSearchField } from "@/components/manager/ContactSearchField";
 import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
 import { AppListHeader } from "@/components/settings/AppListHeader";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { AppShell } from "@/components/ui/AppShell";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { useToast } from "@/components/ui/Toast";
@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 export default function ManagerPage() {
   const router = useRouter();
   useRequireOnboardingComplete();
-  useManagerInboxPreviews();
+  const inboxLoading = useManagerInboxPreviews();
   const ready = useSlangStore((s) => s.ready);
   const managerId = useSlangStore((s) => s.managerId);
   const workers = useSlangStore((s) => s.workers);
@@ -30,7 +30,6 @@ export default function ManagerPage() {
   const contactAliases = useSlangStore((s) => s.contactAliases);
   const loadWorkers = useSlangStore((s) => s.loadWorkers);
   const loadMessagePreviews = useSlangStore((s) => s.loadMessagePreviews);
-  const managers = useSlangStore((s) => s.managers);
   const isAdmin = useSlangStore((s) => s.isAdmin);
   const addManager = useSlangStore((s) => s.addManager);
   const addWorker = useSlangStore((s) => s.addWorker);
@@ -165,16 +164,10 @@ export default function ManagerPage() {
     }
   };
 
-  if (!ready || !managerId) {
+  if (!ready || !managerId || inboxLoading) {
     return (
       <AppShell dir="rtl">
-        <AppListHeader settingsHref="/manager/settings" />
-        <div className="shrink-0 bg-[var(--jobchat-surface)] px-3 pb-3 pt-2">
-          <div className="h-12 animate-pulse rounded-2xl bg-white/50" />
-        </div>
-        <div className="min-h-0 flex-1 bg-[var(--jobchat-surface)]">
-          <ChatListSkeleton />
-        </div>
+        <AppLoadingState />
       </AppShell>
     );
   }

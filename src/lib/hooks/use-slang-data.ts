@@ -227,17 +227,25 @@ export function useManagerInboxPreviews() {
   const upsertWorkerRef = useRef(upsertWorker);
   upsertRef.current = upsertMessage;
   upsertWorkerRef.current = upsertWorker;
+  const [loadedManagerId, setLoadedManagerId] = useState<string | null>(null);
 
-  const refreshInbox = useCallback(() => {
+  const refreshInbox = useCallback(async () => {
     if (!managerId) return;
-    void loadMessagePreviews({ managerId });
-    void loadWorkers();
+    await Promise.allSettled([
+      loadMessagePreviews({ managerId }),
+      loadWorkers(),
+    ]);
   }, [managerId, loadMessagePreviews, loadWorkers]);
 
   useEffect(() => {
-    if (!ready || !managerId) return;
+    if (!ready || !managerId) {
+      return;
+    }
 
-    refreshInbox();
+    let cancelled = false;
+    void refreshInbox().finally(() => {
+      if (!cancelled) setLoadedManagerId(managerId);
+    });
 
     const unsubMessages = subscribeToManagerInbox(managerId, (message) => {
       upsertRef.current(message);
@@ -251,12 +259,15 @@ export function useManagerInboxPreviews() {
       : () => {};
 
     return () => {
+      cancelled = true;
       unsubMessages();
       unsubWorkers();
     };
   }, [ready, managerId, companyId, loadMessagePreviews, refreshInbox]);
 
   useVisibilityPoll(refreshInbox, ready && Boolean(managerId), 3_000);
+
+  return Boolean(ready && managerId && loadedManagerId !== managerId);
 }
 
 export function useWorkerInboxPreviews(
@@ -268,27 +279,41 @@ export function useWorkerInboxPreviews(
   const upsertMessage = useSlangStore((s) => s.upsertMessage);
   const upsertRef = useRef(upsertMessage);
   upsertRef.current = upsertMessage;
+  const inboxKey = workerId ? `${workerId}:${workerToken ?? ""}` : null;
+  const [loadedInboxKey, setLoadedInboxKey] = useState<string | null>(null);
 
-  const refreshInbox = useCallback(() => {
+  const refreshInbox = useCallback(async () => {
     if (!workerId) return;
-    void loadMessagePreviews({ workerId });
-    if (workerToken) {
-      void loadManagersForWorker(workerToken);
-    }
+    await Promise.allSettled([
+      loadMessagePreviews({ workerId }),
+      workerToken ? loadManagersForWorker(workerToken) : Promise.resolve(),
+    ]);
   }, [workerId, workerToken, loadMessagePreviews, loadManagersForWorker]);
 
   useEffect(() => {
-    if (!workerId) return;
+    if (!workerId) {
+      return;
+    }
 
-    refreshInbox();
+    let cancelled = false;
+    void refreshInbox().finally(() => {
+      if (!cancelled) setLoadedInboxKey(inboxKey);
+    });
 
-    return subscribeToWorkerInbox(workerId, (message) => {
+    const unsubscribe = subscribeToWorkerInbox(workerId, (message) => {
       upsertRef.current(message);
       void loadMessagePreviews({ workerId });
     });
-  }, [workerId, loadMessagePreviews, refreshInbox]);
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [workerId, inboxKey, loadMessagePreviews, refreshInbox]);
 
   useVisibilityPoll(refreshInbox, Boolean(workerId), 3_000);
+
+  return Boolean(inboxKey && loadedInboxKey !== inboxKey);
 }
 
 export function useInviteBootstrap(token: string | undefined) {

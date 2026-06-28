@@ -1,10 +1,10 @@
 "use client";
 
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
-import { ChatListSkeleton } from "@/components/chat/ChatListSkeleton";
-import { KeyRound, Loader2 } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { AppListHeader } from "@/components/settings/AppListHeader";
 import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
+import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MobileFrame } from "@/components/ui/MobileFrame";
@@ -68,7 +68,15 @@ function WorkerHome({
     );
   }, [managers, messages, workerId]);
 
-  useWorkerInboxPreviews(workerId, token);
+  const inboxLoading = useWorkerInboxPreviews(workerId, token);
+
+  if (inboxLoading) {
+    return (
+      <MobileFrame dir={dir}>
+        <AppLoadingState />
+      </MobileFrame>
+    );
+  }
 
   return (
     <MobileFrame dir={dir}>
@@ -414,10 +422,7 @@ function InvitePageContent({ token }: { token: string }) {
   if (loading) {
     return (
       <MobileFrame>
-        <AppListHeader settingsHref={getWorkerSettingsPath(token)} variant="en" />
-        <div className="min-h-0 flex-1 bg-[var(--jobchat-surface)]">
-          <ChatListSkeleton />
-        </div>
+        <AppLoadingState />
       </MobileFrame>
     );
   }

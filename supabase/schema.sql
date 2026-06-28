@@ -129,6 +129,21 @@ create index if not exists messages_conversation_idx
 create index if not exists messages_worker_id_idx on messages(worker_id);
 create index if not exists messages_manager_id_idx on messages(manager_id);
 
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_role text not null check (user_role in ('manager', 'worker')),
+  user_id uuid not null,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists push_subscriptions_user_idx
+  on push_subscriptions(user_role, user_id);
+
 -- ---------------------------------------------------------------------------
 -- Manager profile images (Supabase Storage)
 -- ---------------------------------------------------------------------------

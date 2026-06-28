@@ -5,6 +5,7 @@ import {
   shouldLockSourceLanguage,
 } from "@/lib/server/languages";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
+import { sendMessagePushNotification } from "@/lib/push/web-push";
 import { apiErrorResponse } from "@/lib/server/api-errors";
 import { translateTextOrOriginal } from "@/lib/server/translate";
 import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
@@ -194,6 +195,17 @@ export async function POST(req: Request) {
       .single();
 
     if (error) throw error;
+
+    await sendMessagePushNotification({
+      managerId,
+      workerId,
+      senderRole,
+      originalText,
+      translatedText,
+      inputType,
+    }).catch((pushError) => {
+      console.error("Message push notification error:", pushError);
+    });
 
     return NextResponse.json({ message: rowToMessage(data) });
   } catch (error) {

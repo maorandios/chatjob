@@ -60,7 +60,7 @@ export function InstallAppBanner({
             type="button"
             onClick={handleInstallClick}
             aria-label={actionLabel}
-            className="flex min-h-10 w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-[#FF4400] bg-[#FFE0D5] px-4 text-[13px] font-semibold leading-5 text-[#FF4400] active:scale-[0.98]"
+            className="flex min-h-10 w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-[var(--jobchat-accent)] bg-[var(--jobchat-accent-light)] px-4 text-[13px] font-semibold leading-5 text-[var(--jobchat-accent)] active:scale-[0.98]"
           >
             <span className="min-w-0 truncate">{text}</span>
             <Download className="h-3.5 w-3.5 shrink-0" strokeWidth={2.1} />

@@ -11,6 +11,7 @@
 --   • Atomic bootstrap function with advisory lock
 --   • companies UPDATE policy (admin edits company details via API)
 --   • Worker-company memberships for leased/shared workers
+--   • Push notification subscriptions for installed/mobile PWAs
 --
 -- Fresh database? Run supabase/schema.sql instead (full bootstrap).
 -- Existing database? Run this file only.
@@ -278,6 +279,25 @@ create policy "manager_profiles_public_read"
   on storage.objects
   for select
   using (bucket_id = 'manager-profiles');
+
+-- ---------------------------------------------------------------------------
+-- Push notification subscriptions
+-- ---------------------------------------------------------------------------
+
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_role text not null check (user_role in ('manager', 'worker')),
+  user_id uuid not null,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists push_subscriptions_user_idx
+  on push_subscriptions(user_role, user_id);
 
 -- ---------------------------------------------------------------------------
 -- Realtime (no-op if messages is already in publication)
