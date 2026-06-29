@@ -12,6 +12,7 @@
 --   • companies UPDATE policy (admin edits company details via API)
 --   • Worker-company memberships for leased/shared workers
 --   • Push notification subscriptions for installed/mobile PWAs
+--   • Location messages
 --
 -- Fresh database? Run supabase/schema.sql instead (full bootstrap).
 -- Existing database? Run this file only.
@@ -185,6 +186,22 @@ drop trigger if exists slang_message_company on messages;
 create trigger slang_message_company
 before insert or update on messages
 for each row execute function slang_enforce_message_company();
+
+-- ---------------------------------------------------------------------------
+-- Location messages
+-- ---------------------------------------------------------------------------
+
+alter table messages
+  add column if not exists location_lat double precision,
+  add column if not exists location_lng double precision,
+  add column if not exists location_label text;
+
+alter table messages
+  drop constraint if exists messages_input_type_check;
+
+alter table messages
+  add constraint messages_input_type_check
+  check (input_type in ('text', 'voice', 'image', 'location'));
 
 -- ---------------------------------------------------------------------------
 -- Atomic bootstrap (prevents duplicate companies on concurrent requests)

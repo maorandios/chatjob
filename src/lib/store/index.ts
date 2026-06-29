@@ -104,6 +104,16 @@ type SlangState = {
     senderRole: "manager" | "worker",
     file: File
   ) => Promise<Message>;
+  sendLocationMessage: (
+    managerId: string,
+    workerId: string,
+    senderRole: "manager" | "worker",
+    location: {
+      latitude: number;
+      longitude: number;
+      label?: string;
+    }
+  ) => Promise<Message>;
   commitProcessedMessage: (
     managerId: string,
     workerId: string,
@@ -180,7 +190,8 @@ function createPendingMessage(
   workerId: string,
   senderRole: "manager" | "worker",
   text: string,
-  inputType: "text" | "voice" | "image"
+  inputType: Message["inputType"],
+  extra: Partial<Message> = {}
 ): Message {
   return {
     id: `pending-${generateId()}`,
@@ -193,6 +204,7 @@ function createPendingMessage(
     inputType,
     createdAt: new Date().toISOString(),
     status: "sending",
+    ...extra,
   };
 }
 
@@ -882,6 +894,65 @@ export const useSlangStore = create<SlangState>()(
         }
       },
 
+      sendLocationMessage: async (
+        managerId,
+        workerId,
+        senderRole,
+        location
+      ) => {
+        const state = get();
+        const companyId = resolveCompanyId(state, managerId, workerId);
+        const label = location.label?.trim() || "📍";
+        const pending = createPendingMessage(
+          companyId,
+          managerId,
+          workerId,
+          senderRole,
+          label,
+          "location",
+          {
+            locationLat: location.latitude,
+            locationLng: location.longitude,
+            locationLabel: label,
+          }
+        );
+        set((s) => ({ messages: [...s.messages, pending] }));
+
+        try {
+          const res = await fetch("/api/messages", {
+            method: "POST",
+            headers: await getAuthHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({
+              managerId,
+              workerId,
+              senderRole,
+              inputType: "location",
+              locationLat: location.latitude,
+              locationLng: location.longitude,
+              locationLabel: label,
+            }),
+          });
+
+          if (!res.ok) throw new Error("Failed to send location");
+
+          const data = await res.json();
+          const message = data.message as Message;
+          set((s) => ({
+            messages: s.messages
+              .filter((m) => m.id !== pending.id)
+              .concat(message),
+          }));
+          return message;
+        } catch {
+          set((s) => ({
+            messages: s.messages.map((m) =>
+              m.id === pending.id ? { ...m, status: "failed" as const } : m
+            ),
+          }));
+          throw new Error("Failed to send location");
+        }
+      },
+
       commitProcessedMessage: async (
         managerId,
         workerId,
@@ -1290,6 +1361,9 @@ export function getMessageDisplayText(
 ): string {
   if (message.inputType === "image") {
     return "📷 תמונה";
+  }
+  if (message.inputType === "location") {
+    return "📍 מיקום";
   }
   if (message.senderRole === viewerRole) {
     return message.originalText;

@@ -79,6 +79,9 @@ export function rowToMessage(row: DbMessage): Message {
     targetLang: row.target_lang ?? undefined,
     inputType: row.input_type as Message["inputType"],
     imageUrl: row.image_url ?? undefined,
+    locationLat: row.location_lat ?? undefined,
+    locationLng: row.location_lng ?? undefined,
+    locationLabel: row.location_label ?? undefined,
     createdAt: row.created_at,
     status: row.status as Message["status"],
   };

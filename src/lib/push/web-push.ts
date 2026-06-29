@@ -48,6 +48,7 @@ function ensureConfigured(): boolean {
 
 function getBody(input: MessageNotificationInput): string {
   if (input.inputType === "image") return "תמונה חדשה";
+  if (input.inputType === "location") return "מיקום חדש";
   return (input.translatedText || input.originalText).trim();
 }
 

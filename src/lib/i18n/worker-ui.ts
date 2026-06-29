@@ -39,6 +39,10 @@ export type WorkerUiStrings = {
   takePhotoLabel: string;
   chooseGalleryLabel: string;
   imageSendFailed: string;
+  shareLocationLabel: string;
+  locationSendFailed: string;
+  locationUnsupported: string;
+  locationPermissionDenied: string;
   noMessagesYet: string;
   contactNameTitle: string;
   contactNameOriginal: string;
@@ -288,6 +292,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "ถ่ายรูป",
     chooseGalleryLabel: "เลือกจากแกลเลอรี",
     imageSendFailed: "ส่งรูปไม่สำเร็จ",
+    shareLocationLabel: "แชร์ตำแหน่ง",
+    locationSendFailed: "ส่งตำแหน่งไม่สำเร็จ",
+    locationUnsupported: "อุปกรณ์นี้ไม่รองรับการแชร์ตำแหน่ง",
+    locationPermissionDenied: "ไม่สามารถเข้าถึงตำแหน่งได้",
     noMessagesYet: "ยังไม่มีข้อความ",
     contactNameTitle: "ชื่อผู้ติดต่อ",
     contactNameOriginal: "ชื่อต้นฉบับ",
@@ -350,6 +358,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "फ़ोटो लें",
     chooseGalleryLabel: "गैलरी से चुनें",
     imageSendFailed: "फ़ोटो भेजना विफल",
+    shareLocationLabel: "लोकेशन शेयर करें",
+    locationSendFailed: "लोकेशन भेजना विफल",
+    locationUnsupported: "यह डिवाइस लोकेशन शेयरिंग सपोर्ट नहीं करता",
+    locationPermissionDenied: "लोकेशन तक पहुंच नहीं मिली",
     noMessagesYet: "अभी कोई संदेश नहीं",
     contactNameTitle: "संपर्क का नाम",
     contactNameOriginal: "मूल नाम",
@@ -412,6 +424,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "ඡායාරූපයක් ගන්න",
     chooseGalleryLabel: "ගැලරියෙන් තෝරන්න",
     imageSendFailed: "ඡායාරූපය යැවීම අසාර්ථකයි",
+    shareLocationLabel: "ස්ථානය බෙදාගන්න",
+    locationSendFailed: "ස්ථානය යැවීම අසාර්ථකයි",
+    locationUnsupported: "මෙම උපකරණය ස්ථානය බෙදාගැනීමට සහාය නොදක්වයි",
+    locationPermissionDenied: "ස්ථානයට ප්‍රවේශ විය නොහැක",
     noMessagesYet: "තවම පණිවිඩ නැහැ",
     contactNameTitle: "සම්බන්ධතා නම",
     contactNameOriginal: "මුල් නම",
@@ -474,6 +490,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "Fă o poză",
     chooseGalleryLabel: "Alege din galerie",
     imageSendFailed: "Trimiterea foto a eșuat",
+    shareLocationLabel: "Partajează locația",
+    locationSendFailed: "Trimiterea locației a eșuat",
+    locationUnsupported: "Acest dispozitiv nu acceptă partajarea locației",
+    locationPermissionDenied: "Nu se poate accesa locația",
     noMessagesYet: "Niciun mesaj încă",
     contactNameTitle: "Nume contact",
     contactNameOriginal: "Nume original",
@@ -536,6 +556,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "Take photo",
     chooseGalleryLabel: "Choose from gallery",
     imageSendFailed: "Failed to send photo",
+    shareLocationLabel: "Share location",
+    locationSendFailed: "Failed to send location",
+    locationUnsupported: "This device does not support location sharing",
+    locationPermissionDenied: "Could not access your location",
     noMessagesYet: "No messages yet",
     contactNameTitle: "Contact name",
     contactNameOriginal: "Original name",
@@ -598,6 +622,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "التقاط صورة",
     chooseGalleryLabel: "اختيار من المعرض",
     imageSendFailed: "فشل إرسال الصورة",
+    shareLocationLabel: "مشاركة الموقع",
+    locationSendFailed: "فشل إرسال الموقع",
+    locationUnsupported: "هذا الجهاز لا يدعم مشاركة الموقع",
+    locationPermissionDenied: "تعذر الوصول إلى الموقع",
     noMessagesYet: "لا توجد رسائل بعد",
     contactNameTitle: "اسم جهة الاتصال",
     contactNameOriginal: "الاسم الأصلي",
@@ -660,6 +688,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "Сделать фото",
     chooseGalleryLabel: "Выбрать из галереи",
     imageSendFailed: "Не удалось отправить фото",
+    shareLocationLabel: "Поделиться геолокацией",
+    locationSendFailed: "Не удалось отправить геолокацию",
+    locationUnsupported: "Это устройство не поддерживает отправку геолокации",
+    locationPermissionDenied: "Не удалось получить доступ к геолокации",
     noMessagesYet: "Сообщений пока нет",
     contactNameTitle: "Имя контакта",
     contactNameOriginal: "Оригинальное имя",
@@ -722,6 +754,10 @@ const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
     takePhotoLabel: "拍照",
     chooseGalleryLabel: "从相册选择",
     imageSendFailed: "照片发送失败",
+    shareLocationLabel: "共享位置",
+    locationSendFailed: "位置发送失败",
+    locationUnsupported: "此设备不支持共享位置",
+    locationPermissionDenied: "无法访问你的位置",
     noMessagesYet: "还没有消息",
     contactNameTitle: "联系人姓名",
     contactNameOriginal: "原始姓名",

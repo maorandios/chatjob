@@ -214,6 +214,9 @@ export type Database = {
           target_lang: string | null;
           input_type: string;
           image_url: string | null;
+          location_lat: number | null;
+          location_lng: number | null;
+          location_label: string | null;
           status: string;
           created_at: string;
         };
@@ -229,6 +232,9 @@ export type Database = {
           target_lang?: string | null;
           input_type?: string;
           image_url?: string | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
+          location_label?: string | null;
           status?: string;
           created_at?: string;
         };
@@ -244,6 +250,9 @@ export type Database = {
           target_lang?: string | null;
           input_type?: string;
           image_url?: string | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
+          location_label?: string | null;
           status?: string;
           created_at?: string;
         };

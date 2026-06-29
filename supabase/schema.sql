@@ -115,8 +115,11 @@ create table if not exists messages (
   original_lang text not null default '',
   translated_text text,
   target_lang text,
-  input_type text not null default 'text' check (input_type in ('text', 'voice', 'image')),
+  input_type text not null default 'text' check (input_type in ('text', 'voice', 'image', 'location')),
   image_url text,
+  location_lat double precision,
+  location_lng double precision,
+  location_label text,
   status text not null default 'sent' check (status in ('sending', 'sent', 'delivered', 'failed')),
   created_at timestamptz not null default now(),
   constraint messages_same_company check (

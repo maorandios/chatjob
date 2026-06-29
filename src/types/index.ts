@@ -66,7 +66,7 @@ export type Worker = {
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "failed";
 
-export type MessageInputType = "text" | "voice" | "image";
+export type MessageInputType = "text" | "voice" | "image" | "location";
 
 export type Message = {
   id: string;
@@ -80,6 +80,9 @@ export type Message = {
   targetLang?: string;
   inputType?: MessageInputType;
   imageUrl?: string;
+  locationLat?: number;
+  locationLng?: number;
+  locationLabel?: string;
   createdAt: string;
   status: MessageStatus;
 };

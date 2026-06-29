@@ -47,7 +47,11 @@ type ChatThreadProps = {
   attachImageTitle?: string;
   takePhotoLabel?: string;
   chooseGalleryLabel?: string;
+  shareLocationLabel?: string;
   imageSendFailedLabel?: string;
+  locationSendFailedLabel?: string;
+  locationUnsupportedLabel?: string;
+  locationPermissionDeniedLabel?: string;
   dir?: "ltr" | "rtl";
   largeComposer?: boolean;
 };
@@ -72,13 +76,16 @@ export function ChatThread({
   voiceConfirmTitle = "אישור הודעה קולית",
   voiceConfirmYouSaid = "המרת הקלטה לטקסט",
   voiceConfirmSend = "שלח הודעה",
-  voiceConfirmRerecord = "הקלטה חוזרת",
   voiceConfirmCancel = "ביטול",
   recordingTooShortLabel = "הקלטה קצרה מדי — נסה שוב",
   attachImageTitle = "שליחת תמונה",
   takePhotoLabel = "צלם תמונה",
   chooseGalleryLabel = "בחר מהגלריה",
+  shareLocationLabel = "שתף מיקום",
   imageSendFailedLabel = "שליחת התמונה נכשלה",
+  locationSendFailedLabel = "שליחת המיקום נכשלה",
+  locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
+  locationPermissionDeniedLabel = "לא ניתן לגשת למיקום",
   dir = "rtl",
   largeComposer = false,
 }: ChatThreadProps) {
@@ -90,6 +97,7 @@ export function ChatThread({
   const messages = useConversationMessages(managerId, workerId);
   const sendMessage = useSlangStore((s) => s.sendMessage);
   const sendImageMessage = useSlangStore((s) => s.sendImageMessage);
+  const sendLocationMessage = useSlangStore((s) => s.sendLocationMessage);
   const commitProcessedMessage = useSlangStore((s) => s.commitProcessedMessage);
   const markManagerMessagesRead = useSlangStore((s) => s.markManagerMessagesRead);
   const markWorkerMessagesRead = useSlangStore((s) => s.markWorkerMessagesRead);
@@ -192,6 +200,18 @@ export function ChatThread({
     }
   };
 
+  const handleLocationSend = async (location: {
+    latitude: number;
+    longitude: number;
+    label?: string;
+  }) => {
+    try {
+      await sendLocationMessage(managerId, workerId, viewerRole, location);
+    } catch {
+      showToast(locationSendFailedLabel);
+    }
+  };
+
   const handleVoiceRecorded = async (blob: Blob) => {
     const result = await transcribeVoiceMessage(blob, viewerRole, workerLanguage);
     setVoicePreview(result);
@@ -249,6 +269,7 @@ export function ChatThread({
           onSend={handleSend}
           onVoiceSend={handleVoiceRecorded}
           onImageSend={handleImageSend}
+          onLocationSend={handleLocationSend}
           placeholder={composerPlaceholder}
           processingLabel={processingLabel}
           analyzingLabel={analyzingLabel}
@@ -262,7 +283,11 @@ export function ChatThread({
           attachImageTitle={attachImageTitle}
           takePhotoLabel={takePhotoLabel}
           chooseGalleryLabel={chooseGalleryLabel}
+          shareLocationLabel={shareLocationLabel}
           imageSendFailedLabel={imageSendFailedLabel}
+          locationSendFailedLabel={locationSendFailedLabel}
+          locationUnsupportedLabel={locationUnsupportedLabel}
+          locationPermissionDeniedLabel={locationPermissionDeniedLabel}
           large={largeComposer}
           dir={dir}
           disabled
@@ -331,6 +356,7 @@ export function ChatThread({
         onSend={handleSend}
         onVoiceSend={handleVoiceRecorded}
         onImageSend={handleImageSend}
+        onLocationSend={handleLocationSend}
         placeholder={composerPlaceholder}
         processingLabel={processingLabel}
         analyzingLabel={analyzingLabel}
@@ -344,7 +370,11 @@ export function ChatThread({
         attachImageTitle={attachImageTitle}
         takePhotoLabel={takePhotoLabel}
         chooseGalleryLabel={chooseGalleryLabel}
+        shareLocationLabel={shareLocationLabel}
         imageSendFailedLabel={imageSendFailedLabel}
+        locationSendFailedLabel={locationSendFailedLabel}
+        locationUnsupportedLabel={locationUnsupportedLabel}
+        locationPermissionDeniedLabel={locationPermissionDeniedLabel}
         large={largeComposer}
         dir={dir}
         disabled={!!voicePreview || isConfirmingVoice}

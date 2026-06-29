@@ -104,6 +104,9 @@ export async function POST(req: Request) {
     if (senderRole !== "manager" && senderRole !== "worker") {
       return NextResponse.json({ error: "Invalid senderRole" }, { status: 400 });
     }
+    if (!["text", "voice", "image", "location"].includes(inputType)) {
+      return NextResponse.json({ error: "Invalid inputType" }, { status: 400 });
+    }
 
     const companyId = await assertActiveConversationParticipants(managerId, workerId);
     if (!companyId) {
@@ -127,11 +130,34 @@ export async function POST(req: Request) {
     let translatedText = body.translatedText as string | undefined;
     let targetLang = body.targetLang as string | undefined;
     let imageUrl = body.imageUrl as string | undefined;
+    let locationLat: number | null = null;
+    let locationLng: number | null = null;
+    const locationLabel = body.locationLabel
+      ? String(body.locationLabel).trim()
+      : "";
 
     if (inputType === "image") {
       imageUrl = String(body.imageUrl ?? "");
       originalText = originalText || "📷";
       originalLang = originalLang || (senderRole === "manager" ? "he" : "en");
+    } else if (inputType === "location") {
+      locationLat = Number(body.locationLat);
+      locationLng = Number(body.locationLng);
+      if (
+        !Number.isFinite(locationLat) ||
+        !Number.isFinite(locationLng) ||
+        locationLat < -90 ||
+        locationLat > 90 ||
+        locationLng < -180 ||
+        locationLng > 180
+      ) {
+        return NextResponse.json(
+          { error: "Valid location is required" },
+          { status: 400 }
+        );
+      }
+      originalText = locationLabel || "📍";
+      originalLang = senderRole === "manager" ? "he" : "en";
     } else if (body.processed) {
       originalText = String(body.processed.originalText ?? "");
       originalLang = String(body.processed.originalLang ?? "");
@@ -189,6 +215,9 @@ export async function POST(req: Request) {
         target_lang: targetLang ?? null,
         input_type: inputType,
         image_url: imageUrl ?? null,
+        location_lat: locationLat,
+        location_lng: locationLng,
+        location_label: locationLabel || null,
         status: "sent",
       })
       .select("*")

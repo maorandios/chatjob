@@ -4,7 +4,7 @@ import { ImageLightbox } from "@/components/chat/ImageLightbox";
 import { formatTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types";
-import { Check, CheckCheck, Loader2, Mic } from "lucide-react";
+import { Check, CheckCheck, ExternalLink, Loader2, MapPin, Mic } from "lucide-react";
 import { useState } from "react";
 
 type MessageBubbleProps = {
@@ -59,8 +59,17 @@ export function MessageBubble({
   showStatus = false,
 }: MessageBubbleProps) {
   const isImage = message.inputType === "image" && message.imageUrl;
+  const isLocation =
+    message.inputType === "location" &&
+    typeof message.locationLat === "number" &&
+    typeof message.locationLng === "number";
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const canOpenLightbox = isImage && message.status !== "sending";
+  const locationUrl = isLocation
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${message.locationLat},${message.locationLng}`
+      )}`
+    : "";
 
   return (
     <div
@@ -113,6 +122,56 @@ export function MessageBubble({
               onClose={() => setLightboxOpen(false)}
             />
           </>
+        ) : isLocation ? (
+          <div
+            className={cn(
+              "overflow-hidden rounded-2xl",
+              isOwn
+                ? "rounded-br-sm bg-[var(--jobchat-accent)] text-white"
+                : "rounded-bl-sm border border-gray-200 bg-white text-gray-900"
+            )}
+          >
+            <a
+              href={locationUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(
+                "block min-w-[220px] px-3 py-3 active:opacity-90",
+                message.status === "sending" && "pointer-events-none opacity-70"
+              )}
+              aria-label="Open location in maps"
+            >
+              <div
+                className={cn(
+                  "mb-2 flex h-24 items-center justify-center rounded-xl",
+                  isOwn ? "bg-white/15" : "bg-[var(--jobchat-accent-light)]"
+                )}
+              >
+                <MapPin
+                  className={cn(
+                    "h-9 w-9",
+                    isOwn ? "text-white" : "text-[var(--jobchat-accent)]"
+                  )}
+                  strokeWidth={1.8}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[15px] font-semibold">
+                  {message.locationLabel || displayText || "📍 מיקום"}
+                </span>
+                <ExternalLink className="h-4 w-4 shrink-0 opacity-80" />
+              </div>
+            </a>
+            <StatusRow
+              message={message}
+              isOwn={isOwn}
+              showStatus={showStatus}
+              className={cn(
+                "px-3 pb-2",
+                isOwn ? "text-white/70" : "text-gray-400"
+              )}
+            />
+          </div>
         ) : (
           <div
             className={cn(

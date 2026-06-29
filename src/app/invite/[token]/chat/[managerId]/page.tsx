@@ -120,7 +120,11 @@ export default function WorkerChatPage() {
         attachImageTitle={ui.attachImageTitle}
         takePhotoLabel={ui.takePhotoLabel}
         chooseGalleryLabel={ui.chooseGalleryLabel}
+        shareLocationLabel={ui.shareLocationLabel}
         imageSendFailedLabel={ui.imageSendFailed}
+        locationSendFailedLabel={ui.locationSendFailed}
+        locationUnsupportedLabel={ui.locationUnsupported}
+        locationPermissionDeniedLabel={ui.locationPermissionDenied}
         dir={dir}
         largeComposer
       />

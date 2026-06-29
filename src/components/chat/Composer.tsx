@@ -4,13 +4,18 @@ import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
 import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
-import { ImagePlus, Loader2, Send } from "lucide-react";
+import { Loader2, Plus, Send } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
 
 type ComposerProps = {
   onSend: (text: string) => Promise<void>;
   onVoiceSend?: (blob: Blob) => Promise<void>;
   onImageSend?: (file: File) => Promise<void>;
+  onLocationSend?: (location: {
+    latitude: number;
+    longitude: number;
+    label?: string;
+  }) => Promise<void>;
   placeholder?: string;
   processingLabel?: string;
   analyzingLabel?: string;
@@ -24,7 +29,11 @@ type ComposerProps = {
   attachImageTitle?: string;
   takePhotoLabel?: string;
   chooseGalleryLabel?: string;
+  shareLocationLabel?: string;
   imageSendFailedLabel?: string;
+  locationSendFailedLabel?: string;
+  locationUnsupportedLabel?: string;
+  locationPermissionDeniedLabel?: string;
   large?: boolean;
   dir?: "ltr" | "rtl";
   disabled?: boolean;
@@ -42,6 +51,7 @@ export function Composer({
   onSend,
   onVoiceSend,
   onImageSend,
+  onLocationSend,
   placeholder = "כתוב הודעה",
   processingLabel = "שולח...",
   analyzingLabel = "ממיר הקלטה לטקסט",
@@ -55,7 +65,11 @@ export function Composer({
   attachImageTitle = "שליחת תמונה",
   takePhotoLabel = "צלם תמונה",
   chooseGalleryLabel = "בחר מהגלריה",
+  shareLocationLabel = "שתף מיקום",
   imageSendFailedLabel = "שליחת התמונה נכשלה",
+  locationSendFailedLabel = "שליחת המיקום נכשלה",
+  locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
+  locationPermissionDeniedLabel = "לא ניתן לגשת למיקום",
   large = false,
   dir = "rtl",
   disabled = false,
@@ -94,6 +108,43 @@ export function Composer({
     }
   };
 
+  const getCurrentLocation = () =>
+    new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        maximumAge: 30_000,
+        timeout: 15_000,
+      });
+    });
+
+  const handleLocationSelected = async () => {
+    if (!onLocationSend || disabled || isSending) return;
+    if (!("geolocation" in navigator)) {
+      showToast(locationUnsupportedLabel);
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const position = await getCurrentLocation();
+      await onLocationSend({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        label: "📍 מיקום",
+      });
+    } catch (error) {
+      const permissionDenied =
+        typeof GeolocationPositionError !== "undefined" &&
+        error instanceof GeolocationPositionError &&
+        error.code === GeolocationPositionError.PERMISSION_DENIED;
+      showToast(
+        permissionDenied ? locationPermissionDeniedLabel : locationSendFailedLabel
+      );
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -108,7 +159,7 @@ export function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   };
 
-  const imageButton = onImageSend ? (
+  const attachmentButton = onImageSend || onLocationSend ? (
     <button
       type="button"
       disabled={disabled || isSending}
@@ -116,7 +167,7 @@ export function Composer({
       className={inlineImageBtn}
       aria-label={attachImageTitle}
     >
-      <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
+      <Plus className="h-5 w-5" strokeWidth={1.9} />
     </button>
   ) : null;
 
@@ -128,7 +179,7 @@ export function Composer({
             dir={dir}
             className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2 rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-3 py-1.5 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
           >
-            {dir === "rtl" && imageButton}
+            {dir === "rtl" && attachmentButton}
             <textarea
               ref={textareaRef}
               value={text}
@@ -144,7 +195,7 @@ export function Composer({
                 large ? "text-[17px] leading-relaxed" : "text-[16px] leading-normal"
               )}
             />
-            {dir === "ltr" && imageButton}
+            {dir === "ltr" && attachmentButton}
           </div>
 
           {hasText ? (
@@ -186,13 +237,17 @@ export function Composer({
         </div>
       </div>
 
-      {onImageSend && (
+      {(onImageSend || onLocationSend) && (
         <ImageAttachSheet
           open={showImageSheet}
           takePhotoLabel={takePhotoLabel}
           chooseGalleryLabel={chooseGalleryLabel}
+          shareLocationLabel={shareLocationLabel}
           onClose={() => setShowImageSheet(false)}
           onImageSelected={(file) => void handleImageSelected(file)}
+          onLocationSelected={
+            onLocationSend ? () => void handleLocationSelected() : undefined
+          }
           dir={dir}
         />
       )}

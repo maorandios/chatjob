@@ -1,15 +1,17 @@
 "use client";
 
 import { Sheet } from "@/components/ui/Sheet";
-import { Camera, ImageIcon } from "lucide-react";
+import { Camera, ImageIcon, MapPin } from "lucide-react";
 import { useRef } from "react";
 
 type ImageAttachSheetProps = {
   open: boolean;
   takePhotoLabel: string;
   chooseGalleryLabel: string;
+  shareLocationLabel?: string;
   onClose: () => void;
   onImageSelected: (file: File) => void;
+  onLocationSelected?: () => void;
   dir?: "ltr" | "rtl";
 };
 
@@ -17,8 +19,10 @@ export function ImageAttachSheet({
   open,
   takePhotoLabel,
   chooseGalleryLabel,
+  shareLocationLabel = "שתף מיקום",
   onClose,
   onImageSelected,
+  onLocationSelected,
   dir = "rtl",
 }: ImageAttachSheetProps) {
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -76,6 +80,19 @@ export function ImageAttachSheet({
           <ImageIcon className="h-5 w-5 text-gray-600" />
           {chooseGalleryLabel}
         </button>
+        {onLocationSelected && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onLocationSelected();
+            }}
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[var(--jobchat-surface)] text-[15px] font-medium text-gray-800 ring-1 ring-[var(--jobchat-border)] transition-all hover:bg-gray-100 active:scale-[0.98]"
+          >
+            <MapPin className="h-5 w-5 text-gray-600" />
+            {shareLocationLabel}
+          </button>
+        )}
       </div>
     </Sheet>
   );
