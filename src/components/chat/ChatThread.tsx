@@ -52,6 +52,7 @@ type ChatThreadProps = {
   locationSendFailedLabel?: string;
   locationUnsupportedLabel?: string;
   locationPermissionDeniedLabel?: string;
+  locationSecureContextLabel?: string;
   dir?: "ltr" | "rtl";
   largeComposer?: boolean;
 };
@@ -86,6 +87,7 @@ export function ChatThread({
   locationSendFailedLabel = "שליחת המיקום נכשלה",
   locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
   locationPermissionDeniedLabel = "לא ניתן לגשת למיקום",
+  locationSecureContextLabel = "שיתוף מיקום דורש חיבור מאובטח (HTTPS) או אפליקציה מותקנת",
   dir = "rtl",
   largeComposer = false,
 }: ChatThreadProps) {
@@ -205,11 +207,7 @@ export function ChatThread({
     longitude: number;
     label?: string;
   }) => {
-    try {
-      await sendLocationMessage(managerId, workerId, viewerRole, location);
-    } catch {
-      showToast(locationSendFailedLabel);
-    }
+    await sendLocationMessage(managerId, workerId, viewerRole, location);
   };
 
   const handleVoiceRecorded = async (blob: Blob) => {
@@ -288,6 +286,7 @@ export function ChatThread({
           locationSendFailedLabel={locationSendFailedLabel}
           locationUnsupportedLabel={locationUnsupportedLabel}
           locationPermissionDeniedLabel={locationPermissionDeniedLabel}
+          locationSecureContextLabel={locationSecureContextLabel}
           large={largeComposer}
           dir={dir}
           disabled
@@ -375,6 +374,7 @@ export function ChatThread({
         locationSendFailedLabel={locationSendFailedLabel}
         locationUnsupportedLabel={locationUnsupportedLabel}
         locationPermissionDeniedLabel={locationPermissionDeniedLabel}
+        locationSecureContextLabel={locationSecureContextLabel}
         large={largeComposer}
         dir={dir}
         disabled={!!voicePreview || isConfirmingVoice}

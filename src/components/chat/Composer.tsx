@@ -34,6 +34,7 @@ type ComposerProps = {
   locationSendFailedLabel?: string;
   locationUnsupportedLabel?: string;
   locationPermissionDeniedLabel?: string;
+  locationSecureContextLabel?: string;
   large?: boolean;
   dir?: "ltr" | "rtl";
   disabled?: boolean;
@@ -70,6 +71,7 @@ export function Composer({
   locationSendFailedLabel = "שליחת המיקום נכשלה",
   locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
   locationPermissionDeniedLabel = "לא ניתן לגשת למיקום",
+  locationSecureContextLabel = "שיתוף מיקום דורש חיבור מאובטח (HTTPS) או אפליקציה מותקנת",
   large = false,
   dir = "rtl",
   disabled = false,
@@ -123,6 +125,10 @@ export function Composer({
       showToast(locationUnsupportedLabel);
       return;
     }
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      showToast(locationSecureContextLabel);
+      return;
+    }
 
     setIsSending(true);
     try {
@@ -137,8 +143,12 @@ export function Composer({
         typeof GeolocationPositionError !== "undefined" &&
         error instanceof GeolocationPositionError &&
         error.code === GeolocationPositionError.PERMISSION_DENIED;
+      const message =
+        error instanceof Error && error.message !== "Failed to send location"
+          ? error.message
+          : locationSendFailedLabel;
       showToast(
-        permissionDenied ? locationPermissionDeniedLabel : locationSendFailedLabel
+        permissionDenied ? locationPermissionDeniedLabel : message
       );
     } finally {
       setIsSending(false);

@@ -933,7 +933,14 @@ export const useSlangStore = create<SlangState>()(
             }),
           });
 
-          if (!res.ok) throw new Error("Failed to send location");
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            const message =
+              typeof data.error === "string"
+                ? data.error
+                : "Failed to send location";
+            throw new Error(message);
+          }
 
           const data = await res.json();
           const message = data.message as Message;
@@ -943,13 +950,15 @@ export const useSlangStore = create<SlangState>()(
               .concat(message),
           }));
           return message;
-        } catch {
+        } catch (error) {
           set((s) => ({
             messages: s.messages.map((m) =>
               m.id === pending.id ? { ...m, status: "failed" as const } : m
             ),
           }));
-          throw new Error("Failed to send location");
+          throw error instanceof Error
+            ? error
+            : new Error("Failed to send location");
         }
       },
 
