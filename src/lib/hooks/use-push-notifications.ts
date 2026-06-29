@@ -14,6 +14,7 @@ type UsePushNotificationsOptions = {
 type PushRegistrationState =
   | "unsupported"
   | "missing-key"
+  | "disabled"
   | "default"
   | "denied"
   | "granted"
@@ -43,6 +44,16 @@ function isPushSupported(): boolean {
   );
 }
 
+function getDisabledStorageKey(userRole?: PushUserRole, userId?: string) {
+  if (!userRole || !userId) return null;
+  return `jobchat-push-disabled:${userRole}:${userId}`;
+}
+
+function isLocallyDisabled(key: string | null): boolean {
+  if (!key || typeof window === "undefined") return false;
+  return window.localStorage.getItem(key) === "true";
+}
+
 async function getAuthHeaders(): Promise<HeadersInit> {
   const supabase = getSupabaseBrowser();
   if (!supabase) return { "Content-Type": "application/json" };
@@ -68,9 +79,16 @@ export function usePushNotifications({
 }: UsePushNotificationsOptions) {
   const supported = useMemo(() => isPushSupported(), []);
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const disabledStorageKey = useMemo(
+    () => getDisabledStorageKey(userRole, userId),
+    [userId, userRole]
+  );
   const [state, setState] = useState<PushRegistrationState>(() => {
     if (!supported) return "unsupported";
     if (!publicKey) return "missing-key";
+    if (isLocallyDisabled(getDisabledStorageKey(userRole, userId))) {
+      return "disabled";
+    }
     return Notification.permission;
   });
 
@@ -79,6 +97,10 @@ export function usePushNotifications({
       if (!enabled || !userRole || !userId || !supported || !publicKey) return;
 
       try {
+        if (requestPermission && disabledStorageKey) {
+          window.localStorage.removeItem(disabledStorageKey);
+        }
+
         const permission =
           Notification.permission === "default" && requestPermission
             ? await Notification.requestPermission()
@@ -119,11 +141,49 @@ export function usePushNotifications({
         console.warn("[Slang] Push registration failed", error);
       }
     },
-    [enabled, publicKey, supported, userId, userRole]
+    [disabledStorageKey, enabled, publicKey, supported, userId, userRole]
   );
+
+  const unsubscribe = useCallback(async () => {
+    if (!enabled || !userRole || !userId || !supported) return;
+
+    try {
+      if (disabledStorageKey) {
+        window.localStorage.setItem(disabledStorageKey, "true");
+      }
+
+      const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+      const subscription = await registration?.pushManager.getSubscription();
+
+      if (subscription) {
+        const endpoint = subscription.endpoint;
+        await subscription.unsubscribe();
+
+        const params = new URLSearchParams({
+          userRole,
+          userId,
+          endpoint,
+        });
+
+        await fetch(`/api/push-subscriptions?${params.toString()}`, {
+          method: "DELETE",
+          headers: await getAuthHeaders(),
+        });
+      }
+
+      setState("disabled");
+    } catch (error) {
+      setState("failed");
+      console.warn("[Slang] Push unsubscribe failed", error);
+    }
+  }, [disabledStorageKey, enabled, supported, userId, userRole]);
 
   useEffect(() => {
     if (!enabled || !supported || !publicKey) return;
+    if (isLocallyDisabled(disabledStorageKey)) {
+      const timeout = window.setTimeout(() => setState("disabled"), 0);
+      return () => window.clearTimeout(timeout);
+    }
 
     if (Notification.permission === "granted") {
       const timeout = window.setTimeout(() => {
@@ -132,11 +192,21 @@ export function usePushNotifications({
 
       return () => window.clearTimeout(timeout);
     }
-  }, [enabled, publicKey, subscribe, supported]);
+    const timeout = window.setTimeout(() => setState(Notification.permission), 0);
+    return () => window.clearTimeout(timeout);
+  }, [disabledStorageKey, enabled, publicKey, subscribe, supported]);
 
   return {
     state,
+    isSupported: supported && Boolean(publicKey),
+    isEnabled:
+      state !== "unsupported" &&
+      state !== "missing-key" &&
+      state !== "disabled" &&
+      state !== "denied" &&
+      state !== "failed",
     requestPermissionAndSubscribe: () => subscribe(true),
+    unsubscribe,
   };
 }
 

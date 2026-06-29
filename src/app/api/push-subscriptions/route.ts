@@ -39,6 +39,16 @@ async function assertManagerRequest(req: Request, managerId: string) {
   }
 }
 
+async function assertPushRequest(
+  req: Request,
+  userRole: "manager" | "worker",
+  userId: string
+) {
+  return userRole === "worker"
+    ? assertAuthenticatedWorkerRequest(req, userId)
+    : assertManagerRequest(req, userId);
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as PushSubscriptionBody;
@@ -61,10 +71,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const authorized =
-      userRole === "worker"
-        ? await assertAuthenticatedWorkerRequest(req, userId)
-        : await assertManagerRequest(req, userId);
+    const authorized = await assertPushRequest(req, userRole, userId);
 
     if (!authorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -100,6 +107,49 @@ export async function POST(req: Request) {
     console.error("Save push subscription error:", error);
     return NextResponse.json(
       { error: "Failed to save push subscription" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userRole = searchParams.get("userRole") as "manager" | "worker";
+    const userId = searchParams.get("userId") ?? "";
+    const endpoint = searchParams.get("endpoint") ?? "";
+
+    if (
+      (userRole !== "manager" && userRole !== "worker") ||
+      !userId ||
+      !endpoint
+    ) {
+      return NextResponse.json(
+        { error: "Invalid push subscription" },
+        { status: 400 }
+      );
+    }
+
+    const authorized = await assertPushRequest(req, userRole, userId);
+    if (!authorized) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("user_role", userRole)
+      .eq("user_id", userId)
+      .eq("endpoint", endpoint);
+
+    if (error) throw error;
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Delete push subscription error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete push subscription" },
       { status: 500 }
     );
   }

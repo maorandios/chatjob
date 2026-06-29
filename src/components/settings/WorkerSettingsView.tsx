@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { Sheet } from "@/components/ui/Sheet";
+import { PushNotificationSettingsCard } from "@/components/settings/PushNotificationSettingsCard";
 import { LanguageFlag } from "@/components/worker/LanguageFlag";
 import { signOutSupabaseAuth } from "@/lib/auth/manager-auth";
 import { getLanguage, getLanguagePickerLabel } from "@/lib/i18n/languages";
@@ -175,6 +176,27 @@ export function WorkerSettingsView({
             </Link>
           </section>
 
+          <PushNotificationSettingsCard
+            userRole="worker"
+            userId={workerId}
+            dir={dir}
+            labels={{
+              title: "Notifications",
+              subtitleOn: "Message notifications are active",
+              subtitleOff: "Message notifications are off",
+              sheetTitle: "Message notifications",
+              sheetBody: "Get notified when someone sends you a new message.",
+              toggleOn: "Active",
+              toggleOff: "Off",
+              unsupportedTitle: "Notifications are not supported",
+              unsupportedBody:
+                "This mobile OS or browser version does not support push notifications. Update your device or use a supported browser.",
+              deniedBody:
+                "Notifications are blocked in the browser. Open the site settings and allow notifications to turn them back on.",
+              close: "Close",
+            }}
+          />
+
           <section>
             <div className="space-y-2">
               <button
@@ -327,8 +349,11 @@ function WorkerProfileEditSheet({
 
   useEffect(() => {
     if (!open) return;
-    setName(initialName);
-    setError(undefined);
+    const timeout = window.setTimeout(() => {
+      setName(initialName);
+      setError(undefined);
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, [open, initialName]);
 
   const handleSave = async () => {
