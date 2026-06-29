@@ -66,8 +66,6 @@ export type WorkerUiStrings = {
   locationSettingsAndroidSteps: string[];
   locationSettingsDesktopTitle: string;
   locationSettingsDesktopSteps: string[];
-  locationSettingsTestButton: string;
-  locationSettingsTestingButton: string;
   noMessagesYet: string;
   contactNameTitle: string;
   contactNameOriginal: string;
@@ -298,8 +296,6 @@ type LocationPermissionWorkerStrings = Pick<
   | "locationSettingsAndroidSteps"
   | "locationSettingsDesktopTitle"
   | "locationSettingsDesktopSteps"
-  | "locationSettingsTestButton"
-  | "locationSettingsTestingButton"
 >;
 
 const locationPermissionStrings: Record<
@@ -351,8 +347,6 @@ const locationPermissionStrings: Record<
       "เลือก Allow",
       "รีเฟรช Kling แล้วลองอีกครั้ง",
     ],
-    locationSettingsTestButton: "ทดสอบตำแหน่ง",
-    locationSettingsTestingButton: "กำลังทดสอบ...",
   },
   hi: {
     locationSettingsTitle: "लोकेशन शेयरिंग",
@@ -399,8 +393,6 @@ const locationPermissionStrings: Record<
       "Allow चुनें",
       "Kling रीफ्रेश करें और फिर कोशिश करें",
     ],
-    locationSettingsTestButton: "लोकेशन टेस्ट करें",
-    locationSettingsTestingButton: "टेस्ट हो रहा है...",
   },
   si: {
     locationSettingsTitle: "ස්ථානය බෙදාගැනීම",
@@ -447,8 +439,6 @@ const locationPermissionStrings: Record<
       "Allow තෝරන්න",
       "Kling refresh කර නැවත උත්සාහ කරන්න",
     ],
-    locationSettingsTestButton: "ස්ථානය පරීක්ෂා කරන්න",
-    locationSettingsTestingButton: "පරීක්ෂා කරමින්...",
   },
   ro: {
     locationSettingsTitle: "Partajarea locației",
@@ -495,8 +485,6 @@ const locationPermissionStrings: Record<
       "Alege Allow",
       "Reîncarcă Kling și încearcă din nou",
     ],
-    locationSettingsTestButton: "Testează locația",
-    locationSettingsTestingButton: "Se testează...",
   },
   en: {
     locationSettingsTitle: "Location sharing",
@@ -543,8 +531,6 @@ const locationPermissionStrings: Record<
       "Choose Allow",
       "Refresh Kling and try again",
     ],
-    locationSettingsTestButton: "Test location",
-    locationSettingsTestingButton: "Testing...",
   },
   ar: {
     locationSettingsTitle: "مشاركة الموقع",
@@ -591,8 +577,6 @@ const locationPermissionStrings: Record<
       "اختر Allow",
       "حدّث Kling وحاول مرة أخرى",
     ],
-    locationSettingsTestButton: "اختبار الموقع",
-    locationSettingsTestingButton: "جارٍ الاختبار...",
   },
   ru: {
     locationSettingsTitle: "Отправка геолокации",
@@ -639,8 +623,6 @@ const locationPermissionStrings: Record<
       "Выберите Allow",
       "Обновите Kling и попробуйте снова",
     ],
-    locationSettingsTestButton: "Проверить геолокацию",
-    locationSettingsTestingButton: "Проверка...",
   },
   zh: {
     locationSettingsTitle: "共享位置",
@@ -686,8 +668,6 @@ const locationPermissionStrings: Record<
       "选择 Allow",
       "刷新 Kling 后重试",
     ],
-    locationSettingsTestButton: "测试位置",
-    locationSettingsTestingButton: "正在测试...",
   },
 };
 

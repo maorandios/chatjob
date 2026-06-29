@@ -140,7 +140,7 @@ export function Composer({
       await onLocationSend({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-        label: "📍 מיקום",
+        label: "מיקום",
       });
     } catch (error) {
       const geoError =

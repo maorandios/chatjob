@@ -224,8 +224,6 @@ export function WorkerSettingsView({
               androidSteps: ui.locationSettingsAndroidSteps,
               desktopTitle: ui.locationSettingsDesktopTitle,
               desktopSteps: ui.locationSettingsDesktopSteps,
-              testButton: ui.locationSettingsTestButton,
-              testingButton: ui.locationSettingsTestingButton,
               close: ui.cancel,
             }}
           />

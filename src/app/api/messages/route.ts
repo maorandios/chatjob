@@ -156,7 +156,7 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      originalText = locationLabel || "📍";
+      originalText = locationLabel || "מיקום";
       originalLang = senderRole === "manager" ? "he" : "en";
     } else if (body.processed) {
       originalText = String(body.processed.originalText ?? "");

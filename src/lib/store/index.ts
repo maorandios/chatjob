@@ -902,7 +902,7 @@ export const useSlangStore = create<SlangState>()(
       ) => {
         const state = get();
         const companyId = resolveCompanyId(state, managerId, workerId);
-        const label = location.label?.trim() || "📍";
+        const label = location.label?.trim() || "מיקום";
         const pending = createPendingMessage(
           companyId,
           managerId,
@@ -1372,7 +1372,7 @@ export function getMessageDisplayText(
     return "📷 תמונה";
   }
   if (message.inputType === "location") {
-    return "📍 מיקום";
+    return "מיקום";
   }
   if (message.senderRole === viewerRole) {
     return message.originalText;

@@ -156,8 +156,9 @@ export function MessageBubble({
                 />
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[15px] font-semibold">
-                  {message.locationLabel || displayText || "📍 מיקום"}
+                <span className="flex items-center gap-1.5 text-[15px] font-semibold">
+                  <MapPin className="h-4 w-4 shrink-0" strokeWidth={2} />
+                  {message.locationLabel || displayText || "מיקום"}
                 </span>
                 <ExternalLink className="h-4 w-4 shrink-0 opacity-80" />
               </div>

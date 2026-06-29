@@ -2,15 +2,11 @@
 
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
-import { cn } from "@/lib/utils";
 import {
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Loader2,
-  LocateFixed,
   MapPin,
-  ShieldAlert,
+  MapPinOff,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -21,8 +17,7 @@ type LocationPermissionState =
   | "unsupported"
   | "insecure"
   | "unavailable"
-  | "timeout"
-  | "checking";
+  | "timeout";
 
 type DeviceOs = "ios" | "android" | "desktop";
 
@@ -50,8 +45,6 @@ type LocationPermissionLabels = {
   androidSteps: string[];
   desktopTitle: string;
   desktopSteps: string[];
-  testButton: string;
-  testingButton: string;
   close: string;
 };
 
@@ -106,8 +99,6 @@ const DEFAULT_LABELS: LocationPermissionLabels = {
     "בחרו Allow",
     "רעננו את קלינג ונסו שוב",
   ],
-  testButton: "בדיקת מיקום",
-  testingButton: "בודק מיקום...",
   close: "סגור",
 };
 
@@ -120,16 +111,6 @@ function detectDeviceOs(): DeviceOs {
   if (/iPad|iPhone|iPod/i.test(ua) || isIpadOs) return "ios";
   if (/Android/i.test(ua)) return "android";
   return "desktop";
-}
-
-function getCurrentPosition(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: true,
-      maximumAge: 30_000,
-      timeout: 15_000,
-    });
-  });
 }
 
 function getStateCopy(
@@ -167,8 +148,7 @@ export function LocationPermissionSettingsCard({
   const os = useMemo(() => detectDeviceOs(), []);
   const Chevron = dir === "rtl" ? ChevronLeft : ChevronRight;
   const isReady = state === "ready";
-  const isChecking = state === "checking";
-  const Icon = isReady ? CheckCircle2 : state === "denied" ? ShieldAlert : MapPin;
+  const Icon = isReady ? MapPin : MapPinOff;
   const stateCopy = getStateCopy(state, labels);
   const guideTitle =
     os === "ios"
@@ -220,37 +200,6 @@ export function LocationPermissionSettingsCard({
     };
   }, []);
 
-  const handleTestLocation = async () => {
-    if (typeof window !== "undefined" && !window.isSecureContext) {
-      setState("insecure");
-      return;
-    }
-    if (!("geolocation" in navigator)) {
-      setState("unsupported");
-      return;
-    }
-
-    setState("checking");
-    try {
-      await getCurrentPosition();
-      setState("ready");
-    } catch (error) {
-      const geoError =
-        typeof error === "object" && error !== null && "code" in error
-          ? (error as GeolocationPositionError)
-          : null;
-      if (geoError?.code === 1) {
-        setState("denied");
-      } else if (geoError?.code === 2) {
-        setState("unavailable");
-      } else if (geoError?.code === 3) {
-        setState("timeout");
-      } else {
-        setState("prompt");
-      }
-    }
-  };
-
   return (
     <>
       <section>
@@ -260,18 +209,8 @@ export function LocationPermissionSettingsCard({
           className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
           dir={dir}
         >
-          <div
-            className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
-              isReady ? "bg-green-100" : "bg-[var(--jobchat-accent-light)]"
-            )}
-          >
-            <Icon
-              className={cn(
-                "h-5 w-5",
-                isReady ? "text-green-600" : "text-[var(--jobchat-accent)]"
-              )}
-            />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
+            <Icon className="h-5 w-5 text-[var(--jobchat-accent)]" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-gray-900">{labels.title}</p>
@@ -291,22 +230,8 @@ export function LocationPermissionSettingsCard({
       >
         <div dir={dir} className="space-y-5">
           <div className="text-center">
-            <div
-              className={cn(
-                "mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full",
-                isReady ? "bg-green-100" : "bg-[var(--jobchat-accent-light)]"
-              )}
-            >
-              {isChecking ? (
-                <Loader2 className="h-6 w-6 animate-spin text-[var(--jobchat-accent)]" />
-              ) : (
-                <Icon
-                  className={cn(
-                    "h-6 w-6",
-                    isReady ? "text-green-600" : "text-[var(--jobchat-accent)]"
-                  )}
-                />
-              )}
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
+              <Icon className="h-6 w-6 text-[var(--jobchat-accent)]" />
             </div>
             <p className="text-[17px] font-semibold leading-snug text-gray-900">
               {stateCopy.title}
@@ -331,20 +256,6 @@ export function LocationPermissionSettingsCard({
               </ol>
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={() => void handleTestLocation()}
-            disabled={isChecking}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--jobchat-accent)] px-4 py-4 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {isChecking ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <LocateFixed className="h-4 w-4" />
-            )}
-            {isChecking ? labels.testingButton : labels.testButton}
-          </button>
 
           <Button
             fullWidth
