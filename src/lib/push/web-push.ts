@@ -85,6 +85,8 @@ export async function sendMessagePushNotification(
     { data: subscriptions, error: subscriptionError },
     { data: manager },
     { data: worker },
+    { data: alias },
+    { data: selfAlias },
   ] = await Promise.all([
       supabase
         .from("push_subscriptions")
@@ -101,15 +103,39 @@ export async function sendMessagePushNotification(
         .select("name, invite_token")
         .eq("id", input.workerId)
         .maybeSingle(),
+      supabase
+        .from("contact_aliases")
+        .select("display_name")
+        .eq("owner_role", recipientRole)
+        .eq("owner_id", recipientId)
+        .eq("contact_role", input.senderRole)
+        .eq(
+          "contact_id",
+          input.senderRole === "manager" ? input.managerId : input.workerId
+        )
+        .maybeSingle(),
+      input.senderRole === "worker"
+        ? supabase
+            .from("contact_aliases")
+            .select("display_name")
+            .eq("owner_role", "worker")
+            .eq("owner_id", input.workerId)
+            .eq("contact_role", "self")
+            .eq("contact_id", input.workerId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
   if (subscriptionError) throw subscriptionError;
   if (!subscriptions?.length) return;
 
-  const senderName =
+  const defaultSenderName =
     input.senderRole === "manager"
       ? (manager?.name ?? "קלינג")
       : (worker?.name ?? "קלינג");
+  const aliasName = alias?.display_name?.trim();
+  const selfAliasName = selfAlias?.display_name?.trim();
+  const senderName = aliasName || selfAliasName || defaultSenderName;
   const workerInviteToken = worker?.invite_token ?? null;
 
   const url =

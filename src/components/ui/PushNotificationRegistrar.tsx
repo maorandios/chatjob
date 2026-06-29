@@ -20,10 +20,8 @@ export function PushNotificationRegistrar() {
   const workers = useSlangStore((s) => s.workers);
 
   const pushTarget = useMemo(() => {
-    if (!ready) return null;
-
     if ((pathname.startsWith("/manager") || pathname.startsWith("/c/")) && managerId) {
-      if (!onboardingComplete) return null;
+      if (!ready || !onboardingComplete) return null;
       return { userRole: "manager" as const, userId: managerId };
     }
 

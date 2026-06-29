@@ -89,7 +89,8 @@ export function usePushNotifications({
 
         setState("subscribing");
 
-        const registration = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.register("/sw.js");
+        const registration = await navigator.serviceWorker.ready;
         const existing = await registration.pushManager.getSubscription();
         const subscription =
           existing ??
