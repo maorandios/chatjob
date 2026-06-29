@@ -3,6 +3,7 @@
 import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
 import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
 import { useToast } from "@/components/ui/Toast";
+import { markLocationPermissionReady } from "@/lib/location-permission";
 import { cn } from "@/lib/utils";
 import { Loader2, Plus, Send } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -137,6 +138,7 @@ export function Composer({
     setIsSending(true);
     try {
       const position = await getCurrentLocation();
+      markLocationPermissionReady();
       await onLocationSend({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,

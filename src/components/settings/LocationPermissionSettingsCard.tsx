@@ -3,6 +3,10 @@
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import {
+  hasLocationPermissionReadyFlag,
+  LOCATION_PERMISSION_READY_EVENT,
+} from "@/lib/location-permission";
+import {
   ChevronLeft,
   ChevronRight,
   MapPin,
@@ -180,22 +184,50 @@ export function LocationPermissionSettingsCard({
     }
 
     let cancelled = false;
+    const handleLocationReady = () => setState("ready");
+    window.addEventListener(LOCATION_PERMISSION_READY_EVENT, handleLocationReady);
     const permissions = navigator.permissions;
-    if (!permissions?.query) return;
+    if (!permissions?.query) {
+      if (hasLocationPermissionReadyFlag()) {
+        timeoutId = setTimeout(() => setState("ready"), 0);
+      }
+      return () => {
+        cancelled = true;
+        window.removeEventListener(
+          LOCATION_PERMISSION_READY_EVENT,
+          handleLocationReady
+        );
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+    }
 
     permissions
       .query({ name: "geolocation" as PermissionName })
       .then((status) => {
         if (cancelled) return;
-        setState(status.state === "granted" ? "ready" : status.state);
+        setState(
+          status.state === "granted" ||
+            (status.state !== "denied" && hasLocationPermissionReadyFlag())
+            ? "ready"
+            : status.state
+        );
         status.onchange = () => {
-          setState(status.state === "granted" ? "ready" : status.state);
+          setState(
+            status.state === "granted" ||
+              (status.state !== "denied" && hasLocationPermissionReadyFlag())
+              ? "ready"
+              : status.state
+          );
         };
       })
       .catch(() => undefined);
 
     return () => {
       cancelled = true;
+      window.removeEventListener(
+        LOCATION_PERMISSION_READY_EVENT,
+        handleLocationReady
+      );
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
