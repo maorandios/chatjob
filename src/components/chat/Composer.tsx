@@ -35,6 +35,8 @@ type ComposerProps = {
   locationUnsupportedLabel?: string;
   locationPermissionDeniedLabel?: string;
   locationSecureContextLabel?: string;
+  locationUnavailableLabel?: string;
+  locationTimeoutLabel?: string;
   large?: boolean;
   dir?: "ltr" | "rtl";
   disabled?: boolean;
@@ -70,8 +72,10 @@ export function Composer({
   imageSendFailedLabel = "שליחת התמונה נכשלה",
   locationSendFailedLabel = "שליחת המיקום נכשלה",
   locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
-  locationPermissionDeniedLabel = "לא ניתן לגשת למיקום",
+  locationPermissionDeniedLabel = "צריך לאשר גישה למיקום בהגדרות הדפדפן או האייפון",
   locationSecureContextLabel = "שיתוף מיקום דורש חיבור מאובטח (HTTPS) או אפליקציה מותקנת",
+  locationUnavailableLabel = "לא הצלחנו למצוא את המיקום. ודאו ששירותי המיקום פעילים",
+  locationTimeoutLabel = "איתור המיקום לקח יותר מדי זמן. נסו שוב",
   large = false,
   dir = "rtl",
   disabled = false,
@@ -121,12 +125,12 @@ export function Composer({
 
   const handleLocationSelected = async () => {
     if (!onLocationSend || disabled || isSending) return;
-    if (!("geolocation" in navigator)) {
-      showToast(locationUnsupportedLabel);
-      return;
-    }
     if (typeof window !== "undefined" && !window.isSecureContext) {
       showToast(locationSecureContextLabel);
+      return;
+    }
+    if (!("geolocation" in navigator)) {
+      showToast(locationUnsupportedLabel);
       return;
     }
 
@@ -139,17 +143,23 @@ export function Composer({
         label: "📍 מיקום",
       });
     } catch (error) {
-      const permissionDenied =
-        typeof GeolocationPositionError !== "undefined" &&
-        error instanceof GeolocationPositionError &&
-        error.code === GeolocationPositionError.PERMISSION_DENIED;
+      const geoError =
+        typeof error === "object" && error !== null && "code" in error
+          ? (error as GeolocationPositionError)
+          : null;
       const message =
         error instanceof Error && error.message !== "Failed to send location"
           ? error.message
           : locationSendFailedLabel;
-      showToast(
-        permissionDenied ? locationPermissionDeniedLabel : message
-      );
+      if (geoError?.code === 1) {
+        showToast(locationPermissionDeniedLabel);
+      } else if (geoError?.code === 2) {
+        showToast(locationUnavailableLabel);
+      } else if (geoError?.code === 3) {
+        showToast(locationTimeoutLabel);
+      } else {
+        showToast(message);
+      }
     } finally {
       setIsSending(false);
     }
