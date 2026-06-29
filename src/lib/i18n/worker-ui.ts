@@ -43,6 +43,31 @@ export type WorkerUiStrings = {
   locationSendFailed: string;
   locationUnsupported: string;
   locationPermissionDenied: string;
+  locationSettingsTitle: string;
+  locationSettingsReady: string;
+  locationSettingsNeedsSetup: string;
+  locationSettingsSheetTitle: string;
+  locationSettingsSheetBody: string;
+  locationSettingsReadyTitle: string;
+  locationSettingsReadyBody: string;
+  locationSettingsDeniedTitle: string;
+  locationSettingsDeniedBody: string;
+  locationSettingsUnsupportedTitle: string;
+  locationSettingsUnsupportedBody: string;
+  locationSettingsInsecureTitle: string;
+  locationSettingsInsecureBody: string;
+  locationSettingsUnavailableTitle: string;
+  locationSettingsUnavailableBody: string;
+  locationSettingsTimeoutTitle: string;
+  locationSettingsTimeoutBody: string;
+  locationSettingsIosTitle: string;
+  locationSettingsIosSteps: string[];
+  locationSettingsAndroidTitle: string;
+  locationSettingsAndroidSteps: string[];
+  locationSettingsDesktopTitle: string;
+  locationSettingsDesktopSteps: string[];
+  locationSettingsTestButton: string;
+  locationSettingsTestingButton: string;
   noMessagesYet: string;
   contactNameTitle: string;
   contactNameOriginal: string;
@@ -248,9 +273,428 @@ const emailVerificationStrings = {
   },
 } as const;
 
+type LocationPermissionWorkerStrings = Pick<
+  WorkerUiStrings,
+  | "locationSettingsTitle"
+  | "locationSettingsReady"
+  | "locationSettingsNeedsSetup"
+  | "locationSettingsSheetTitle"
+  | "locationSettingsSheetBody"
+  | "locationSettingsReadyTitle"
+  | "locationSettingsReadyBody"
+  | "locationSettingsDeniedTitle"
+  | "locationSettingsDeniedBody"
+  | "locationSettingsUnsupportedTitle"
+  | "locationSettingsUnsupportedBody"
+  | "locationSettingsInsecureTitle"
+  | "locationSettingsInsecureBody"
+  | "locationSettingsUnavailableTitle"
+  | "locationSettingsUnavailableBody"
+  | "locationSettingsTimeoutTitle"
+  | "locationSettingsTimeoutBody"
+  | "locationSettingsIosTitle"
+  | "locationSettingsIosSteps"
+  | "locationSettingsAndroidTitle"
+  | "locationSettingsAndroidSteps"
+  | "locationSettingsDesktopTitle"
+  | "locationSettingsDesktopSteps"
+  | "locationSettingsTestButton"
+  | "locationSettingsTestingButton"
+>;
+
+const locationPermissionStrings: Record<
+  LanguageCode,
+  LocationPermissionWorkerStrings
+> = {
+  th: {
+    locationSettingsTitle: "การแชร์ตำแหน่ง",
+    locationSettingsReady: "พร้อมแชร์ตำแหน่ง",
+    locationSettingsNeedsSetup: "ตรวจสอบสิทธิ์ตำแหน่งในเครื่อง",
+    locationSettingsSheetTitle: "สิทธิ์การแชร์ตำแหน่ง",
+    locationSettingsSheetBody:
+      "ในการส่งตำแหน่งในแชท ต้องอนุญาตตำแหน่งในเบราว์เซอร์และในเครื่อง",
+    locationSettingsReadyTitle: "แชร์ตำแหน่งได้แล้ว",
+    locationSettingsReadyBody: "เครื่องนี้อนุญาตตำแหน่งแล้ว คุณส่งตำแหน่งในแชทได้",
+    locationSettingsDeniedTitle: "ตำแหน่งถูกบล็อก",
+    locationSettingsDeniedBody: "เปิดการตั้งค่าเครื่องและอนุญาตตำแหน่งให้เบราว์เซอร์",
+    locationSettingsUnsupportedTitle: "ไม่รองรับการแชร์ตำแหน่ง",
+    locationSettingsUnsupportedBody: "เบราว์เซอร์หรือเครื่องนี้ไม่รองรับการแชร์ตำแหน่ง",
+    locationSettingsInsecureTitle: "ต้องใช้การเชื่อมต่อที่ปลอดภัย",
+    locationSettingsInsecureBody: "การแชร์ตำแหน่งทำงานบน HTTPS หรือหน้าที่ปลอดภัยเท่านั้น",
+    locationSettingsUnavailableTitle: "หาตำแหน่งไม่พบ",
+    locationSettingsUnavailableBody: "ตรวจสอบว่า Location Services เปิดอยู่ แล้วลองอีกครั้ง",
+    locationSettingsTimeoutTitle: "ค้นหาตำแหน่งนานเกินไป",
+    locationSettingsTimeoutBody: "ลองอีกครั้งในที่ที่สัญญาณดีขึ้น",
+    locationSettingsIosTitle: "วิธีอนุญาตตำแหน่งบน iPhone",
+    locationSettingsIosSteps: [
+      "เปิด Settings บน iPhone",
+      "ไปที่ Privacy & Security",
+      "เปิด Location Services",
+      "ตรวจสอบว่า Location Services เปิดอยู่",
+      "เปิด Safari Websites",
+      "เลือก While Using the App",
+      "กลับไปที่ Kling แล้วลองส่งตำแหน่งอีกครั้ง",
+    ],
+    locationSettingsAndroidTitle: "วิธีอนุญาตตำแหน่งบน Android",
+    locationSettingsAndroidSteps: [
+      "เปิด Chrome",
+      "เปิด Site settings ของเว็บนี้",
+      "เปิด Location",
+      "เลือก Allow",
+      "ตรวจสอบว่าตำแหน่งของเครื่องเปิดอยู่",
+      "กลับไปที่ Kling แล้วลองอีกครั้ง",
+    ],
+    locationSettingsDesktopTitle: "วิธีอนุญาตตำแหน่งในเบราว์เซอร์",
+    locationSettingsDesktopSteps: [
+      "เปิดการตั้งค่าเว็บไซต์ในเบราว์เซอร์",
+      "เปิด Location",
+      "เลือก Allow",
+      "รีเฟรช Kling แล้วลองอีกครั้ง",
+    ],
+    locationSettingsTestButton: "ทดสอบตำแหน่ง",
+    locationSettingsTestingButton: "กำลังทดสอบ...",
+  },
+  hi: {
+    locationSettingsTitle: "लोकेशन शेयरिंग",
+    locationSettingsReady: "लोकेशन शेयरिंग तैयार है",
+    locationSettingsNeedsSetup: "डिवाइस में लोकेशन अनुमति जांचें",
+    locationSettingsSheetTitle: "लोकेशन शेयरिंग अनुमति",
+    locationSettingsSheetBody:
+      "चैट में लोकेशन भेजने के लिए ब्राउज़र और डिवाइस में लोकेशन अनुमति दें।",
+    locationSettingsReadyTitle: "लोकेशन शेयरिंग तैयार है",
+    locationSettingsReadyBody: "इस डिवाइस ने लोकेशन अनुमति दे दी है।",
+    locationSettingsDeniedTitle: "लोकेशन ब्लॉक है",
+    locationSettingsDeniedBody: "डिवाइस सेटिंग खोलें और ब्राउज़र के लिए लोकेशन अनुमति दें।",
+    locationSettingsUnsupportedTitle: "लोकेशन शेयरिंग समर्थित नहीं है",
+    locationSettingsUnsupportedBody: "यह ब्राउज़र या डिवाइस लोकेशन शेयरिंग सपोर्ट नहीं करता।",
+    locationSettingsInsecureTitle: "सुरक्षित कनेक्शन चाहिए",
+    locationSettingsInsecureBody: "लोकेशन शेयरिंग केवल HTTPS या सुरक्षित पेज पर काम करती है।",
+    locationSettingsUnavailableTitle: "लोकेशन नहीं मिली",
+    locationSettingsUnavailableBody: "Location Services चालू हैं या नहीं जांचें और फिर कोशिश करें।",
+    locationSettingsTimeoutTitle: "लोकेशन खोजने में बहुत समय लगा",
+    locationSettingsTimeoutBody: "बेहतर सिग्नल वाली जगह पर फिर कोशिश करें।",
+    locationSettingsIosTitle: "iPhone पर लोकेशन कैसे अनुमति दें",
+    locationSettingsIosSteps: [
+      "iPhone में Settings खोलें",
+      "Privacy & Security पर जाएं",
+      "Location Services खोलें",
+      "Location Services चालू रखें",
+      "Safari Websites खोलें",
+      "While Using the App चुनें",
+      "Kling पर लौटें और फिर कोशिश करें",
+    ],
+    locationSettingsAndroidTitle: "Android पर लोकेशन कैसे अनुमति दें",
+    locationSettingsAndroidSteps: [
+      "Chrome खोलें",
+      "इस साइट की Site settings खोलें",
+      "Location खोलें",
+      "Allow चुनें",
+      "डिवाइस Location चालू रखें",
+      "Kling पर लौटें और फिर कोशिश करें",
+    ],
+    locationSettingsDesktopTitle: "ब्राउज़र में लोकेशन कैसे अनुमति दें",
+    locationSettingsDesktopSteps: [
+      "ब्राउज़र में साइट सेटिंग खोलें",
+      "Location खोलें",
+      "Allow चुनें",
+      "Kling रीफ्रेश करें और फिर कोशिश करें",
+    ],
+    locationSettingsTestButton: "लोकेशन टेस्ट करें",
+    locationSettingsTestingButton: "टेस्ट हो रहा है...",
+  },
+  si: {
+    locationSettingsTitle: "ස්ථානය බෙදාගැනීම",
+    locationSettingsReady: "ස්ථානය බෙදාගැනීමට සූදානම්",
+    locationSettingsNeedsSetup: "උපකරණයේ ස්ථාන අවසරය පරීක්ෂා කරන්න",
+    locationSettingsSheetTitle: "ස්ථානය බෙදාගැනීමේ අවසරය",
+    locationSettingsSheetBody:
+      "චැට් එකේ ස්ථානය යවීමට browser සහ උපකරණයේ ස්ථාන අවසරය අවශ්‍යයි.",
+    locationSettingsReadyTitle: "ස්ථානය බෙදාගැනීමට සූදානම්",
+    locationSettingsReadyBody: "මෙම උපකරණයේ ස්ථාන අවසරය ලබාදී ඇත.",
+    locationSettingsDeniedTitle: "ස්ථානය අවහිර කර ඇත",
+    locationSettingsDeniedBody: "උපකරණ settings විවෘත කර browser සඳහා ස්ථාන අවසරය ලබාදෙන්න.",
+    locationSettingsUnsupportedTitle: "ස්ථානය බෙදාගැනීමට සහාය නැත",
+    locationSettingsUnsupportedBody: "මෙම browser හෝ උපකරණය ස්ථානය බෙදාගැනීමට සහාය නොදක්වයි.",
+    locationSettingsInsecureTitle: "ආරක්ෂිත සම්බන්ධතාවක් අවශ්‍යයි",
+    locationSettingsInsecureBody: "ස්ථානය බෙදාගැනීම HTTPS හෝ ආරක්ෂිත පිටුවක පමණක් ක්‍රියා කරයි.",
+    locationSettingsUnavailableTitle: "ස්ථානය සොයාගත නොහැක",
+    locationSettingsUnavailableBody: "Location Services ක්‍රියාත්මකද බලලා නැවත උත්සාහ කරන්න.",
+    locationSettingsTimeoutTitle: "ස්ථානය සොයාගැනීමට වැඩි වේලාවක් ගියා",
+    locationSettingsTimeoutBody: "හොඳ signal ඇති තැනක නැවත උත්සාහ කරන්න.",
+    locationSettingsIosTitle: "iPhone එකේ ස්ථානය අවසර දෙන ආකාරය",
+    locationSettingsIosSteps: [
+      "iPhone Settings විවෘත කරන්න",
+      "Privacy & Security වෙත යන්න",
+      "Location Services විවෘත කරන්න",
+      "Location Services on කර ඇතිද බලන්න",
+      "Safari Websites විවෘත කරන්න",
+      "While Using the App තෝරන්න",
+      "Kling වෙත ආපසු ගොස් නැවත උත්සාහ කරන්න",
+    ],
+    locationSettingsAndroidTitle: "Android එකේ ස්ථානය අවසර දෙන ආකාරය",
+    locationSettingsAndroidSteps: [
+      "Chrome විවෘත කරන්න",
+      "මෙම site එකේ Site settings විවෘත කරන්න",
+      "Location විවෘත කරන්න",
+      "Allow තෝරන්න",
+      "උපකරණ Location on කර ඇතිද බලන්න",
+      "Kling වෙත ආපසු ගොස් නැවත උත්සාහ කරන්න",
+    ],
+    locationSettingsDesktopTitle: "Browser එකේ ස්ථානය අවසර දෙන ආකාරය",
+    locationSettingsDesktopSteps: [
+      "Browser site settings විවෘත කරන්න",
+      "Location විවෘත කරන්න",
+      "Allow තෝරන්න",
+      "Kling refresh කර නැවත උත්සාහ කරන්න",
+    ],
+    locationSettingsTestButton: "ස්ථානය පරීක්ෂා කරන්න",
+    locationSettingsTestingButton: "පරීක්ෂා කරමින්...",
+  },
+  ro: {
+    locationSettingsTitle: "Partajarea locației",
+    locationSettingsReady: "Partajarea locației este gata",
+    locationSettingsNeedsSetup: "Verifică permisiunea de locație",
+    locationSettingsSheetTitle: "Permisiune pentru locație",
+    locationSettingsSheetBody:
+      "Pentru a trimite locația în chat, permite accesul la locație în browser și pe dispozitiv.",
+    locationSettingsReadyTitle: "Locația este gata",
+    locationSettingsReadyBody: "Dispozitivul a permis accesul la locație.",
+    locationSettingsDeniedTitle: "Accesul la locație este blocat",
+    locationSettingsDeniedBody: "Deschide setările dispozitivului și permite locația pentru browser.",
+    locationSettingsUnsupportedTitle: "Partajarea locației nu este acceptată",
+    locationSettingsUnsupportedBody: "Acest browser sau dispozitiv nu acceptă partajarea locației.",
+    locationSettingsInsecureTitle: "Este necesară o conexiune sigură",
+    locationSettingsInsecureBody: "Partajarea locației funcționează doar pe HTTPS sau pagini sigure.",
+    locationSettingsUnavailableTitle: "Locația nu a fost găsită",
+    locationSettingsUnavailableBody: "Verifică dacă serviciile de localizare sunt pornite și încearcă din nou.",
+    locationSettingsTimeoutTitle: "Localizarea a durat prea mult",
+    locationSettingsTimeoutBody: "Încearcă din nou într-un loc cu semnal mai bun.",
+    locationSettingsIosTitle: "Cum permiți locația pe iPhone",
+    locationSettingsIosSteps: [
+      "Deschide Settings pe iPhone",
+      "Mergi la Privacy & Security",
+      "Deschide Location Services",
+      "Asigură-te că Location Services este pornit",
+      "Deschide Safari Websites",
+      "Alege While Using the App",
+      "Revino la Kling și încearcă din nou",
+    ],
+    locationSettingsAndroidTitle: "Cum permiți locația pe Android",
+    locationSettingsAndroidSteps: [
+      "Deschide Chrome",
+      "Deschide Site settings pentru acest site",
+      "Deschide Location",
+      "Alege Allow",
+      "Asigură-te că locația dispozitivului este pornită",
+      "Revino la Kling și încearcă din nou",
+    ],
+    locationSettingsDesktopTitle: "Cum permiți locația în browser",
+    locationSettingsDesktopSteps: [
+      "Deschide setările site-ului în browser",
+      "Deschide Location",
+      "Alege Allow",
+      "Reîncarcă Kling și încearcă din nou",
+    ],
+    locationSettingsTestButton: "Testează locația",
+    locationSettingsTestingButton: "Se testează...",
+  },
+  en: {
+    locationSettingsTitle: "Location sharing",
+    locationSettingsReady: "Location sharing is ready",
+    locationSettingsNeedsSetup: "Check location permission on this device",
+    locationSettingsSheetTitle: "Location sharing permission",
+    locationSettingsSheetBody:
+      "To send your location in chat, allow location access in the browser and on the device.",
+    locationSettingsReadyTitle: "Location sharing is ready",
+    locationSettingsReadyBody: "This device has allowed location access.",
+    locationSettingsDeniedTitle: "Location access is blocked",
+    locationSettingsDeniedBody: "Open device settings and allow location access for the browser.",
+    locationSettingsUnsupportedTitle: "Location sharing is not supported",
+    locationSettingsUnsupportedBody: "This browser or device does not support location sharing.",
+    locationSettingsInsecureTitle: "A secure connection is required",
+    locationSettingsInsecureBody: "Location sharing works only on HTTPS or another secure page.",
+    locationSettingsUnavailableTitle: "Location was not found",
+    locationSettingsUnavailableBody: "Make sure Location Services are on, then try again.",
+    locationSettingsTimeoutTitle: "Finding location took too long",
+    locationSettingsTimeoutBody: "Try again somewhere with better signal.",
+    locationSettingsIosTitle: "How to allow location on iPhone",
+    locationSettingsIosSteps: [
+      "Open Settings on iPhone",
+      "Go to Privacy & Security",
+      "Open Location Services",
+      "Make sure Location Services is on",
+      "Open Safari Websites",
+      "Choose While Using the App",
+      "Return to Kling and try again",
+    ],
+    locationSettingsAndroidTitle: "How to allow location on Android",
+    locationSettingsAndroidSteps: [
+      "Open Chrome",
+      "Open Site settings for this site",
+      "Open Location",
+      "Choose Allow",
+      "Make sure device Location is on",
+      "Return to Kling and try again",
+    ],
+    locationSettingsDesktopTitle: "How to allow location in the browser",
+    locationSettingsDesktopSteps: [
+      "Open site settings in the browser",
+      "Open Location",
+      "Choose Allow",
+      "Refresh Kling and try again",
+    ],
+    locationSettingsTestButton: "Test location",
+    locationSettingsTestingButton: "Testing...",
+  },
+  ar: {
+    locationSettingsTitle: "مشاركة الموقع",
+    locationSettingsReady: "مشاركة الموقع جاهزة",
+    locationSettingsNeedsSetup: "تحقق من إذن الموقع على الجهاز",
+    locationSettingsSheetTitle: "إذن مشاركة الموقع",
+    locationSettingsSheetBody:
+      "لإرسال موقعك في الدردشة، اسمح بالوصول إلى الموقع في المتصفح وعلى الجهاز.",
+    locationSettingsReadyTitle: "مشاركة الموقع جاهزة",
+    locationSettingsReadyBody: "تم السماح بالوصول إلى الموقع على هذا الجهاز.",
+    locationSettingsDeniedTitle: "الوصول إلى الموقع محظور",
+    locationSettingsDeniedBody: "افتح إعدادات الجهاز واسمح للموقع للمتصفح.",
+    locationSettingsUnsupportedTitle: "مشاركة الموقع غير مدعومة",
+    locationSettingsUnsupportedBody: "هذا المتصفح أو الجهاز لا يدعم مشاركة الموقع.",
+    locationSettingsInsecureTitle: "مطلوب اتصال آمن",
+    locationSettingsInsecureBody: "مشاركة الموقع تعمل فقط عبر HTTPS أو صفحة آمنة.",
+    locationSettingsUnavailableTitle: "تعذر العثور على الموقع",
+    locationSettingsUnavailableBody: "تأكد من تشغيل خدمات الموقع ثم حاول مرة أخرى.",
+    locationSettingsTimeoutTitle: "استغرق تحديد الموقع وقتًا طويلًا",
+    locationSettingsTimeoutBody: "حاول مرة أخرى في مكان بإشارة أفضل.",
+    locationSettingsIosTitle: "كيفية السماح بالموقع على iPhone",
+    locationSettingsIosSteps: [
+      "افتح Settings على iPhone",
+      "انتقل إلى Privacy & Security",
+      "افتح Location Services",
+      "تأكد من تشغيل Location Services",
+      "افتح Safari Websites",
+      "اختر While Using the App",
+      "ارجع إلى Kling وحاول مرة أخرى",
+    ],
+    locationSettingsAndroidTitle: "كيفية السماح بالموقع على Android",
+    locationSettingsAndroidSteps: [
+      "افتح Chrome",
+      "افتح Site settings لهذا الموقع",
+      "افتح Location",
+      "اختر Allow",
+      "تأكد من تشغيل موقع الجهاز",
+      "ارجع إلى Kling وحاول مرة أخرى",
+    ],
+    locationSettingsDesktopTitle: "كيفية السماح بالموقع في المتصفح",
+    locationSettingsDesktopSteps: [
+      "افتح إعدادات الموقع في المتصفح",
+      "افتح Location",
+      "اختر Allow",
+      "حدّث Kling وحاول مرة أخرى",
+    ],
+    locationSettingsTestButton: "اختبار الموقع",
+    locationSettingsTestingButton: "جارٍ الاختبار...",
+  },
+  ru: {
+    locationSettingsTitle: "Отправка геолокации",
+    locationSettingsReady: "Отправка геолокации готова",
+    locationSettingsNeedsSetup: "Проверьте разрешение геолокации на устройстве",
+    locationSettingsSheetTitle: "Разрешение геолокации",
+    locationSettingsSheetBody:
+      "Чтобы отправлять геолокацию в чате, разрешите доступ к геолокации в браузере и на устройстве.",
+    locationSettingsReadyTitle: "Геолокация готова",
+    locationSettingsReadyBody: "На этом устройстве доступ к геолокации разрешен.",
+    locationSettingsDeniedTitle: "Доступ к геолокации заблокирован",
+    locationSettingsDeniedBody: "Откройте настройки устройства и разрешите геолокацию для браузера.",
+    locationSettingsUnsupportedTitle: "Геолокация не поддерживается",
+    locationSettingsUnsupportedBody: "Этот браузер или устройство не поддерживает отправку геолокации.",
+    locationSettingsInsecureTitle: "Нужно безопасное соединение",
+    locationSettingsInsecureBody: "Геолокация работает только через HTTPS или на безопасной странице.",
+    locationSettingsUnavailableTitle: "Геолокация не найдена",
+    locationSettingsUnavailableBody: "Убедитесь, что службы геолокации включены, и попробуйте снова.",
+    locationSettingsTimeoutTitle: "Поиск геолокации занял слишком много времени",
+    locationSettingsTimeoutBody: "Попробуйте снова в месте с лучшим сигналом.",
+    locationSettingsIosTitle: "Как разрешить геолокацию на iPhone",
+    locationSettingsIosSteps: [
+      "Откройте Settings на iPhone",
+      "Перейдите в Privacy & Security",
+      "Откройте Location Services",
+      "Убедитесь, что Location Services включены",
+      "Откройте Safari Websites",
+      "Выберите While Using the App",
+      "Вернитесь в Kling и попробуйте снова",
+    ],
+    locationSettingsAndroidTitle: "Как разрешить геолокацию на Android",
+    locationSettingsAndroidSteps: [
+      "Откройте Chrome",
+      "Откройте Site settings для этого сайта",
+      "Откройте Location",
+      "Выберите Allow",
+      "Убедитесь, что геолокация устройства включена",
+      "Вернитесь в Kling и попробуйте снова",
+    ],
+    locationSettingsDesktopTitle: "Как разрешить геолокацию в браузере",
+    locationSettingsDesktopSteps: [
+      "Откройте настройки сайта в браузере",
+      "Откройте Location",
+      "Выберите Allow",
+      "Обновите Kling и попробуйте снова",
+    ],
+    locationSettingsTestButton: "Проверить геолокацию",
+    locationSettingsTestingButton: "Проверка...",
+  },
+  zh: {
+    locationSettingsTitle: "共享位置",
+    locationSettingsReady: "位置共享已准备好",
+    locationSettingsNeedsSetup: "检查此设备的位置权限",
+    locationSettingsSheetTitle: "位置共享权限",
+    locationSettingsSheetBody: "要在聊天中发送位置，请在浏览器和设备中允许位置访问。",
+    locationSettingsReadyTitle: "位置共享已准备好",
+    locationSettingsReadyBody: "此设备已允许位置访问。",
+    locationSettingsDeniedTitle: "位置访问被阻止",
+    locationSettingsDeniedBody: "打开设备设置，并允许浏览器访问位置。",
+    locationSettingsUnsupportedTitle: "不支持位置共享",
+    locationSettingsUnsupportedBody: "此浏览器或设备不支持位置共享。",
+    locationSettingsInsecureTitle: "需要安全连接",
+    locationSettingsInsecureBody: "位置共享只能在 HTTPS 或安全页面上使用。",
+    locationSettingsUnavailableTitle: "未找到位置",
+    locationSettingsUnavailableBody: "请确认定位服务已开启，然后重试。",
+    locationSettingsTimeoutTitle: "查找位置时间过长",
+    locationSettingsTimeoutBody: "请在信号更好的地方重试。",
+    locationSettingsIosTitle: "如何在 iPhone 上允许位置",
+    locationSettingsIosSteps: [
+      "在 iPhone 上打开 Settings",
+      "进入 Privacy & Security",
+      "打开 Location Services",
+      "确认 Location Services 已开启",
+      "打开 Safari Websites",
+      "选择 While Using the App",
+      "返回 Kling 后重试",
+    ],
+    locationSettingsAndroidTitle: "如何在 Android 上允许位置",
+    locationSettingsAndroidSteps: [
+      "打开 Chrome",
+      "打开此网站的 Site settings",
+      "打开 Location",
+      "选择 Allow",
+      "确认设备定位已开启",
+      "返回 Kling 后重试",
+    ],
+    locationSettingsDesktopTitle: "如何在浏览器中允许位置",
+    locationSettingsDesktopSteps: [
+      "打开浏览器的网站设置",
+      "打开 Location",
+      "选择 Allow",
+      "刷新 Kling 后重试",
+    ],
+    locationSettingsTestButton: "测试位置",
+    locationSettingsTestingButton: "正在测试...",
+  },
+};
+
 type BaseWorkerUiStrings = Omit<
   WorkerUiStrings,
-  keyof (typeof emailVerificationStrings)[LanguageCode]
+  | keyof (typeof emailVerificationStrings)[LanguageCode]
+  | keyof LocationPermissionWorkerStrings
 >;
 
 const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
@@ -795,5 +1239,9 @@ export function formatWorkerUi(
 
 export function getWorkerUi(lang: LanguageCode | string | undefined): WorkerUiStrings {
   const code = normalizeWorkerLanguage(lang);
-  return { ...ui[code], ...emailVerificationStrings[code] };
+  return {
+    ...ui[code],
+    ...emailVerificationStrings[code],
+    ...locationPermissionStrings[code],
+  };
 }
