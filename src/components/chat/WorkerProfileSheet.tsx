@@ -259,7 +259,7 @@ export function WorkerProfileSheet({
 
               <div className="flex gap-3">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   fullWidth
                   onClick={handleCancelEdit}
                   disabled={saving}

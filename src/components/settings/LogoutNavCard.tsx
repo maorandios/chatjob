@@ -98,7 +98,7 @@ export function LogoutNavCard() {
           </p>
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               fullWidth
               onClick={() => setOpen(false)}
               disabled={loggingOut}
@@ -135,7 +135,7 @@ export function LogoutNavCard() {
           </div>
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               fullWidth
               onClick={() => setDeleteOpen(false)}
               disabled={deleting}

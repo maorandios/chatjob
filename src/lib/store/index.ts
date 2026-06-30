@@ -1334,7 +1334,16 @@ export const useSlangStore = create<SlangState>()(
         const worker = data.worker as Worker;
 
         set((state) => ({
-          workers: mergeWorkerList(state.workers, worker),
+          workers: mergeWorkerList(
+            state.workers,
+            {
+              ...state.workers.find((current) => current.id === worker.id),
+              ...worker,
+              profileImageUrl:
+                (data.profileImageUrl as string | undefined) ??
+                worker.profileImageUrl,
+            }
+          ),
         }));
       },
 

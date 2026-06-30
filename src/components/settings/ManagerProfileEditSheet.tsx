@@ -91,7 +91,7 @@ export function ManagerProfileEditSheet({
         />
         <div className="flex gap-3 pt-1">
           <Button
-            variant="ghost"
+            variant="outline"
             fullWidth
             onClick={onClose}
             disabled={saving}

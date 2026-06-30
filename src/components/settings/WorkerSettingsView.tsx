@@ -291,7 +291,7 @@ export function WorkerSettingsView({
           </p>
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               fullWidth
               onClick={() => setShowLogoutSheet(false)}
               disabled={loggingOut}
@@ -328,7 +328,7 @@ export function WorkerSettingsView({
           </div>
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               fullWidth
               onClick={() => setShowDeleteSheet(false)}
               disabled={deleting}
@@ -416,7 +416,7 @@ function WorkerProfileEditSheet({
         />
         <div className="flex gap-3 pt-1">
           <Button
-            variant="ghost"
+            variant="outline"
             fullWidth
             onClick={onClose}
             disabled={saving}

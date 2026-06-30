@@ -307,7 +307,7 @@ export function UsersScreenView() {
           </p>
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               fullWidth
               onClick={() => setDeleteTarget(null)}
               disabled={deleting}
