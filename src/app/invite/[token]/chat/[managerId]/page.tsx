@@ -121,6 +121,7 @@ export default function WorkerChatPage() {
         takePhotoLabel={ui.takePhotoLabel}
         chooseGalleryLabel={ui.chooseGalleryLabel}
         shareLocationLabel={ui.shareLocationLabel}
+        locationBubbleLabel={ui.shareLocationLabel}
         imageSendFailedLabel={ui.imageSendFailed}
         locationSendFailedLabel={ui.locationSendFailed}
         locationInstructionsLabels={{

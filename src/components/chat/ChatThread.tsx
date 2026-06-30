@@ -49,6 +49,7 @@ type ChatThreadProps = {
   takePhotoLabel?: string;
   chooseGalleryLabel?: string;
   shareLocationLabel?: string;
+  locationBubbleLabel?: string;
   imageSendFailedLabel?: string;
   locationSendFailedLabel?: string;
   locationInstructionsLabels?: Partial<LocationInstructionsLabels>;
@@ -82,6 +83,7 @@ export function ChatThread({
   takePhotoLabel = "צלם תמונה",
   chooseGalleryLabel = "בחר מהגלריה",
   shareLocationLabel = "שתף מיקום",
+  locationBubbleLabel = "שיתוף מיקום",
   imageSendFailedLabel = "שליחת התמונה נכשלה",
   locationSendFailedLabel = "שליחת המיקום נכשלה",
   locationInstructionsLabels,
@@ -332,6 +334,7 @@ export function ChatThread({
                 displayText={displayText}
                 isOwn={isOwn}
                 showStatus={isOwn}
+                locationLabel={locationBubbleLabel}
               />
             );
           })}

@@ -4,7 +4,7 @@ import { ImageLightbox } from "@/components/chat/ImageLightbox";
 import { formatTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types";
-import { Check, CheckCheck, ExternalLink, Loader2, MapPin, Mic } from "lucide-react";
+import { Check, CheckCheck, Loader2, MapPin, MapPinned, Mic } from "lucide-react";
 import { useState } from "react";
 
 type MessageBubbleProps = {
@@ -12,6 +12,7 @@ type MessageBubbleProps = {
   displayText: string;
   isOwn: boolean;
   showStatus?: boolean;
+  locationLabel?: string;
 };
 
 function StatusRow({
@@ -57,6 +58,7 @@ export function MessageBubble({
   displayText,
   isOwn,
   showStatus = false,
+  locationLabel = "שיתוף מיקום",
 }: MessageBubbleProps) {
   const isImage = message.inputType === "image" && message.imageUrl;
   const isLocation =
@@ -141,26 +143,20 @@ export function MessageBubble({
               )}
               aria-label="Open location in maps"
             >
-              <div
-                className={cn(
-                  "mb-2 flex h-24 items-center justify-center rounded-xl",
-                  isOwn ? "bg-white/15" : "bg-[var(--jobchat-accent-light)]"
-                )}
-              >
-                <MapPin
-                  className={cn(
-                    "h-9 w-9",
-                    isOwn ? "text-white" : "text-[var(--jobchat-accent)]"
-                  )}
-                  strokeWidth={1.8}
+              <div className="relative mb-2 h-24 overflow-hidden rounded-xl bg-[var(--jobchat-accent-light)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/locationimage.jpg"
+                  alt=""
+                  className="h-full w-full object-cover object-center"
                 />
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-1.5 text-[15px] font-semibold">
                   <MapPin className="h-4 w-4 shrink-0" strokeWidth={2} />
-                  {message.locationLabel || displayText || "מיקום"}
+                  {locationLabel || displayText}
                 </span>
-                <ExternalLink className="h-4 w-4 shrink-0 opacity-80" />
+                <MapPinned className="h-4 w-4 shrink-0 opacity-80" />
               </div>
             </a>
             <StatusRow
