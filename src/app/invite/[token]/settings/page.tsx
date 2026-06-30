@@ -34,9 +34,9 @@ export default function WorkerSettingsPage() {
     );
   }
 
-  if (!worker?.language) notFound();
+  if (!worker) notFound();
 
-  const language = worker.language as LanguageCode;
+  const language = (worker.language ?? "en") as LanguageCode;
   const dir = getLanguageDir(language);
   const ui = getWorkerUi(language);
 

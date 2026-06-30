@@ -1332,17 +1332,21 @@ export const useSlangStore = create<SlangState>()(
 
         const data = await res.json();
         const worker = data.worker as Worker;
+        const profileImageUrl =
+          (data.profileImageUrl as string | undefined) ?? worker.profileImageUrl;
 
         set((state) => ({
           workers: mergeWorkerList(
             state.workers,
-            {
-              ...state.workers.find((current) => current.id === worker.id),
-              ...worker,
-              profileImageUrl:
-                (data.profileImageUrl as string | undefined) ??
-                worker.profileImageUrl,
-            }
+            state.workers.find((current) => current.id === worker.id)
+              ? {
+                  ...state.workers.find((current) => current.id === worker.id)!,
+                  profileImageUrl,
+                }
+              : {
+                  ...worker,
+                  profileImageUrl,
+                }
           ),
         }));
       },
