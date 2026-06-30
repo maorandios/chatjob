@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { Sheet } from "@/components/ui/Sheet";
-import { LocationPermissionSettingsCard } from "@/components/settings/LocationPermissionSettingsCard";
 import { PushNotificationSettingsCard } from "@/components/settings/PushNotificationSettingsCard";
 import { LanguageFlag } from "@/components/worker/LanguageFlag";
 import { signOutSupabaseAuth } from "@/lib/auth/manager-auth";
@@ -195,36 +194,6 @@ export function WorkerSettingsView({
               deniedBody:
                 "Notifications are blocked in the browser. Open the site settings and allow notifications to turn them back on.",
               close: "Close",
-            }}
-          />
-
-          <LocationPermissionSettingsCard
-            dir={dir}
-            labels={{
-              title: ui.locationSettingsTitle,
-              subtitleReady: ui.locationSettingsReady,
-              subtitleNeedsSetup: ui.locationSettingsNeedsSetup,
-              sheetTitle: ui.locationSettingsSheetTitle,
-              sheetBody: ui.locationSettingsSheetBody,
-              readyTitle: ui.locationSettingsReadyTitle,
-              readyBody: ui.locationSettingsReadyBody,
-              deniedTitle: ui.locationSettingsDeniedTitle,
-              deniedBody: ui.locationSettingsDeniedBody,
-              unsupportedTitle: ui.locationSettingsUnsupportedTitle,
-              unsupportedBody: ui.locationSettingsUnsupportedBody,
-              insecureTitle: ui.locationSettingsInsecureTitle,
-              insecureBody: ui.locationSettingsInsecureBody,
-              unavailableTitle: ui.locationSettingsUnavailableTitle,
-              unavailableBody: ui.locationSettingsUnavailableBody,
-              timeoutTitle: ui.locationSettingsTimeoutTitle,
-              timeoutBody: ui.locationSettingsTimeoutBody,
-              iosTitle: ui.locationSettingsIosTitle,
-              iosSteps: ui.locationSettingsIosSteps,
-              androidTitle: ui.locationSettingsAndroidTitle,
-              androidSteps: ui.locationSettingsAndroidSteps,
-              desktopTitle: ui.locationSettingsDesktopTitle,
-              desktopSteps: ui.locationSettingsDesktopSteps,
-              close: ui.cancel,
             }}
           />
 

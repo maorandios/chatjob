@@ -123,8 +123,17 @@ export default function WorkerChatPage() {
         shareLocationLabel={ui.shareLocationLabel}
         imageSendFailedLabel={ui.imageSendFailed}
         locationSendFailedLabel={ui.locationSendFailed}
-        locationUnsupportedLabel={ui.locationUnsupported}
-        locationPermissionDeniedLabel={ui.locationPermissionDenied}
+        locationInstructionsLabels={{
+          title: ui.locationSettingsSheetTitle,
+          body: ui.locationSettingsSheetBody,
+          iosTitle: ui.locationSettingsIosTitle,
+          iosSteps: ui.locationSettingsIosSteps,
+          androidTitle: ui.locationSettingsAndroidTitle,
+          androidSteps: ui.locationSettingsAndroidSteps,
+          desktopTitle: ui.locationSettingsDesktopTitle,
+          desktopSteps: ui.locationSettingsDesktopSteps,
+          close: ui.cancel,
+        }}
         dir={dir}
         largeComposer
       />

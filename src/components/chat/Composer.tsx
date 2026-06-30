@@ -1,9 +1,12 @@
 "use client";
 
 import { ImageAttachSheet } from "@/components/chat/ImageAttachSheet";
+import {
+  LocationInstructionsSheet,
+  type LocationInstructionsLabels,
+} from "@/components/chat/LocationInstructionsSheet";
 import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
 import { useToast } from "@/components/ui/Toast";
-import { markLocationPermissionReady } from "@/lib/location-permission";
 import { cn } from "@/lib/utils";
 import { Loader2, Plus, Send } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -33,11 +36,8 @@ type ComposerProps = {
   shareLocationLabel?: string;
   imageSendFailedLabel?: string;
   locationSendFailedLabel?: string;
-  locationUnsupportedLabel?: string;
-  locationPermissionDeniedLabel?: string;
-  locationSecureContextLabel?: string;
-  locationUnavailableLabel?: string;
   locationTimeoutLabel?: string;
+  locationInstructionsLabels?: Partial<LocationInstructionsLabels>;
   large?: boolean;
   dir?: "ltr" | "rtl";
   disabled?: boolean;
@@ -72,11 +72,8 @@ export function Composer({
   shareLocationLabel = "שתף מיקום",
   imageSendFailedLabel = "שליחת התמונה נכשלה",
   locationSendFailedLabel = "שליחת המיקום נכשלה",
-  locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
-  locationPermissionDeniedLabel = "צריך לאשר גישה למיקום בהגדרות הדפדפן או האייפון",
-  locationSecureContextLabel = "שיתוף מיקום דורש חיבור מאובטח (HTTPS) או אפליקציה מותקנת",
-  locationUnavailableLabel = "לא הצלחנו למצוא את המיקום. ודאו ששירותי המיקום פעילים",
   locationTimeoutLabel = "איתור המיקום לקח יותר מדי זמן. נסו שוב",
+  locationInstructionsLabels,
   large = false,
   dir = "rtl",
   disabled = false,
@@ -85,6 +82,8 @@ export function Composer({
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showImageSheet, setShowImageSheet] = useState(false);
+  const [showLocationInstructions, setShowLocationInstructions] =
+    useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasText = text.trim().length > 0;
 
@@ -127,18 +126,17 @@ export function Composer({
   const handleLocationSelected = async () => {
     if (!onLocationSend || disabled || isSending) return;
     if (typeof window !== "undefined" && !window.isSecureContext) {
-      showToast(locationSecureContextLabel);
+      setShowLocationInstructions(true);
       return;
     }
     if (!("geolocation" in navigator)) {
-      showToast(locationUnsupportedLabel);
+      setShowLocationInstructions(true);
       return;
     }
 
     setIsSending(true);
     try {
       const position = await getCurrentLocation();
-      markLocationPermissionReady();
       await onLocationSend({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -154,9 +152,9 @@ export function Composer({
           ? error.message
           : locationSendFailedLabel;
       if (geoError?.code === 1) {
-        showToast(locationPermissionDeniedLabel);
+        setShowLocationInstructions(true);
       } else if (geoError?.code === 2) {
-        showToast(locationUnavailableLabel);
+        setShowLocationInstructions(true);
       } else if (geoError?.code === 3) {
         showToast(locationTimeoutLabel);
       } else {
@@ -273,6 +271,13 @@ export function Composer({
           dir={dir}
         />
       )}
+
+      <LocationInstructionsSheet
+        open={showLocationInstructions}
+        onClose={() => setShowLocationInstructions(false)}
+        dir={dir}
+        labels={locationInstructionsLabels}
+      />
     </>
   );
 }

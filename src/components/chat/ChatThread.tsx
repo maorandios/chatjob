@@ -2,6 +2,7 @@
 
 import { ChatLoadingState } from "@/components/chat/ChatLoadingState";
 import { Composer } from "@/components/chat/Composer";
+import type { LocationInstructionsLabels } from "@/components/chat/LocationInstructionsSheet";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { QuickReplies } from "@/components/chat/QuickReplies";
 import { VoiceConfirmSheet } from "@/components/chat/VoiceConfirmSheet";
@@ -50,9 +51,7 @@ type ChatThreadProps = {
   shareLocationLabel?: string;
   imageSendFailedLabel?: string;
   locationSendFailedLabel?: string;
-  locationUnsupportedLabel?: string;
-  locationPermissionDeniedLabel?: string;
-  locationSecureContextLabel?: string;
+  locationInstructionsLabels?: Partial<LocationInstructionsLabels>;
   dir?: "ltr" | "rtl";
   largeComposer?: boolean;
 };
@@ -85,9 +84,7 @@ export function ChatThread({
   shareLocationLabel = "שתף מיקום",
   imageSendFailedLabel = "שליחת התמונה נכשלה",
   locationSendFailedLabel = "שליחת המיקום נכשלה",
-  locationUnsupportedLabel = "המכשיר לא תומך בשיתוף מיקום",
-  locationPermissionDeniedLabel = "לא ניתן לגשת למיקום",
-  locationSecureContextLabel = "שיתוף מיקום דורש חיבור מאובטח (HTTPS) או אפליקציה מותקנת",
+  locationInstructionsLabels,
   dir = "rtl",
   largeComposer = false,
 }: ChatThreadProps) {
@@ -284,9 +281,7 @@ export function ChatThread({
           shareLocationLabel={shareLocationLabel}
           imageSendFailedLabel={imageSendFailedLabel}
           locationSendFailedLabel={locationSendFailedLabel}
-          locationUnsupportedLabel={locationUnsupportedLabel}
-          locationPermissionDeniedLabel={locationPermissionDeniedLabel}
-          locationSecureContextLabel={locationSecureContextLabel}
+          locationInstructionsLabels={locationInstructionsLabels}
           large={largeComposer}
           dir={dir}
           disabled
@@ -372,9 +367,7 @@ export function ChatThread({
         shareLocationLabel={shareLocationLabel}
         imageSendFailedLabel={imageSendFailedLabel}
         locationSendFailedLabel={locationSendFailedLabel}
-        locationUnsupportedLabel={locationUnsupportedLabel}
-        locationPermissionDeniedLabel={locationPermissionDeniedLabel}
-        locationSecureContextLabel={locationSecureContextLabel}
+        locationInstructionsLabels={locationInstructionsLabels}
         large={largeComposer}
         dir={dir}
         disabled={!!voicePreview || isConfirmingVoice}

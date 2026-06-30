@@ -2,7 +2,6 @@
 
 import { AdminCompanyDetailsCard } from "@/components/settings/AdminCompanyDetailsCard";
 import { AdminPersonalProfileCard } from "@/components/settings/AdminPersonalProfileCard";
-import { LocationPermissionSettingsCard } from "@/components/settings/LocationPermissionSettingsCard";
 import { LogoutNavCard } from "@/components/settings/LogoutNavCard";
 import { PushNotificationSettingsCard } from "@/components/settings/PushNotificationSettingsCard";
 import { UsersNavCard } from "@/components/settings/UsersNavCard";
@@ -28,8 +27,6 @@ export function ManagerSettingsView() {
             dir="rtl"
           />
         )}
-
-        <LocationPermissionSettingsCard dir="rtl" />
 
         <LogoutNavCard />
       </div>
