@@ -7,8 +7,12 @@ export const LANGUAGE_LABELS: Record<string, string> = {
   en: "English",
   si: "Sinhala",
   ro: "Romanian",
+  uz: "Uzbek",
+  vi: "Vietnamese",
+  az: "Azerbaijani",
   ar: "Arabic",
   ru: "Russian",
+  zh: "Chinese",
 };
 
 /** Light domain hint only — no example phrases that bias transcription. */

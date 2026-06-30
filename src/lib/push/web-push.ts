@@ -44,6 +44,18 @@ const MEDIA_BODY_BY_LANGUAGE: Record<
     image: "Ți-a fost trimisă o fotografie nouă",
     location: "A fost partajată o locație nouă cu tine",
   },
+  uz: {
+    image: "Sizga yangi rasm yuborildi",
+    location: "Siz bilan yangi joylashuv ulashildi",
+  },
+  vi: {
+    image: "Bạn đã nhận được một ảnh mới",
+    location: "Một vị trí mới đã được chia sẻ với bạn",
+  },
+  az: {
+    image: "Sizə yeni şəkil göndərildi",
+    location: "Sizinlə yeni məkan paylaşıldı",
+  },
   ar: {
     image: "تم إرسال صورة جديدة إليك",
     location: "تمت مشاركة موقع جديد معك",

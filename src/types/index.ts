@@ -5,6 +5,9 @@ export const LANGUAGE_CODES = [
   "hi",
   "si",
   "ro",
+  "uz",
+  "vi",
+  "az",
   "ar",
   "zh",
 ] as const;
