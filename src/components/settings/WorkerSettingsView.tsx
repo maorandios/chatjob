@@ -194,19 +194,17 @@ export function WorkerSettingsView({
             userId={workerId}
             dir={dir}
             labels={{
-              title: "Notifications",
-              subtitleOn: "Message notifications are active",
-              subtitleOff: "Message notifications are off",
-              sheetTitle: "Message notifications",
-              sheetBody: "Get notified when someone sends you a new message.",
-              toggleOn: "Active",
-              toggleOff: "Off",
-              unsupportedTitle: "Notifications are not supported",
-              unsupportedBody:
-                "This mobile OS or browser version does not support push notifications. Update your device or use a supported browser.",
-              deniedBody:
-                "Notifications are blocked in the browser. Open the site settings and allow notifications to turn them back on.",
-              close: "Close",
+              title: ui.pushSettingsTitle,
+              subtitleOn: ui.pushSettingsSubtitleOn,
+              subtitleOff: ui.pushSettingsSubtitleOff,
+              sheetTitle: ui.pushSettingsSheetTitle,
+              sheetBody: ui.pushSettingsSheetBody,
+              toggleOn: ui.pushSettingsToggleOn,
+              toggleOff: ui.pushSettingsToggleOff,
+              unsupportedTitle: ui.pushSettingsUnsupportedTitle,
+              unsupportedBody: ui.pushSettingsUnsupportedBody,
+              deniedBody: ui.pushSettingsDeniedBody,
+              close: ui.cancel,
             }}
           />
 
@@ -222,7 +220,14 @@ export function WorkerSettingsView({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-900">{ui.logout}</p>
               </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
+              <ChevronRight
+                className={
+                  dir === "rtl"
+                    ? "h-5 w-5 shrink-0 rotate-180 text-gray-400"
+                    : "h-5 w-5 shrink-0 text-gray-400"
+                }
+                aria-hidden
+              />
             </button>
           </section>
 
@@ -243,7 +248,14 @@ export function WorkerSettingsView({
                   {ui.deleteAccountSubtitle}
                 </p>
               </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-red-300" aria-hidden />
+              <ChevronRight
+                className={
+                  dir === "rtl"
+                    ? "h-5 w-5 shrink-0 rotate-180 text-red-300"
+                    : "h-5 w-5 shrink-0 text-red-300"
+                }
+                aria-hidden
+              />
             </button>
           </section>
         </div>

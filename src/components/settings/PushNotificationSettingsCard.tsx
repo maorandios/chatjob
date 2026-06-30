@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { usePushNotifications } from "@/lib/hooks/use-push-notifications";
 import { cn } from "@/lib/utils";
-import { Bell, BellOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, BellOff, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 type PushNotificationSettingsLabels = {
@@ -102,7 +102,6 @@ export function PushNotificationSettingsCard({
   const busy = state === "subscribing";
   const subtitle = isEnabled ? labels.subtitleOn : labels.subtitleOff;
   const Icon = isEnabled ? Bell : BellOff;
-  const Chevron = dir === "rtl" ? ChevronLeft : ChevronRight;
 
   const handleToggle = async () => {
     if (busy || unavailable || denied) return;
@@ -131,7 +130,13 @@ export function PushNotificationSettingsCard({
               {unavailable ? labels.unsupportedTitle : subtitle}
             </p>
           </div>
-          <Chevron className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
+          <ChevronRight
+            className={cn(
+              "h-5 w-5 shrink-0 text-gray-400",
+              dir === "rtl" && "rotate-180"
+            )}
+            aria-hidden
+          />
         </button>
       </section>
 

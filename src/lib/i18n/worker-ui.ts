@@ -66,6 +66,16 @@ export type WorkerUiStrings = {
   locationSettingsAndroidSteps: string[];
   locationSettingsDesktopTitle: string;
   locationSettingsDesktopSteps: string[];
+  pushSettingsTitle: string;
+  pushSettingsSubtitleOn: string;
+  pushSettingsSubtitleOff: string;
+  pushSettingsSheetTitle: string;
+  pushSettingsSheetBody: string;
+  pushSettingsToggleOn: string;
+  pushSettingsToggleOff: string;
+  pushSettingsUnsupportedTitle: string;
+  pushSettingsUnsupportedBody: string;
+  pushSettingsDeniedBody: string;
   noMessagesYet: string;
   contactNameTitle: string;
   contactNameOriginal: string;
@@ -671,10 +681,143 @@ const locationPermissionStrings: Record<
   },
 };
 
+type PushNotificationWorkerStrings = Pick<
+  WorkerUiStrings,
+  | "pushSettingsTitle"
+  | "pushSettingsSubtitleOn"
+  | "pushSettingsSubtitleOff"
+  | "pushSettingsSheetTitle"
+  | "pushSettingsSheetBody"
+  | "pushSettingsToggleOn"
+  | "pushSettingsToggleOff"
+  | "pushSettingsUnsupportedTitle"
+  | "pushSettingsUnsupportedBody"
+  | "pushSettingsDeniedBody"
+>;
+
+const pushNotificationStrings: Record<
+  LanguageCode,
+  PushNotificationWorkerStrings
+> = {
+  th: {
+    pushSettingsTitle: "การแจ้งเตือน",
+    pushSettingsSubtitleOn: "การแจ้งเตือนข้อความเปิดอยู่",
+    pushSettingsSubtitleOff: "การแจ้งเตือนข้อความปิดอยู่",
+    pushSettingsSheetTitle: "การแจ้งเตือนข้อความ",
+    pushSettingsSheetBody: "รับการแจ้งเตือนเมื่อมีคนส่งข้อความใหม่ถึงคุณ",
+    pushSettingsToggleOn: "เปิดอยู่",
+    pushSettingsToggleOff: "ปิด",
+    pushSettingsUnsupportedTitle: "ไม่รองรับการแจ้งเตือน",
+    pushSettingsUnsupportedBody:
+      "ระบบมือถือหรือเบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนพุช โปรดอัปเดตอุปกรณ์หรือใช้เบราว์เซอร์ที่รองรับ",
+    pushSettingsDeniedBody:
+      "การแจ้งเตือนถูกบล็อกในเบราว์เซอร์ เปิดการตั้งค่าเว็บไซต์แล้วอนุญาตการแจ้งเตือน",
+  },
+  hi: {
+    pushSettingsTitle: "नोटिफिकेशन",
+    pushSettingsSubtitleOn: "मैसेज नोटिफिकेशन चालू हैं",
+    pushSettingsSubtitleOff: "मैसेज नोटिफिकेशन बंद हैं",
+    pushSettingsSheetTitle: "मैसेज नोटिफिकेशन",
+    pushSettingsSheetBody: "जब कोई आपको नया मैसेज भेजे तो नोटिफिकेशन पाएं।",
+    pushSettingsToggleOn: "चालू",
+    pushSettingsToggleOff: "बंद",
+    pushSettingsUnsupportedTitle: "नोटिफिकेशन समर्थित नहीं हैं",
+    pushSettingsUnsupportedBody:
+      "यह मोबाइल OS या ब्राउज़र पुश नोटिफिकेशन सपोर्ट नहीं करता। डिवाइस अपडेट करें या समर्थित ब्राउज़र इस्तेमाल करें।",
+    pushSettingsDeniedBody:
+      "ब्राउज़र में नोटिफिकेशन ब्लॉक हैं। साइट सेटिंग खोलें और नोटिफिकेशन अनुमति दें।",
+  },
+  si: {
+    pushSettingsTitle: "දැනුම්දීම්",
+    pushSettingsSubtitleOn: "පණිවිඩ දැනුම්දීම් සක්‍රීයයි",
+    pushSettingsSubtitleOff: "පණිවිඩ දැනුම්දීම් අක්‍රීයයි",
+    pushSettingsSheetTitle: "පණිවිඩ දැනුම්දීම්",
+    pushSettingsSheetBody: "කවුරුහරි ඔබට නව පණිවිඩයක් එවූ විට දැනුම්දීමක් ලබාගන්න.",
+    pushSettingsToggleOn: "සක්‍රීය",
+    pushSettingsToggleOff: "අක්‍රීය",
+    pushSettingsUnsupportedTitle: "දැනුම්දීම් සඳහා සහාය නැත",
+    pushSettingsUnsupportedBody:
+      "මෙම mobile OS හෝ browser එක push notifications සඳහා සහාය නොදක්වයි. උපකරණය update කරන්න හෝ සහාය දක්වන browser එකක් භාවිතා කරන්න.",
+    pushSettingsDeniedBody:
+      "Browser එකේ දැනුම්දීම් block කර ඇත. Site settings විවෘත කර notifications allow කරන්න.",
+  },
+  ro: {
+    pushSettingsTitle: "Notificări",
+    pushSettingsSubtitleOn: "Notificările pentru mesaje sunt active",
+    pushSettingsSubtitleOff: "Notificările pentru mesaje sunt oprite",
+    pushSettingsSheetTitle: "Notificări pentru mesaje",
+    pushSettingsSheetBody: "Primești o notificare când cineva îți trimite un mesaj nou.",
+    pushSettingsToggleOn: "Activ",
+    pushSettingsToggleOff: "Oprit",
+    pushSettingsUnsupportedTitle: "Notificările nu sunt acceptate",
+    pushSettingsUnsupportedBody:
+      "Acest sistem mobil sau browser nu acceptă notificări push. Actualizează dispozitivul sau folosește un browser compatibil.",
+    pushSettingsDeniedBody:
+      "Notificările sunt blocate în browser. Deschide setările site-ului și permite notificările.",
+  },
+  en: {
+    pushSettingsTitle: "Notifications",
+    pushSettingsSubtitleOn: "Message notifications are active",
+    pushSettingsSubtitleOff: "Message notifications are off",
+    pushSettingsSheetTitle: "Message notifications",
+    pushSettingsSheetBody: "Get notified when someone sends you a new message.",
+    pushSettingsToggleOn: "Active",
+    pushSettingsToggleOff: "Off",
+    pushSettingsUnsupportedTitle: "Notifications are not supported",
+    pushSettingsUnsupportedBody:
+      "This mobile OS or browser version does not support push notifications. Update your device or use a supported browser.",
+    pushSettingsDeniedBody:
+      "Notifications are blocked in the browser. Open the site settings and allow notifications to turn them back on.",
+  },
+  ar: {
+    pushSettingsTitle: "الإشعارات",
+    pushSettingsSubtitleOn: "إشعارات الرسائل مفعّلة",
+    pushSettingsSubtitleOff: "إشعارات الرسائل متوقفة",
+    pushSettingsSheetTitle: "إشعارات الرسائل",
+    pushSettingsSheetBody: "احصل على إشعار عندما يرسل لك شخص رسالة جديدة.",
+    pushSettingsToggleOn: "مفعّل",
+    pushSettingsToggleOff: "متوقف",
+    pushSettingsUnsupportedTitle: "الإشعارات غير مدعومة",
+    pushSettingsUnsupportedBody:
+      "نظام الهاتف أو هذا المتصفح لا يدعم إشعارات الدفع. حدّث الجهاز أو استخدم متصفحًا مدعومًا.",
+    pushSettingsDeniedBody:
+      "الإشعارات محظورة في المتصفح. افتح إعدادات الموقع واسمح بالإشعارات.",
+  },
+  ru: {
+    pushSettingsTitle: "Уведомления",
+    pushSettingsSubtitleOn: "Уведомления о сообщениях включены",
+    pushSettingsSubtitleOff: "Уведомления о сообщениях выключены",
+    pushSettingsSheetTitle: "Уведомления о сообщениях",
+    pushSettingsSheetBody: "Получайте уведомления, когда вам отправляют новое сообщение.",
+    pushSettingsToggleOn: "Включено",
+    pushSettingsToggleOff: "Выключено",
+    pushSettingsUnsupportedTitle: "Уведомления не поддерживаются",
+    pushSettingsUnsupportedBody:
+      "Эта мобильная ОС или браузер не поддерживает push-уведомления. Обновите устройство или используйте поддерживаемый браузер.",
+    pushSettingsDeniedBody:
+      "Уведомления заблокированы в браузере. Откройте настройки сайта и разрешите уведомления.",
+  },
+  zh: {
+    pushSettingsTitle: "通知",
+    pushSettingsSubtitleOn: "消息通知已开启",
+    pushSettingsSubtitleOff: "消息通知已关闭",
+    pushSettingsSheetTitle: "消息通知",
+    pushSettingsSheetBody: "当有人给你发送新消息时接收通知。",
+    pushSettingsToggleOn: "开启",
+    pushSettingsToggleOff: "关闭",
+    pushSettingsUnsupportedTitle: "不支持通知",
+    pushSettingsUnsupportedBody:
+      "此移动系统或浏览器版本不支持推送通知。请更新设备或使用受支持的浏览器。",
+    pushSettingsDeniedBody:
+      "浏览器已阻止通知。打开网站设置并允许通知。",
+  },
+};
+
 type BaseWorkerUiStrings = Omit<
   WorkerUiStrings,
   | keyof (typeof emailVerificationStrings)[LanguageCode]
   | keyof LocationPermissionWorkerStrings
+  | keyof PushNotificationWorkerStrings
 >;
 
 const ui: Record<LanguageCode, BaseWorkerUiStrings> = {
@@ -1223,5 +1366,6 @@ export function getWorkerUi(lang: LanguageCode | string | undefined): WorkerUiSt
     ...ui[code],
     ...emailVerificationStrings[code],
     ...locationPermissionStrings[code],
+    ...pushNotificationStrings[code],
   };
 }
