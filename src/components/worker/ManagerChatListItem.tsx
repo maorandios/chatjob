@@ -2,6 +2,7 @@
 
 import { Avatar } from "@/components/ui/Avatar";
 import {
+  getMessagePreviewIcon,
   getMessageDisplayText,
   useContactDisplayName,
   useHasUnreadMessages,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/store";
 import { formatListTime, getWorkerChatPath } from "@/lib/utils";
 import type { LanguageCode, Manager } from "@/types";
+import { Camera, MapPin } from "lucide-react";
 import Link from "next/link";
 
 type ManagerChatListItemProps = {
@@ -33,6 +35,7 @@ export function ManagerChatListItem({
   const preview = lastMessage
     ? getMessageDisplayText(lastMessage, "worker", workerLanguage)
     : emptyPreview;
+  const previewIcon = getMessagePreviewIcon(lastMessage);
 
   const time = lastMessage ? formatListTime(lastMessage.createdAt) : "";
 
@@ -57,7 +60,15 @@ export function ManagerChatListItem({
             )}
           </div>
         </div>
-        <p className="truncate text-sm text-gray-500">{preview}</p>
+        <p className="flex items-center gap-1.5 truncate text-sm text-gray-500">
+          {previewIcon === "image" && (
+            <Camera className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+          )}
+          {previewIcon === "location" && (
+            <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+          )}
+          <span className="truncate">{preview}</span>
+        </p>
       </div>
     </Link>
   );

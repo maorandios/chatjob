@@ -4,6 +4,7 @@ import { InviteReadySheet } from "@/components/manager/InviteReadySheet";
 import { Avatar } from "@/components/ui/Avatar";
 import {
   getMessageDisplayText,
+  getMessagePreviewIcon,
   useHasUnreadMessages,
   useContactDisplayName,
   useLastMessage,
@@ -13,7 +14,7 @@ import { getInviteShareText } from "@/lib/invites/share-text";
 import { formatListTime, getInviteUrl, getManagerChatPath } from "@/lib/utils";
 import { isWorkerInvitePending } from "@/lib/workers/invite-status";
 import type { Worker } from "@/types";
-import { Send } from "lucide-react";
+import { Camera, MapPin, Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -40,6 +41,7 @@ export function ChatListItem({ worker }: ChatListItemProps) {
   const preview = lastMessage
     ? getMessageDisplayText(lastMessage, "manager", worker.language)
     : "אין הודעות עדיין";
+  const previewIcon = getMessagePreviewIcon(lastMessage);
 
   const time = lastMessage ? formatListTime(lastMessage.createdAt) : "";
 
@@ -101,7 +103,15 @@ export function ChatListItem({ worker }: ChatListItemProps) {
             )}
           </div>
         </div>
-        <p className="truncate text-sm text-gray-500">{preview}</p>
+        <p className="flex items-center gap-1.5 truncate text-sm text-gray-500">
+          {previewIcon === "image" && (
+            <Camera className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+          )}
+          {previewIcon === "location" && (
+            <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+          )}
+          <span className="truncate">{preview}</span>
+        </p>
       </div>
     </Link>
   );

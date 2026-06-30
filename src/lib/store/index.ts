@@ -1369,10 +1369,10 @@ export function getMessageDisplayText(
   workerLanguage?: LanguageCode
 ): string {
   if (message.inputType === "image") {
-    return "📷 תמונה";
+    return getMediaPreviewText("image", viewerRole, workerLanguage);
   }
   if (message.inputType === "location") {
-    return "מיקום";
+    return getMediaPreviewText("location", viewerRole, workerLanguage);
   }
   if (message.senderRole === viewerRole) {
     return message.originalText;
@@ -1390,6 +1390,38 @@ export function getMessageDisplayText(
     return message.translatedText;
   }
   return message.originalText;
+}
+
+const mediaPreviewText: Record<
+  LanguageCode | "he",
+  { image: string; location: string }
+> = {
+  he: { image: "תמונה", location: "מיקום" },
+  en: { image: "Image", location: "Location" },
+  th: { image: "รูปภาพ", location: "ตำแหน่ง" },
+  hi: { image: "फ़ोटो", location: "लोकेशन" },
+  si: { image: "ඡායාරූපය", location: "ස්ථානය" },
+  ro: { image: "Imagine", location: "Locație" },
+  ar: { image: "صورة", location: "موقع" },
+  ru: { image: "Фото", location: "Геолокация" },
+  zh: { image: "图片", location: "位置" },
+};
+
+function getMediaPreviewText(
+  inputType: "image" | "location",
+  viewerRole: "manager" | "worker",
+  workerLanguage?: LanguageCode
+): string {
+  const language = viewerRole === "worker" ? (workerLanguage ?? "en") : "he";
+  return mediaPreviewText[language][inputType];
+}
+
+export function getMessagePreviewIcon(
+  message?: Message
+): "image" | "location" | null {
+  if (message?.inputType === "image") return "image";
+  if (message?.inputType === "location") return "location";
+  return null;
 }
 
 export function useConversationMessages(
