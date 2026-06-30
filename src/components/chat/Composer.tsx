@@ -194,12 +194,18 @@ export function Composer({
   return (
     <>
       <div className="composer-dock">
-        <div dir="ltr" className="flex items-end gap-2">
+        <div
+          dir="ltr"
+          className={cn(
+            "flex items-end gap-2",
+            dir === "ltr" && "flex-row-reverse"
+          )}
+        >
           <div
             dir={dir}
             className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2 rounded-[26px] border border-[var(--jobchat-border)] bg-[var(--jobchat-surface)] px-3 py-1.5 focus-within:border-[var(--jobchat-accent)]/40 focus-within:bg-white"
           >
-            {dir === "rtl" && attachmentButton}
+            {attachmentButton}
             <textarea
               ref={textareaRef}
               value={text}
@@ -215,7 +221,6 @@ export function Composer({
                 large ? "text-[17px] leading-relaxed" : "text-[16px] leading-normal"
               )}
             />
-            {dir === "ltr" && attachmentButton}
           </div>
 
           {hasText ? (

@@ -18,6 +18,7 @@ type ConversationSessionCache = {
 };
 
 const conversationSessionCache = new Map<string, ConversationSessionCache>();
+const loadedWorkerInboxKeys = new Set<string>();
 
 function conversationSessionKey(managerId: string, workerId: string): string {
   return `${managerId}:${workerId}`;
@@ -280,7 +281,9 @@ export function useWorkerInboxPreviews(
   const upsertRef = useRef(upsertMessage);
   upsertRef.current = upsertMessage;
   const inboxKey = workerId ? `${workerId}:${workerToken ?? ""}` : null;
-  const [loadedInboxKey, setLoadedInboxKey] = useState<string | null>(null);
+  const [loadedInboxKey, setLoadedInboxKey] = useState<string | null>(() =>
+    inboxKey && loadedWorkerInboxKeys.has(inboxKey) ? inboxKey : null
+  );
 
   const refreshInbox = useCallback(async () => {
     if (!workerId) return;
@@ -297,7 +300,10 @@ export function useWorkerInboxPreviews(
 
     let cancelled = false;
     void refreshInbox().finally(() => {
-      if (!cancelled) setLoadedInboxKey(inboxKey);
+      if (!cancelled) {
+        if (inboxKey) loadedWorkerInboxKeys.add(inboxKey);
+        setLoadedInboxKey(inboxKey);
+      }
     });
 
     const unsubscribe = subscribeToWorkerInbox(workerId, (message) => {
@@ -335,6 +341,10 @@ export function useInviteBootstrap(token: string | undefined) {
     if (!token) return;
     const joinedWorker = worker?.status === "active" && Boolean(worker.email);
     if (worker && invite && !joinedWorker) {
+      setFetchState("done");
+      return;
+    }
+    if (worker && invite && joinedWorker) {
       setFetchState("done");
       return;
     }

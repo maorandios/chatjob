@@ -11,6 +11,12 @@ type UsePushNotificationsOptions = {
   userId?: string;
 };
 
+type PushUnsubscribeOptions = {
+  userRole?: PushUserRole;
+  userId?: string;
+  rememberDisabled?: boolean;
+};
+
 type PushRegistrationState =
   | "unsupported"
   | "missing-key"
@@ -70,6 +76,37 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     "Content-Type": "application/json",
     Authorization: `Bearer ${session.access_token}`,
   };
+}
+
+export async function unsubscribeCurrentPushDevice({
+  userRole,
+  userId,
+  rememberDisabled = true,
+}: PushUnsubscribeOptions): Promise<void> {
+  if (!userRole || !userId || !isPushSupported()) return;
+
+  const disabledStorageKey = getDisabledStorageKey(userRole, userId);
+  if (rememberDisabled && disabledStorageKey) {
+    window.localStorage.setItem(disabledStorageKey, "true");
+  }
+
+  const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+  const subscription = await registration?.pushManager.getSubscription();
+  if (!subscription) return;
+
+  const endpoint = subscription.endpoint;
+  await subscription.unsubscribe();
+
+  const params = new URLSearchParams({
+    userRole,
+    userId,
+    endpoint,
+  });
+
+  await fetch(`/api/push-subscriptions?${params.toString()}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  });
 }
 
 export function usePushNotifications({
@@ -148,35 +185,13 @@ export function usePushNotifications({
     if (!enabled || !userRole || !userId || !supported) return;
 
     try {
-      if (disabledStorageKey) {
-        window.localStorage.setItem(disabledStorageKey, "true");
-      }
-
-      const registration = await navigator.serviceWorker.getRegistration("/sw.js");
-      const subscription = await registration?.pushManager.getSubscription();
-
-      if (subscription) {
-        const endpoint = subscription.endpoint;
-        await subscription.unsubscribe();
-
-        const params = new URLSearchParams({
-          userRole,
-          userId,
-          endpoint,
-        });
-
-        await fetch(`/api/push-subscriptions?${params.toString()}`, {
-          method: "DELETE",
-          headers: await getAuthHeaders(),
-        });
-      }
-
+      await unsubscribeCurrentPushDevice({ userRole, userId });
       setState("disabled");
     } catch (error) {
       setState("failed");
       console.warn("[Slang] Push unsubscribe failed", error);
     }
-  }, [disabledStorageKey, enabled, supported, userId, userRole]);
+  }, [enabled, supported, userId, userRole]);
 
   useEffect(() => {
     if (!enabled || !supported || !publicKey) return;
@@ -186,11 +201,20 @@ export function usePushNotifications({
     }
 
     if (Notification.permission === "granted") {
-      const timeout = window.setTimeout(() => {
-        void subscribe(false);
-      }, 0);
+      let cancelled = false;
+      void navigator.serviceWorker
+        .getRegistration("/sw.js")
+        .then((registration) => registration?.pushManager.getSubscription())
+        .then((subscription) => {
+          if (!cancelled) setState(subscription ? "subscribed" : "granted");
+        })
+        .catch(() => {
+          if (!cancelled) setState("granted");
+        });
 
-      return () => window.clearTimeout(timeout);
+      return () => {
+        cancelled = true;
+      };
     }
     const timeout = window.setTimeout(() => setState(Notification.permission), 0);
     return () => window.clearTimeout(timeout);

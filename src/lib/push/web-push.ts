@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import type { MessageInputType } from "@/types";
+import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
+import type { LanguageCode, MessageInputType } from "@/types";
 import webpush, { type PushSubscription } from "web-push";
 
 type NotificationRecipient = "manager" | "worker";
@@ -14,6 +15,48 @@ type MessageNotificationInput = {
 };
 
 let configured = false;
+
+const MEDIA_BODY_BY_LANGUAGE: Record<
+  LanguageCode | "he",
+  { image: string; location: string }
+> = {
+  he: {
+    image: "נשלחה אליך תמונה חדשה",
+    location: "שיתפו איתך מיקום חדש",
+  },
+  en: {
+    image: "A new photo was sent to you",
+    location: "A new location was shared with you",
+  },
+  th: {
+    image: "มีการส่งรูปภาพใหม่ถึงคุณ",
+    location: "มีการแชร์ตำแหน่งใหม่กับคุณ",
+  },
+  hi: {
+    image: "आपको एक नई फ़ोटो भेजी गई है",
+    location: "आपके साथ एक नई लोकेशन शेयर की गई है",
+  },
+  si: {
+    image: "ඔබට නව ඡායාරූපයක් එවා ඇත",
+    location: "ඔබ සමඟ නව ස්ථානයක් බෙදාගෙන ඇත",
+  },
+  ro: {
+    image: "Ți-a fost trimisă o fotografie nouă",
+    location: "A fost partajată o locație nouă cu tine",
+  },
+  ar: {
+    image: "تم إرسال صورة جديدة إليك",
+    location: "تمت مشاركة موقع جديد معك",
+  },
+  ru: {
+    image: "Вам отправили новое фото",
+    location: "С вами поделились новой геолокацией",
+  },
+  zh: {
+    image: "有人向你发送了一张新照片",
+    location: "有人与你共享了新位置",
+  },
+};
 
 function getVapidConfig() {
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -46,9 +89,18 @@ function ensureConfigured(): boolean {
   return true;
 }
 
-function getBody(input: MessageNotificationInput): string {
-  if (input.inputType === "image") return "תמונה חדשה";
-  if (input.inputType === "location") return "מיקום חדש";
+function getBody(
+  input: MessageNotificationInput,
+  recipientRole: NotificationRecipient,
+  workerLanguage?: string | null
+): string {
+  const language =
+    recipientRole === "worker"
+      ? normalizeWorkerLanguage(workerLanguage)
+      : "he";
+  const mediaBody = MEDIA_BODY_BY_LANGUAGE[language];
+  if (input.inputType === "image") return mediaBody.image;
+  if (input.inputType === "location") return mediaBody.location;
   return (input.translatedText || input.originalText).trim();
 }
 
@@ -101,7 +153,7 @@ export async function sendMessagePushNotification(
         .maybeSingle(),
       supabase
         .from("workers")
-        .select("name, invite_token")
+        .select("name, invite_token, language")
         .eq("id", input.workerId)
         .maybeSingle(),
       supabase
@@ -146,13 +198,11 @@ export async function sendMessagePushNotification(
             input.managerId
           )}`
         : "/"
-      : workerInviteToken
-        ? `/c/${encodeURIComponent(workerInviteToken)}`
-        : "/manager";
+      : `/manager/chat/${encodeURIComponent(input.workerId)}`;
 
   const payload = JSON.stringify({
     title: senderName,
-    body: getBody(input),
+    body: getBody(input, recipientRole, worker?.language),
     url,
   });
 

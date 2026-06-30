@@ -70,14 +70,6 @@ function WorkerHome({
 
   const inboxLoading = useWorkerInboxPreviews(workerId, token);
 
-  if (inboxLoading) {
-    return (
-      <MobileFrame dir={dir}>
-        <AppLoadingState />
-      </MobileFrame>
-    );
-  }
-
   return (
     <MobileFrame dir={dir}>
       <AppListHeader
@@ -85,27 +77,31 @@ function WorkerHome({
         variant="en"
       />
 
-      <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
-        {sortedManagers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
-            <p className="text-sm text-gray-500">{companyName}</p>
-            <p className="mt-2 text-base font-medium text-gray-900">
-              אין מנהלים זמינים עדיין
-            </p>
-          </div>
-        ) : (
-          sortedManagers.map((manager) => (
-            <ManagerChatListItem
-              key={manager.id}
-              inviteToken={token}
-              workerId={workerId}
-              manager={manager}
-              workerLanguage={language}
-              emptyPreview={ui.noMessagesYet}
-            />
-          ))
-        )}
-      </div>
+      {inboxLoading ? (
+        <AppLoadingState />
+      ) : (
+        <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
+          {sortedManagers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
+              <p className="text-sm text-gray-500">{companyName}</p>
+              <p className="mt-2 text-base font-medium text-gray-900">
+                אין מנהלים זמינים עדיין
+              </p>
+            </div>
+          ) : (
+            sortedManagers.map((manager) => (
+              <ManagerChatListItem
+                key={manager.id}
+                inviteToken={token}
+                workerId={workerId}
+                manager={manager}
+                workerLanguage={language}
+                emptyPreview={ui.noMessagesYet}
+              />
+            ))
+          )}
+        </div>
+      )}
     </MobileFrame>
   );
 }

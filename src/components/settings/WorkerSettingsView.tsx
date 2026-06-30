@@ -8,6 +8,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { PushNotificationSettingsCard } from "@/components/settings/PushNotificationSettingsCard";
 import { LanguageFlag } from "@/components/worker/LanguageFlag";
 import { signOutSupabaseAuth } from "@/lib/auth/manager-auth";
+import { unsubscribeCurrentPushDevice } from "@/lib/hooks/use-push-notifications";
 import { getLanguage, getLanguagePickerLabel } from "@/lib/i18n/languages";
 import { getWorkerUi, type WorkerUiStrings } from "@/lib/i18n/worker-ui";
 import { useContactDisplayName, useSlangStore } from "@/lib/store";
@@ -86,6 +87,12 @@ export function WorkerSettingsView({
     if (loggingOut) return;
     setLoggingOut(true);
     try {
+      await unsubscribeCurrentPushDevice({
+        userRole: "worker",
+        userId: workerId,
+      }).catch((error) => {
+        console.warn("[Slang] Failed to unsubscribe push on logout", error);
+      });
       await signOutSupabaseAuth();
       setShowLogoutSheet(false);
       router.replace(getWorkerJoinPath(token));
@@ -98,6 +105,12 @@ export function WorkerSettingsView({
     if (deleting) return;
     setDeleting(true);
     try {
+      await unsubscribeCurrentPushDevice({
+        userRole: "worker",
+        userId: workerId,
+      }).catch((error) => {
+        console.warn("[Slang] Failed to unsubscribe push on account delete", error);
+      });
       await deleteWorkerAccount(workerId);
       await signOutSupabaseAuth();
       setShowDeleteSheet(false);
@@ -198,40 +211,40 @@ export function WorkerSettingsView({
           />
 
           <section>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setShowLogoutSheet(true)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
-                  <LogOut className="h-5 w-5 text-[var(--jobchat-accent)]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-900">{ui.logout}</p>
-                </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
-              </button>
+            <button
+              type="button"
+              onClick={() => setShowLogoutSheet(true)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
+                <LogOut className="h-5 w-5 text-[var(--jobchat-accent)]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">{ui.logout}</p>
+              </div>
+              <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" aria-hidden />
+            </button>
+          </section>
 
-              <button
-                type="button"
-                onClick={() => setShowDeleteSheet(true)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-red-100 bg-red-50/70 px-4 py-4 text-start transition-colors active:bg-red-50"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100">
-                  <Trash2 className="h-5 w-5 text-red-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-red-700">
-                    {ui.deleteAccount}
-                  </p>
-                  <p className="mt-0.5 text-xs text-red-400">
-                    {ui.deleteAccountSubtitle}
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-red-300" aria-hidden />
-              </button>
-            </div>
+          <section>
+            <button
+              type="button"
+              onClick={() => setShowDeleteSheet(true)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-red-100 bg-red-50/70 px-4 py-4 text-start transition-colors active:bg-red-50"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-red-700">
+                  {ui.deleteAccount}
+                </p>
+                <p className="mt-0.5 text-xs text-red-400">
+                  {ui.deleteAccountSubtitle}
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 shrink-0 text-red-300" aria-hidden />
+            </button>
           </section>
         </div>
       </div>

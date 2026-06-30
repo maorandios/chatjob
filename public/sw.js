@@ -1,3 +1,11 @@
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || "קלינג";
@@ -17,15 +25,14 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || "/";
+  const rawTargetUrl = event.notification.data?.url || "/";
+  const targetUrl = new URL(rawTargetUrl, self.location.origin).href;
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((clients) => {
-        const existingClient = clients.find((client) =>
-          client.url.endsWith(targetUrl)
-        );
+        const existingClient = clients.find((client) => client.url === targetUrl);
 
         if (existingClient) {
           return existingClient.focus();
