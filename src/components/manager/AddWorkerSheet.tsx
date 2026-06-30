@@ -13,9 +13,13 @@ import {
   ArrowLeft,
   Check,
   CircleUserRound,
+  FileText,
   Megaphone,
+  Phone,
+  RadioTower,
   Search,
   ShieldUser,
+  UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -37,13 +41,41 @@ type AddWorkerSheetProps = {
   contactAliases?: ContactAliases;
   broadcasting?: boolean;
   onBroadcastSubmit?: (data: { workerIds: string[]; text: string }) => void;
+  totalWorkerContacts?: number | null;
+  onBroadcastAllSubmit?: (data: { text: string }) => void;
   disableManagement?: boolean;
   disableWorker?: boolean;
 };
 
-type Step = "actions" | "form" | "broadcast-pick" | "broadcast-compose";
+type Step =
+  | "actions"
+  | "form"
+  | "broadcast-pick"
+  | "broadcast-compose"
+  | "broadcast-all-compose";
 
 const EMPTY_CONTACT_ALIASES: ContactAliases = { manager: {}, worker: {} };
+
+function FieldLabel({
+  icon: Icon,
+  text,
+  required,
+}: {
+  icon: typeof UserRound;
+  text: string;
+  required?: boolean;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-gray-700">
+      <Icon className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.9} />
+      <span>{text}</span>
+      <span className="h-1 w-1 rounded-full bg-gray-300" aria-hidden />
+      <span className="text-xs font-medium text-gray-400">
+        {required ? "חובה" : "אופציונאלי"}
+      </span>
+    </span>
+  );
+}
 
 const TYPE_OPTIONS: {
   value: UserType;
@@ -74,6 +106,8 @@ export function AddWorkerSheet({
   contactAliases = EMPTY_CONTACT_ALIASES,
   broadcasting = false,
   onBroadcastSubmit,
+  totalWorkerContacts = null,
+  onBroadcastAllSubmit,
   disableManagement = false,
   disableWorker = false,
 }: AddWorkerSheetProps) {
@@ -185,6 +219,12 @@ export function AddWorkerSheet({
     onBroadcastSubmit?.({ workerIds: selectedWorkerIds, text });
   };
 
+  const handleBroadcastAllSubmit = () => {
+    const text = broadcastText.trim();
+    if (!text || broadcasting) return;
+    onBroadcastAllSubmit?.({ text });
+  };
+
   useEffect(() => {
     if (!open && !loading && !broadcasting) {
       resetForm();
@@ -263,6 +303,24 @@ export function AddWorkerSheet({
                 </p>
                 <p className="mt-0.5 text-xs leading-snug text-gray-500">
                   שליחת הודעה למספר עובדים
+                </p>
+              </div>
+              <ArrowLeft className="h-5 w-5 shrink-0 text-gray-400" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep("broadcast-all-compose")}
+              className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-all active:scale-[0.98] active:bg-white/40"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)] text-[var(--jobchat-accent)]">
+                <RadioTower className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">
+                  הודעה לכל אנשי הקשר
+                </p>
+                <p className="mt-0.5 text-xs leading-snug text-gray-500">
+                  שליחת הודעה לכל העובדים ברשימה
                 </p>
               </div>
               <ArrowLeft className="h-5 w-5 shrink-0 text-gray-400" />
@@ -359,6 +417,49 @@ export function AddWorkerSheet({
             המשך ({selectedWorkerIds.length})
           </Button>
         </div>
+      ) : step === "broadcast-all-compose" ? (
+        <div className="space-y-4 pb-1">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex touch-manipulation items-center gap-1 text-sm font-medium text-gray-500 active:opacity-60"
+              dir="ltr"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              חזרה
+            </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-[17px] font-semibold text-gray-900">
+              הודעה לכל אנשי הקשר
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              סה״כ אנשי קשר:{" "}
+              <span className="font-semibold text-gray-900">
+                {totalWorkerContacts ?? "טוען..."}
+              </span>
+            </p>
+          </div>
+
+          <textarea
+            value={broadcastText}
+            onChange={(event) => setBroadcastText(event.target.value)}
+            placeholder="כתוב הודעה"
+            dir="rtl"
+            rows={5}
+            className="w-full resize-none rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-3 text-right text-base text-gray-900 outline-none placeholder:text-gray-400 focus:border-[var(--jobchat-accent)] focus:ring-2 focus:ring-[var(--jobchat-accent)]/20"
+          />
+          <Button
+            fullWidth
+            onClick={handleBroadcastAllSubmit}
+            disabled={!broadcastText.trim() || !totalWorkerContacts}
+            className="!rounded-2xl"
+          >
+            שלח לכולם
+          </Button>
+        </div>
       ) : step === "broadcast-compose" ? (
         <div className="space-y-4 pb-1">
           <div className="flex justify-end">
@@ -412,16 +513,18 @@ export function AddWorkerSheet({
           </p>
 
           <Input
+            id="add-worker-name"
             dir="rtl"
-            label="שם מלא"
+            label={<FieldLabel icon={UserRound} text="שם מלא" required />}
             placeholder="שם מלא"
             value={name}
             onChange={(e) => setName(e.target.value)}
             error={errors.name}
           />
           <Input
+            id="add-worker-phone"
             dir="rtl"
-            label="מספר טלפון"
+            label={<FieldLabel icon={Phone} text="מספר טלפון" />}
             placeholder="0522148799"
             type="tel"
             inputMode="tel"
@@ -431,8 +534,9 @@ export function AddWorkerSheet({
           />
 
           <Input
+            id="add-worker-note"
             dir="rtl"
-            label="תיאור קצר"
+            label={<FieldLabel icon={FileText} text="תיאור קצר" />}
             placeholder="הערה פרטית לצוות"
             value={privateNote}
             onChange={(e) => setPrivateNote(e.target.value)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
+import { CONTACT_PAGE_SIZE, MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
 import {
   subscribeToConversationMessages,
   subscribeToManagerInbox,
@@ -18,6 +18,7 @@ type ConversationSessionCache = {
 };
 
 const conversationSessionCache = new Map<string, ConversationSessionCache>();
+const loadedManagerInboxIds = new Set<string>();
 const loadedWorkerInboxKeys = new Set<string>();
 
 function conversationSessionKey(managerId: string, workerId: string): string {
@@ -216,7 +217,7 @@ export function useManagerBootstrap() {
   }, [ready, loggedOut, bootstrapManager]);
 }
 
-export function useManagerInboxPreviews() {
+export function useManagerInboxPreviews(searchQuery = "") {
   const ready = useSlangStore((s) => s.ready);
   const managerId = useSlangStore((s) => s.managerId);
   const companyId = useSlangStore((s) => s.companyId);
@@ -228,15 +229,21 @@ export function useManagerInboxPreviews() {
   const upsertWorkerRef = useRef(upsertWorker);
   upsertRef.current = upsertMessage;
   upsertWorkerRef.current = upsertWorker;
-  const [loadedManagerId, setLoadedManagerId] = useState<string | null>(null);
+  const [loadedManagerId, setLoadedManagerId] = useState<string | null>(() =>
+    managerId && loadedManagerInboxIds.has(managerId) ? managerId : null
+  );
 
   const refreshInbox = useCallback(async () => {
     if (!managerId) return;
     await Promise.allSettled([
       loadMessagePreviews({ managerId }),
-      loadWorkers(),
+      loadWorkers({
+        limit: CONTACT_PAGE_SIZE,
+        offset: 0,
+        query: searchQuery,
+      }),
     ]);
-  }, [managerId, loadMessagePreviews, loadWorkers]);
+  }, [managerId, searchQuery, loadMessagePreviews, loadWorkers]);
 
   useEffect(() => {
     if (!ready || !managerId) {
@@ -245,7 +252,10 @@ export function useManagerInboxPreviews() {
 
     let cancelled = false;
     void refreshInbox().finally(() => {
-      if (!cancelled) setLoadedManagerId(managerId);
+      if (!cancelled) {
+        loadedManagerInboxIds.add(managerId);
+        setLoadedManagerId(managerId);
+      }
     });
 
     const unsubMessages = subscribeToManagerInbox(managerId, (message) => {
@@ -273,7 +283,8 @@ export function useManagerInboxPreviews() {
 
 export function useWorkerInboxPreviews(
   workerId: string | undefined,
-  workerToken?: string
+  workerToken?: string,
+  searchQuery = ""
 ) {
   const loadMessagePreviews = useSlangStore((s) => s.loadMessagePreviews);
   const loadManagersForWorker = useSlangStore((s) => s.loadManagersForWorker);
@@ -289,9 +300,15 @@ export function useWorkerInboxPreviews(
     if (!workerId) return;
     await Promise.allSettled([
       loadMessagePreviews({ workerId }),
-      workerToken ? loadManagersForWorker(workerToken) : Promise.resolve(),
+      workerToken
+        ? loadManagersForWorker(workerToken, {
+            limit: CONTACT_PAGE_SIZE,
+            offset: 0,
+            query: searchQuery,
+          })
+        : Promise.resolve(),
     ]);
-  }, [workerId, workerToken, loadMessagePreviews, loadManagersForWorker]);
+  }, [workerId, workerToken, searchQuery, loadMessagePreviews, loadManagersForWorker]);
 
   useEffect(() => {
     if (!workerId) {

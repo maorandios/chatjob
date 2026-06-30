@@ -106,7 +106,7 @@ export async function GET(req: Request, context: RouteContext) {
       }
     }
 
-    const managers = await getManagersForWorkerMemberships(
+    const managerPage = await getManagersForWorkerMemberships(
       workerRow.id,
       membership.company_id
     );
@@ -114,7 +114,7 @@ export async function GET(req: Request, context: RouteContext) {
     return NextResponse.json({
       worker,
       invite,
-      managers,
+      managers: managerPage.items,
     });
   } catch (error) {
     console.error("Invite lookup error:", error);

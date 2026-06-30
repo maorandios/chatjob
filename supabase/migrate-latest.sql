@@ -4,7 +4,7 @@
 -- Safe to re-run: uses IF NOT EXISTS / IF EXISTS / CREATE OR REPLACE.
 --
 -- Applies everything added after the original schema:
---   • companies.company_number (ח.פ, optional)
+--   • Drop obsolete companies.company_number (ח.פ)
 --   • workers.employee_number, workers.address (optional profile fields)
 --   • managers.is_admin + one-admin-per-company index (v2 model)
 --   • Remove manager/worker count limits (unlimited until billing tiers)
@@ -21,11 +21,11 @@
 create extension if not exists "pgcrypto";
 
 -- ---------------------------------------------------------------------------
--- companies: optional registration number (ח.פ)
+-- companies
 -- ---------------------------------------------------------------------------
 
 alter table companies
-  add column if not exists company_number text;
+  drop column if exists company_number;
 
 alter table companies
   add column if not exists email text;

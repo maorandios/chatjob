@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MainLoader } from "@/components/ui/MainLoader";
 import { getAuthenticatedEmail } from "@/lib/auth/manager-auth";
+import { subscribeCurrentPushDevice } from "@/lib/hooks/use-push-notifications";
 import { useSlangStore } from "@/lib/store";
 import { cn, isValidIsraeliPhone } from "@/lib/utils";
 import {
@@ -94,6 +95,16 @@ export function AdminOnboardingView() {
         fullName: fullName.trim(),
         phone,
       });
+      const managerId = useSlangStore.getState().managerId;
+      if (managerId) {
+        await subscribeCurrentPushDevice({
+          userRole: "manager",
+          userId: managerId,
+          requestPermission: true,
+        }).catch((error) => {
+          console.warn("[Slang] Push registration after signup failed", error);
+        });
+      }
       router.replace("/manager");
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן ליצור את החשבון");

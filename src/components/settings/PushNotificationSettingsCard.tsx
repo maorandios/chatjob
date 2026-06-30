@@ -103,6 +103,13 @@ export function PushNotificationSettingsCard({
   const subtitle = isEnabled ? labels.subtitleOn : labels.subtitleOff;
   const Icon = isEnabled ? Bell : BellOff;
 
+  const handleOpen = () => {
+    setOpen(true);
+    if (isEnabled && !busy && !unavailable && !denied && state !== "subscribed") {
+      void requestPermissionAndSubscribe();
+    }
+  };
+
   const handleToggle = async () => {
     if (busy || unavailable || denied) return;
     if (isEnabled) {
@@ -117,7 +124,7 @@ export function PushNotificationSettingsCard({
       <section>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={handleOpen}
           className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
           dir={dir}
         >

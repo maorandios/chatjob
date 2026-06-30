@@ -20,7 +20,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const updates: { name?: string; company_number?: string | null } = {};
+    const updates: { name?: string } = {};
 
     if (body.name !== undefined) {
       const name = String(body.name).trim();
@@ -28,11 +28,6 @@ export async function PATCH(req: Request, context: RouteContext) {
         return NextResponse.json({ error: "Invalid name" }, { status: 400 });
       }
       updates.name = name;
-    }
-
-    if (body.companyNumber !== undefined) {
-      const companyNumber = String(body.companyNumber).trim();
-      updates.company_number = companyNumber || null;
     }
 
     if (Object.keys(updates).length === 0) {

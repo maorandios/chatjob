@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type UIEvent,
   type TouchEvent,
 } from "react";
 
@@ -19,6 +20,7 @@ type PullToRefreshProps = {
   className?: string;
   contentClassName?: string;
   disabled?: boolean;
+  onScroll?: (event: UIEvent<HTMLDivElement>) => void;
 };
 
 export function PullToRefresh({
@@ -27,6 +29,7 @@ export function PullToRefresh({
   className,
   contentClassName,
   disabled = false,
+  onScroll,
 }: PullToRefreshProps) {
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,6 +135,7 @@ export function PullToRefresh({
         onTouchMove={handleTouchMove}
         onTouchEnd={() => void handleTouchEnd()}
         onTouchCancel={resetPull}
+        onScroll={onScroll}
       >
         {children}
       </div>

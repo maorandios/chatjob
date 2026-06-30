@@ -5,6 +5,7 @@ import {
   getWorkerCompanyId,
 } from "@/lib/supabase/company-access";
 import { rowToMessage } from "@/lib/supabase/mappers";
+import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
 import type { Message } from "@/types";
 import { NextResponse } from "next/server";
 
@@ -58,7 +59,7 @@ export async function GET(req: Request) {
         .select("*")
         .eq("manager_id", managerId)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(MESSAGE_PAGE_SIZE);
 
       if (error) throw error;
 
@@ -83,7 +84,7 @@ export async function GET(req: Request) {
       .select("*")
       .eq("worker_id", workerId!)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(MESSAGE_PAGE_SIZE);
 
     if (error) throw error;
 

@@ -17,6 +17,12 @@ type PushUnsubscribeOptions = {
   rememberDisabled?: boolean;
 };
 
+type PushSubscribeOptions = {
+  userRole?: PushUserRole;
+  userId?: string;
+  requestPermission?: boolean;
+};
+
 type PushRegistrationState =
   | "unsupported"
   | "missing-key"
@@ -109,6 +115,53 @@ export async function unsubscribeCurrentPushDevice({
   });
 }
 
+export async function subscribeCurrentPushDevice({
+  userRole,
+  userId,
+  requestPermission = false,
+}: PushSubscribeOptions): Promise<NotificationPermission | null> {
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (!userRole || !userId || !isPushSupported() || !publicKey) return null;
+
+  const disabledStorageKey = getDisabledStorageKey(userRole, userId);
+  if (disabledStorageKey) {
+    window.localStorage.removeItem(disabledStorageKey);
+  }
+
+  const permission =
+    Notification.permission === "default" && requestPermission
+      ? await Notification.requestPermission()
+      : Notification.permission;
+
+  if (permission !== "granted") return permission;
+
+  await navigator.serviceWorker.register("/sw.js");
+  const registration = await navigator.serviceWorker.ready;
+  const existing = await registration.pushManager.getSubscription();
+  const subscription =
+    existing ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToArrayBuffer(publicKey),
+    }));
+
+  const response = await fetch("/api/push-subscriptions", {
+    method: "POST",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({
+      userRole,
+      userId,
+      subscription: subscription.toJSON(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to save push subscription");
+  }
+
+  return permission;
+}
+
 export function usePushNotifications({
   enabled,
   userRole,
@@ -134,51 +187,21 @@ export function usePushNotifications({
       if (!enabled || !userRole || !userId || !supported || !publicKey) return;
 
       try {
-        if (requestPermission && disabledStorageKey) {
-          window.localStorage.removeItem(disabledStorageKey);
-        }
-
-        const permission =
-          Notification.permission === "default" && requestPermission
-            ? await Notification.requestPermission()
-            : Notification.permission;
-
+        const permission = await subscribeCurrentPushDevice({
+          userRole,
+          userId,
+          requestPermission,
+        });
+        if (!permission) return;
         setState(permission);
         if (permission !== "granted") return;
-
-        setState("subscribing");
-
-        await navigator.serviceWorker.register("/sw.js");
-        const registration = await navigator.serviceWorker.ready;
-        const existing = await registration.pushManager.getSubscription();
-        const subscription =
-          existing ??
-          (await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToArrayBuffer(publicKey),
-          }));
-
-        const response = await fetch("/api/push-subscriptions", {
-          method: "POST",
-          headers: await getAuthHeaders(),
-          body: JSON.stringify({
-            userRole,
-            userId,
-            subscription: subscription.toJSON(),
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to save push subscription");
-        }
-
         setState("subscribed");
       } catch (error) {
         setState("failed");
         console.warn("[Slang] Push registration failed", error);
       }
     },
-    [disabledStorageKey, enabled, publicKey, supported, userId, userRole]
+    [enabled, publicKey, supported, userId, userRole]
   );
 
   const unsubscribe = useCallback(async () => {
@@ -202,12 +225,8 @@ export function usePushNotifications({
 
     if (Notification.permission === "granted") {
       let cancelled = false;
-      void navigator.serviceWorker
-        .getRegistration("/sw.js")
-        .then((registration) => registration?.pushManager.getSubscription())
-        .then((subscription) => {
-          if (!cancelled) setState(subscription ? "subscribed" : "granted");
-        })
+      setState("subscribing");
+      void subscribe(false)
         .catch(() => {
           if (!cancelled) setState("granted");
         });

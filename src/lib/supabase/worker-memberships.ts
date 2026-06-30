@@ -21,19 +21,46 @@ export async function getWorkerMembershipByInviteToken(
   return data ?? null;
 }
 
+type ContactPageOptions = {
+  limit?: number;
+  offset?: number;
+  query?: string;
+  activeOnly?: boolean;
+};
+
+type ContactPageResult<T> = {
+  items: T[];
+  hasMore: boolean;
+  total: number;
+};
+
+function matchesSearch(value: string | null | undefined, query: string): boolean {
+  return Boolean(value?.toLowerCase().includes(query));
+}
+
 export async function getAccessibleWorkersForCompany(
-  companyId: string
-): Promise<Worker[]> {
+  companyId: string,
+  options: ContactPageOptions = {}
+): Promise<ContactPageResult<Worker>> {
+  const limit = options.limit ?? 20;
+  const offset = options.offset ?? 0;
+  const query = options.query?.trim().toLowerCase() ?? "";
   const supabase = getSupabaseAdmin();
-  const { data: memberships, error: membershipsError } = await supabase
+  let membershipQuery = supabase
     .from("worker_company_memberships")
     .select("*")
     .eq("company_id", companyId)
     .neq("status", "revoked")
     .order("created_at", { ascending: false });
 
+  if (!query && !options.activeOnly) {
+    membershipQuery = membershipQuery.range(offset, offset + limit);
+  }
+
+  const { data: memberships, error: membershipsError } = await membershipQuery;
+
   if (membershipsError) throw membershipsError;
-  if (!memberships?.length) return [];
+  if (!memberships?.length) return { items: [], hasMore: false, total: 0 };
 
   const workerIds = memberships.map((membership) => membership.worker_id);
   const { data: workers, error: workersError } = await supabase
@@ -44,10 +71,44 @@ export async function getAccessibleWorkersForCompany(
   if (workersError) throw workersError;
 
   const workersById = new Map((workers ?? []).map((worker) => [worker.id, worker]));
-  return memberships.flatMap((membership) => {
+  let items = memberships.flatMap((membership) => {
     const worker = workersById.get(membership.worker_id);
     return worker ? [rowToWorker(worker, membership)] : [];
   });
+
+  if (options.activeOnly) {
+    items = items.filter((worker) => worker.status === "active" && worker.email);
+  }
+
+  if (query) {
+    const filtered = items.filter((worker) =>
+      [
+        worker.name,
+        worker.phone,
+        worker.email,
+        worker.privateNote,
+      ].some((value) => matchesSearch(value, query))
+    );
+    return {
+      items: filtered.slice(offset, offset + limit),
+      hasMore: filtered.length > offset + limit,
+      total: filtered.length,
+    };
+  }
+
+  if (options.activeOnly) {
+    return {
+      items: items.slice(offset, offset + limit),
+      hasMore: items.length > offset + limit,
+      total: items.length,
+    };
+  }
+
+  return {
+    items: items.slice(0, limit),
+    hasMore: items.length > limit,
+    total: offset + Math.min(items.length, limit) + (items.length > limit ? 1 : 0),
+  };
 }
 
 export async function getActiveCompanyIdsForWorker(
@@ -66,16 +127,20 @@ export async function getActiveCompanyIdsForWorker(
 
 export async function getManagersForWorkerMemberships(
   workerId: string,
-  fallbackCompanyId?: string
-): Promise<Manager[]> {
+  fallbackCompanyId?: string,
+  options: ContactPageOptions = {}
+): Promise<ContactPageResult<Manager>> {
+  const limit = options.limit ?? 20;
+  const offset = options.offset ?? 0;
+  const query = options.query?.trim() ?? "";
   const companyIds = await getActiveCompanyIdsForWorker(workerId);
   if (fallbackCompanyId && !companyIds.includes(fallbackCompanyId)) {
     companyIds.push(fallbackCompanyId);
   }
-  if (companyIds.length === 0) return [];
+  if (companyIds.length === 0) return { items: [], hasMore: false, total: 0 };
 
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
+  let managerQuery = supabase
     .from("managers")
     .select("*")
     .in("company_id", companyIds)
@@ -83,8 +148,21 @@ export async function getManagersForWorkerMemberships(
     .eq("onboarding_complete", true)
     .order("created_at", { ascending: false });
 
+  if (query) {
+    managerQuery = managerQuery.or(
+      `name.ilike.%${query}%,phone.ilike.%${query}%,email.ilike.%${query}%`
+    );
+  }
+
+  const { data, error } = await managerQuery.range(offset, offset + limit);
+
   if (error) throw error;
-  return (data ?? []).map(rowToManager);
+  const items = (data ?? []).slice(0, limit).map(rowToManager);
+  return {
+    items,
+    hasMore: (data ?? []).length > limit,
+    total: offset + items.length + ((data ?? []).length > limit ? 1 : 0),
+  };
 }
 
 export async function ensureWorkerCompanyMembership({

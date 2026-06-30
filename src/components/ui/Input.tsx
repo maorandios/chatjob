@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
+  label?: ReactNode;
   labelIcon?: ReactNode;
   error?: string;
   dir?: "ltr" | "rtl";
@@ -23,7 +23,11 @@ export function Input({
   align = "start",
   ...props
 }: InputProps) {
-  const inputId = id ?? label?.replace(/\s/g, "-").toLowerCase();
+  const inputId =
+    id ??
+    (typeof label === "string"
+      ? label.replace(/\s/g, "-").toLowerCase()
+      : undefined);
   const isRtl = dir === "rtl";
   const isCentered = align === "center";
   const fieldDir = inputDir ?? dir;

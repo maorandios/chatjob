@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase/worker-memberships";
 import { generateInviteToken } from "@/lib/supabase/tokens";
 import { normalizePhone } from "@/lib/utils";
+import { CONTACT_PAGE_SIZE } from "@/lib/constants/limits";
 import { NextResponse } from "next/server";
 
 type WorkerRow = Parameters<typeof rowToWorker>[0];
@@ -18,6 +19,14 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const managerId = searchParams.get("managerId");
+    const limitParam = Number.parseInt(searchParams.get("limit") ?? "", 10);
+    const offsetParam = Number.parseInt(searchParams.get("offset") ?? "", 10);
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(limitParam, 1), 50)
+      : CONTACT_PAGE_SIZE;
+    const offset = Number.isFinite(offsetParam) ? Math.max(offsetParam, 0) : 0;
+    const query = searchParams.get("q") ?? "";
+    const activeOnly = searchParams.get("activeOnly") === "true";
 
     if (!managerId) {
       return NextResponse.json({ error: "managerId required" }, { status: 400 });
@@ -28,8 +37,17 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
+    const page = await getAccessibleWorkersForCompany(companyId, {
+      limit,
+      offset,
+      query,
+      activeOnly,
+    });
+
     return NextResponse.json({
-      workers: await getAccessibleWorkersForCompany(companyId),
+      workers: page.items,
+      hasMore: page.hasMore,
+      total: page.total,
     });
   } catch (error) {
     console.error("List workers error:", error);

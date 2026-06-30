@@ -26,7 +26,7 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
   const managerId = useSlangStore((s) => s.managerId);
   const ready = useSlangStore((s) => s.ready);
   const worker = useWorkerById(workerId);
-  const setContactAlias = useSlangStore((s) => s.setContactAlias);
+  const updateWorkerProfile = useSlangStore((s) => s.updateWorkerProfile);
   const [showContactSheet, setShowContactSheet] = useState(false);
   const displayName = useContactDisplayName(
     "manager",
@@ -103,16 +103,23 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
         displayName={displayName}
         displayPhone={displayPhone}
         email={worker.email}
+        imageUrl={worker.profileImageUrl}
+        privateNote={worker.privateNote}
         onSave={(profile) =>
-          setContactAlias("manager", workerId, {
-            name: profile.name === worker.name ? "" : profile.name,
-            phone: profile.phone === worker.phone ? "" : profile.phone,
-          }, { contactRole: "worker" })
+          updateWorkerProfile(workerId, {
+            name: profile.name,
+            phone: displayPhone,
+            privateNote: profile.privateNote ?? "",
+          })
         }
         namePlaceholder="שם איש קשר"
         phonePlaceholder="מספר טלפון"
         saveLabel="שמירה"
         phoneCopiedLabel="מספר טלפון הועתק"
+        noteLabel="תיאור קצר"
+        notePlaceholder="תיאור העובד"
+        editablePhone={false}
+        editableNote
         dir="rtl"
       />
     </AppShell>

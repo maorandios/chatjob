@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { CircleUserRound } from "lucide-react";
 
 type AvatarProps = {
   name: string;
@@ -14,18 +15,19 @@ const sizes = {
   xl: "h-20 w-20 text-2xl",
 };
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+const iconSizes = {
+  sm: "h-5 w-5",
+  md: "h-6 w-6",
+  lg: "h-8 w-8",
+  xl: "h-10 w-10",
+};
 
 export function Avatar({ name, size = "md", imageUrl, className }: AvatarProps) {
   if (imageUrl) {
     return (
       <img
         src={imageUrl}
-        alt=""
+        alt={name}
         className={cn(
           "shrink-0 rounded-full object-cover",
           sizes[size],
@@ -44,7 +46,7 @@ export function Avatar({ name, size = "md", imageUrl, className }: AvatarProps) 
       )}
       aria-hidden
     >
-      {getInitials(name)}
+      <CircleUserRound className={iconSizes[size]} strokeWidth={1.8} />
     </div>
   );
 }

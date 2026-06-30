@@ -4,6 +4,7 @@ import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 import { KeyRound } from "lucide-react";
 import { AppListHeader } from "@/components/settings/AppListHeader";
 import { AuthBrandLogo } from "@/components/manager/AuthBrandLogo";
+import { ContactSearchField } from "@/components/manager/ContactSearchField";
 import { AppLoadingState } from "@/components/ui/AppLoadingState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -18,7 +19,9 @@ import {
   acceptWorkerInviteByToken,
   validateWorkerInviteEmailForJoin,
 } from "@/lib/auth/worker-auth";
+import { CONTACT_PAGE_SIZE } from "@/lib/constants/limits";
 import { useInviteBootstrap, useWorkerInboxPreviews } from "@/lib/hooks/use-slang-data";
+import { subscribeCurrentPushDevice } from "@/lib/hooks/use-push-notifications";
 import { getLanguageDir } from "@/lib/i18n/languages";
 import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
@@ -27,7 +30,7 @@ import { getWorkerJoinPath, getWorkerSettingsPath } from "@/lib/utils";
 import type { LanguageCode } from "@/types";
 import { isWorkerJoined } from "@/lib/workers/invite-status";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from "react";
 
 export default function InvitePage() {
   const params = useParams<{ token: string }>();
@@ -50,9 +53,14 @@ function WorkerHome({
   language: LanguageCode;
 }) {
   const managers = useSlangStore((s) => s.managers);
+  const managersHasMore = useSlangStore((s) => s.managersHasMore);
   const messages = useSlangStore((s) => s.messages);
+  const loadManagersForWorker = useSlangStore((s) => s.loadManagersForWorker);
   const ui = getWorkerUi(language);
   const dir = getLanguageDir(language);
+  const [searchQuery, setSearchQuery] = useState("");
+  const normalizedSearch = searchQuery.trim();
+  const loadingMoreRef = useRef(false);
   const sortedManagers = useMemo(() => {
     const latestByManager = new Map<string, number>();
     for (const message of messages) {
@@ -68,7 +76,37 @@ function WorkerHome({
     );
   }, [managers, messages, workerId]);
 
-  const inboxLoading = useWorkerInboxPreviews(workerId, token);
+  const inboxLoading = useWorkerInboxPreviews(workerId, token, normalizedSearch);
+
+  const handleLoadMore = useCallback(async () => {
+    if (!managersHasMore || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    try {
+      await loadManagersForWorker(token, {
+        append: true,
+        limit: CONTACT_PAGE_SIZE,
+        offset: managers.length,
+        query: normalizedSearch,
+      });
+    } finally {
+      loadingMoreRef.current = false;
+    }
+  }, [
+    managersHasMore,
+    managers.length,
+    normalizedSearch,
+    token,
+    loadManagersForWorker,
+  ]);
+
+  const handleListScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      const el = event.currentTarget;
+      if (el.scrollHeight - el.scrollTop - el.clientHeight > 240) return;
+      void handleLoadMore();
+    },
+    [handleLoadMore]
+  );
 
   return (
     <MobileFrame dir={dir}>
@@ -80,7 +118,17 @@ function WorkerHome({
       {inboxLoading ? (
         <AppLoadingState />
       ) : (
-        <div className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3">
+        <div
+          className="chat-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto bg-[var(--jobchat-surface)] px-3 py-3"
+          onScroll={handleListScroll}
+        >
+          <ContactSearchField
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={dir === "rtl" ? "חיפוש" : "Search"}
+            dir={dir}
+            className="mb-1"
+          />
           {sortedManagers.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
               <p className="text-sm text-gray-500">{companyName}</p>
@@ -239,6 +287,13 @@ function InviteOnboarding({
       try {
         await verifyEmailOtp(email, tokenValue);
         await acceptWorkerInviteByToken(token);
+        await subscribeCurrentPushDevice({
+          userRole: "worker",
+          userId: worker.id,
+          requestPermission: true,
+        }).catch((error) => {
+          console.warn("[Slang] Push registration after worker signup failed", error);
+        });
         window.location.assign(getWorkerJoinPath(token));
       } catch (err) {
         lastOtpAttemptRef.current = tokenValue;

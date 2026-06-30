@@ -12,7 +12,6 @@ create table if not exists companies (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   email text,
-  company_number text,
   created_at timestamptz not null default now()
 );
 

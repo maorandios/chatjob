@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const supabase = getSupabaseAdmin();
 
     async function loadTeam(companyId: string) {
-      const [{ data: managers, error: managersError }, workers] =
+      const [{ data: managers, error: managersError }, workerPage] =
         await Promise.all([
           supabase
             .from("managers")
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
       return {
         managers: (managers ?? []).map(rowToManager),
-        workers,
+        workers: workerPage.items,
       };
     }
 

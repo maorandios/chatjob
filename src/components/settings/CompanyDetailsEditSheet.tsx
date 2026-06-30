@@ -7,14 +7,12 @@ import { useEffect, useState } from "react";
 
 export type CompanyDetailsSave = {
   name: string;
-  companyNumber: string;
 };
 
 type CompanyDetailsEditSheetProps = {
   open: boolean;
   onClose: () => void;
   name: string;
-  companyNumber: string;
   onSave: (data: CompanyDetailsSave) => void | Promise<void>;
 };
 
@@ -22,20 +20,17 @@ export function CompanyDetailsEditSheet({
   open,
   onClose,
   name: initialName,
-  companyNumber: initialCompanyNumber,
   onSave,
 }: CompanyDetailsEditSheetProps) {
   const [name, setName] = useState(initialName);
-  const [companyNumber, setCompanyNumber] = useState(initialCompanyNumber);
   const [errors, setErrors] = useState<{ name?: string }>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setName(initialName);
-    setCompanyNumber(initialCompanyNumber);
     setErrors({});
-  }, [open, initialName, initialCompanyNumber]);
+  }, [open, initialName]);
 
   const handleSave = async () => {
     const nextErrors: { name?: string } = {};
@@ -49,7 +44,6 @@ export function CompanyDetailsEditSheet({
     try {
       await onSave({
         name: name.trim(),
-        companyNumber: companyNumber.trim(),
       });
       onClose();
     } finally {
@@ -70,14 +64,6 @@ export function CompanyDetailsEditSheet({
           value={name}
           onChange={(e) => setName(e.target.value)}
           error={errors.name}
-        />
-        <Input
-          dir="rtl"
-          label="ח.פ (אופציונלי)"
-          placeholder="ח.פ"
-          value={companyNumber}
-          onChange={(e) => setCompanyNumber(e.target.value)}
-          inputMode="numeric"
         />
         <div className="flex gap-3 pt-1">
           <Button

@@ -2,7 +2,7 @@
 
 import type { ProcessedMessage } from "@/lib/api/messages";
 import { compressImageFile } from "@/lib/images/compress";
-import { MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
+import { CONTACT_PAGE_SIZE, MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
 import { normalizeWorkerLanguage } from "@/lib/i18n/languages";
 import {
   clearStoredManagerId,
@@ -32,6 +32,13 @@ import { persist } from "zustand/middleware";
 
 let managerBootstrapPromise: Promise<void> | null = null;
 
+type ContactLoadOptions = {
+  append?: boolean;
+  limit?: number;
+  offset?: number;
+  query?: string;
+};
+
 type SlangState = {
   managerId: string | null;
   managerName: string;
@@ -42,9 +49,10 @@ type SlangState = {
   onboardingComplete: boolean;
   companyId: string;
   companyName: string;
-  companyNumber: string;
   managers: Manager[];
+  managersHasMore: boolean;
   workers: Worker[];
+  workersHasMore: boolean;
   messages: Message[];
   invites: Invite[];
   contactAliases: ContactAliases;
@@ -52,7 +60,7 @@ type SlangState = {
   loggedOut: boolean;
   bootstrapError: string | null;
   bootstrapManager: (inviteToken?: string, managerId?: string) => Promise<void>;
-  loadWorkers: () => Promise<void>;
+  loadWorkers: (options?: ContactLoadOptions) => Promise<void>;
   fetchInvite: (
     token: string
   ) => Promise<{
@@ -73,7 +81,10 @@ type SlangState = {
     managerId?: string;
     workerId?: string;
   }) => Promise<void>;
-  loadManagersForWorker: (workerToken: string) => Promise<void>;
+  loadManagersForWorker: (
+    workerToken: string,
+    options?: ContactLoadOptions
+  ) => Promise<void>;
   setConversationMessages: (
     managerId: string,
     workerId: string,
@@ -138,7 +149,7 @@ type SlangState = {
     workerId: string,
     profile: {
       name: string;
-      phone: string;
+      phone?: string;
       privateNote?: string;
     }
   ) => Promise<void>;
@@ -150,10 +161,7 @@ type SlangState = {
     targetManagerId: string,
     profile: { name: string; phone: string }
   ) => Promise<void>;
-  updateCompanyDetails: (details: {
-    name: string;
-    companyNumber: string;
-  }) => Promise<void>;
+  updateCompanyDetails: (details: { name: string }) => Promise<void>;
   uploadManagerProfileImage: (file: File) => Promise<void>;
   uploadWorkerProfileImage: (workerId: string, file: File) => Promise<void>;
   upsertMessage: (message: Message) => void;
@@ -233,11 +241,33 @@ function mergeWorkerList(workers: Worker[], worker: Worker): Worker[] {
   return next;
 }
 
+function appendWorkerPage(workers: Worker[], page: Worker[]): Worker[] {
+  const byId = new Map(workers.map((worker) => [worker.id, worker]));
+  const next = [...workers];
+  for (const worker of page) {
+    if (byId.has(worker.id)) continue;
+    byId.set(worker.id, worker);
+    next.push(worker);
+  }
+  return next;
+}
+
 function mergeManagerList(managers: Manager[], manager: Manager): Manager[] {
   const index = managers.findIndex((m) => m.id === manager.id);
   if (index === -1) return [manager, ...managers];
   const next = [...managers];
   next[index] = manager;
+  return next;
+}
+
+function appendManagerPage(managers: Manager[], page: Manager[]): Manager[] {
+  const byId = new Map(managers.map((manager) => [manager.id, manager]));
+  const next = [...managers];
+  for (const manager of page) {
+    if (byId.has(manager.id)) continue;
+    byId.set(manager.id, manager);
+    next.push(manager);
+  }
   return next;
 }
 
@@ -303,9 +333,10 @@ export const useSlangStore = create<SlangState>()(
       onboardingComplete: true,
       companyId: "",
       companyName: "",
-      companyNumber: "",
       managers: [],
+      managersHasMore: false,
       workers: [],
+      workersHasMore: false,
       messages: [],
       invites: [],
       contactAliases: { manager: {}, worker: {} },
@@ -328,9 +359,10 @@ export const useSlangStore = create<SlangState>()(
           onboardingComplete: true,
           companyId: "",
           companyName: "",
-          companyNumber: "",
           managers: [],
+          managersHasMore: false,
           workers: [],
+          workersHasMore: false,
           messages: [],
           invites: [],
           bootstrapError: null,
@@ -387,7 +419,8 @@ export const useSlangStore = create<SlangState>()(
           onboardingComplete: true,
           companyId: company.id,
           companyName: company.name,
-          companyNumber: company.companyNumber ?? "",
+          managersHasMore: false,
+          workersHasMore: false,
           managers: mergeManagerList(state.managers, manager),
         }));
       },
@@ -407,7 +440,7 @@ export const useSlangStore = create<SlangState>()(
         const run = async () => {
         const applyBootstrap = (data: {
           manager: Manager;
-          company: { id: string; name: string; companyNumber?: string };
+          company: { id: string; name: string };
           managers?: Manager[];
           workers?: Worker[];
         }) => {
@@ -427,9 +460,10 @@ export const useSlangStore = create<SlangState>()(
             loggedOut: false,
             companyId: data.company.id,
             companyName: data.company.name,
-            companyNumber: data.company.companyNumber ?? "",
             managers: teamManagers,
+            managersHasMore: false,
             workers: teamWorkers,
+            workersHasMore: false,
             invites: teamWorkers.map((worker) => ({
               token: worker.inviteToken,
               workerId: worker.id,
@@ -513,17 +547,27 @@ export const useSlangStore = create<SlangState>()(
         return run();
       },
 
-      loadWorkers: async () => {
+      loadWorkers: async (options = {}) => {
         const managerId = get().managerId;
         if (!managerId) return;
 
-        const res = await fetch(
-          `/api/workers?managerId=${encodeURIComponent(managerId)}`
-        );
+        const params = new URLSearchParams({
+          managerId,
+          limit: String(options.limit ?? CONTACT_PAGE_SIZE),
+          offset: String(options.offset ?? 0),
+        });
+        const query = options.query?.trim();
+        if (query) params.set("q", query);
+
+        const res = await fetch(`/api/workers?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to load workers");
 
         const data = await res.json();
-        set({ workers: data.workers as Worker[] });
+        const workers = (data.workers ?? []) as Worker[];
+        set((state) => ({
+          workers: options.append ? appendWorkerPage(state.workers, workers) : workers,
+          workersHasMore: Boolean(data.hasMore),
+        }));
       },
 
       fetchInvite: async (token) => {
@@ -603,17 +647,30 @@ export const useSlangStore = create<SlangState>()(
         }
       },
 
-      loadManagersForWorker: async (workerToken) => {
+      loadManagersForWorker: async (workerToken, options = {}) => {
         if (!workerToken) return;
 
-        const params = new URLSearchParams({ workerToken });
+        const params = new URLSearchParams({
+          workerToken,
+          limit: String(options.limit ?? CONTACT_PAGE_SIZE),
+          offset: String(options.offset ?? 0),
+        });
+        const query = options.query?.trim();
+        if (query) params.set("q", query);
+
         const res = await fetch(`/api/managers?${params.toString()}`, {
           headers: await getAuthHeaders(),
         });
         if (!res.ok) return;
 
         const data = await res.json();
-        set({ managers: (data.managers ?? []) as Manager[] });
+        const managers = (data.managers ?? []) as Manager[];
+        set((state) => ({
+          managers: options.append
+            ? appendManagerPage(state.managers, managers)
+            : managers,
+          managersHasMore: Boolean(data.hasMore),
+        }));
       },
 
       setConversationMessages: (managerId, workerId, messages) => {
@@ -1111,15 +1168,24 @@ export const useSlangStore = create<SlangState>()(
         const managerId = get().managerId;
         if (!managerId) throw new Error("Not authenticated");
 
+        const body: {
+          managerId: string;
+          name: string;
+          phone?: string;
+          privateNote: string;
+        } = {
+          managerId,
+          name: profile.name,
+          privateNote: profile.privateNote ?? "",
+        };
+        if (profile.phone !== undefined) {
+          body.phone = normalizePhone(profile.phone);
+        }
+
         const res = await fetch(`/api/workers/${encodeURIComponent(workerId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            managerId,
-            name: profile.name,
-            phone: normalizePhone(profile.phone),
-            privateNote: profile.privateNote ?? "",
-          }),
+          body: JSON.stringify(body),
         });
 
         if (!res.ok) throw new Error("Failed to update worker");
@@ -1205,7 +1271,6 @@ export const useSlangStore = create<SlangState>()(
           body: JSON.stringify({
             managerId,
             name: details.name,
-            companyNumber: details.companyNumber,
           }),
         });
 
@@ -1216,7 +1281,6 @@ export const useSlangStore = create<SlangState>()(
 
         set((state) => ({
           companyName: company.name,
-          companyNumber: company.companyNumber ?? "",
           invites: state.invites.map((invite) =>
             invite.companyId === companyId
               ? { ...invite, companyName: company.name }

@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase/worker-memberships";
 import { generateInviteToken } from "@/lib/supabase/tokens";
 import { normalizePhone } from "@/lib/utils";
+import { CONTACT_PAGE_SIZE } from "@/lib/constants/limits";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -17,6 +18,13 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const managerId = searchParams.get("managerId");
     const workerToken = searchParams.get("workerToken");
+    const limitParam = Number.parseInt(searchParams.get("limit") ?? "", 10);
+    const offsetParam = Number.parseInt(searchParams.get("offset") ?? "", 10);
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(limitParam, 1), 50)
+      : CONTACT_PAGE_SIZE;
+    const offset = Number.isFinite(offsetParam) ? Math.max(offsetParam, 0) : 0;
+    const searchQuery = searchParams.get("q") ?? "";
 
     const supabase = getSupabaseAdmin();
     let companyId: string | null = null;
@@ -26,12 +34,17 @@ export async function GET(req: Request) {
     } else if (workerToken) {
       const membership = await getWorkerMembershipByInviteToken(workerToken);
       if (membership) {
-        const managers = await getManagersForWorkerMemberships(
+        const page = await getManagersForWorkerMemberships(
           membership.worker_id,
-          membership.company_id
+          membership.company_id,
+          { limit, offset, query: searchQuery }
         );
 
-        return NextResponse.json({ managers });
+        return NextResponse.json({
+          managers: page.items,
+          hasMore: page.hasMore,
+          total: page.total,
+        });
       }
 
       const { data: worker, error } = await supabase
@@ -42,12 +55,17 @@ export async function GET(req: Request) {
 
       if (error) throw error;
       if (worker) {
-        const managers = await getManagersForWorkerMemberships(
+        const page = await getManagersForWorkerMemberships(
           worker.id,
-          worker.company_id
+          worker.company_id,
+          { limit, offset, query: searchQuery }
         );
 
-        return NextResponse.json({ managers });
+        return NextResponse.json({
+          managers: page.items,
+          hasMore: page.hasMore,
+          total: page.total,
+        });
       }
     } else {
       return NextResponse.json(
@@ -60,24 +78,33 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    let query = supabase
+    let managerQuery = supabase
       .from("managers")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("company_id", companyId)
       .order("created_at", { ascending: false });
 
     if (workerToken) {
-      query = query
+      managerQuery = managerQuery
         .not("email", "is", null)
         .eq("onboarding_complete", true);
     }
 
-    const { data, error } = await query;
+    if (searchQuery) {
+      managerQuery = managerQuery.or(
+        `name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`
+      );
+    }
+
+    const { data, error, count } = await managerQuery.range(offset, offset + limit);
 
     if (error) throw error;
+    const items = (data ?? []).slice(0, limit).map(rowToManager);
 
     return NextResponse.json({
-      managers: (data ?? []).map(rowToManager),
+      managers: items,
+      hasMore: (data ?? []).length > limit,
+      total: count ?? offset + items.length,
     });
   } catch (error) {
     console.error("List managers error:", error);

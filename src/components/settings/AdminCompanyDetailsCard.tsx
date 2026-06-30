@@ -34,13 +34,10 @@ function DetailRow({
 
 export function AdminCompanyDetailsCard() {
   const companyName = useSlangStore((s) => s.companyName);
-  const companyNumber = useSlangStore((s) => s.companyNumber);
   const updateCompanyDetails = useSlangStore((s) => s.updateCompanyDetails);
   const { showToast } = useToast();
 
   const [showEditSheet, setShowEditSheet] = useState(false);
-
-  const registrationDisplay = companyNumber.trim() || "לא הוזן";
 
   return (
     <>
@@ -58,11 +55,6 @@ export function AdminCompanyDetailsCard() {
         </div>
         <div className="space-y-4 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-5">
           <DetailRow label="שם החברה" value={companyName} />
-          <DetailRow
-            label="ח.פ"
-            value={registrationDisplay}
-            muted={!companyNumber.trim()}
-          />
         </div>
       </section>
 
@@ -70,7 +62,6 @@ export function AdminCompanyDetailsCard() {
         open={showEditSheet}
         onClose={() => setShowEditSheet(false)}
         name={companyName}
-        companyNumber={companyNumber}
         onSave={async (details) => {
           try {
             await updateCompanyDetails(details);

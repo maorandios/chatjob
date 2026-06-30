@@ -37,7 +37,6 @@ export type Company = {
   id: string;
   name: string;
   email?: string;
-  companyNumber?: string;
 };
 
 export type Manager = {
