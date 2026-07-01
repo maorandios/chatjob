@@ -2,6 +2,7 @@
 
 import { normalizeEmail } from "@/lib/auth/email";
 import { mapSupabaseAuthError } from "@/lib/auth/map-auth-error";
+import { resetAuthSessionCache } from "@/lib/auth/wait-for-auth-session";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 
 const EMAIL_OTP_VERIFY_TYPES = ["email", "magiclink", "signup"] as const;
@@ -182,4 +183,5 @@ export async function signOutSupabaseAuth(): Promise<void> {
   const supabase = getSupabaseBrowser();
   if (!supabase) return;
   await supabase.auth.signOut();
+  resetAuthSessionCache();
 }

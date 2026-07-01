@@ -69,6 +69,10 @@ export type WorkerUiStrings = {
   pushSettingsTitle: string;
   pushSettingsSubtitleOn: string;
   pushSettingsSubtitleOff: string;
+  pushSettingsInstallRequiredSubtitle: string;
+  pushSettingsInstallRequiredBody: string;
+  pushSettingsActivateSubtitle: string;
+  pushSettingsActivateButton: string;
   pushSettingsSheetTitle: string;
   pushSettingsSheetBody: string;
   pushSettingsToggleOn: string;
@@ -884,6 +888,10 @@ type PushNotificationWorkerStrings = Pick<
   | "pushSettingsTitle"
   | "pushSettingsSubtitleOn"
   | "pushSettingsSubtitleOff"
+  | "pushSettingsInstallRequiredSubtitle"
+  | "pushSettingsInstallRequiredBody"
+  | "pushSettingsActivateSubtitle"
+  | "pushSettingsActivateButton"
   | "pushSettingsSheetTitle"
   | "pushSettingsSheetBody"
   | "pushSettingsToggleOn"
@@ -901,6 +909,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "การแจ้งเตือน",
     pushSettingsSubtitleOn: "การแจ้งเตือนข้อความเปิดอยู่",
     pushSettingsSubtitleOff: "การแจ้งเตือนข้อความปิดอยู่",
+    pushSettingsInstallRequiredSubtitle:
+      "การแจ้งเตือนใช้ได้เฉพาะเมื่อติดตั้งแอปบนโทรศัพท์แล้ว",
+    pushSettingsInstallRequiredBody:
+      "หากต้องการรับการแจ้งเตือนแบบพุช ให้เพิ่มแอปไปยังหน้าจอหลักบน iPhone หรือ Android แล้วเปิดการแจ้งเตือนจากการตั้งค่า",
+    pushSettingsActivateSubtitle: "เปิดการแจ้งเตือนข้อความ",
+    pushSettingsActivateButton: "เปิดการแจ้งเตือน",
     pushSettingsSheetTitle: "การแจ้งเตือนข้อความ",
     pushSettingsSheetBody: "รับการแจ้งเตือนเมื่อมีคนส่งข้อความใหม่ถึงคุณ",
     pushSettingsToggleOn: "เปิดอยู่",
@@ -915,6 +929,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "नोटिफिकेशन",
     pushSettingsSubtitleOn: "मैसेज नोटिफिकेशन चालू हैं",
     pushSettingsSubtitleOff: "मैसेज नोटिफिकेशन बंद हैं",
+    pushSettingsInstallRequiredSubtitle:
+      "नोटिफिकेशन तभी काम करते हैं जब ऐप फ़ोन पर इंस्टॉल हो",
+    pushSettingsInstallRequiredBody:
+      "पुश नोटिफिकेशन पाने के लिए iPhone या Android पर ऐप को होम स्क्रीन में जोड़ें, फिर सेटिंग्स से नोटिफिकेशन चालू करें।",
+    pushSettingsActivateSubtitle: "मैसेज नोटिफिकेशन चालू करें",
+    pushSettingsActivateButton: "नोटिफिकेशन चालू करें",
     pushSettingsSheetTitle: "मैसेज नोटिफिकेशन",
     pushSettingsSheetBody: "जब कोई आपको नया मैसेज भेजे तो नोटिफिकेशन पाएं।",
     pushSettingsToggleOn: "चालू",
@@ -929,6 +949,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "දැනුම්දීම්",
     pushSettingsSubtitleOn: "පණිවිඩ දැනුම්දීම් සක්‍රීයයි",
     pushSettingsSubtitleOff: "පණිවිඩ දැනුම්දීම් අක්‍රීයයි",
+    pushSettingsInstallRequiredSubtitle:
+      "දැනුම්දීම් ක්‍රියා කරන්නේ දුරකථනයේ යෙදුම ස්ථාපනය කළ පසු පමණි",
+    pushSettingsInstallRequiredBody:
+      "Push දැනුම්දීම් ලබාගැනීමට iPhone හෝ Android හි යෙදුම home screen එකට එක් කර, පසුව settings වලින් දැනුම්දීම් සක්‍රීය කරන්න.",
+    pushSettingsActivateSubtitle: "පණිවිඩ දැනුම්දීම් සක්‍රීය කරන්න",
+    pushSettingsActivateButton: "දැනුම්දීම් සක්‍රීය කරන්න",
     pushSettingsSheetTitle: "පණිවිඩ දැනුම්දීම්",
     pushSettingsSheetBody: "කවුරුහරි ඔබට නව පණිවිඩයක් එවූ විට දැනුම්දීමක් ලබාගන්න.",
     pushSettingsToggleOn: "සක්‍රීය",
@@ -943,6 +969,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "Notificări",
     pushSettingsSubtitleOn: "Notificările pentru mesaje sunt active",
     pushSettingsSubtitleOff: "Notificările pentru mesaje sunt oprite",
+    pushSettingsInstallRequiredSubtitle:
+      "Notificările funcționează doar când aplicația este instalată pe telefon",
+    pushSettingsInstallRequiredBody:
+      "Pentru notificări push, adaugă aplicația pe ecranul principal pe iPhone sau Android, apoi activează notificările din setări.",
+    pushSettingsActivateSubtitle: "Activează notificările pentru mesaje",
+    pushSettingsActivateButton: "Activează notificările",
     pushSettingsSheetTitle: "Notificări pentru mesaje",
     pushSettingsSheetBody: "Primești o notificare când cineva îți trimite un mesaj nou.",
     pushSettingsToggleOn: "Activ",
@@ -957,6 +989,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "Bildirishnomalar",
     pushSettingsSubtitleOn: "Xabar bildirishnomalari faol",
     pushSettingsSubtitleOff: "Xabar bildirishnomalari o'chirilgan",
+    pushSettingsInstallRequiredSubtitle:
+      "Bildirishnomalar faqat ilova telefonga o'rnatilganda ishlaydi",
+    pushSettingsInstallRequiredBody:
+      "Push bildirishnomalar olish uchun iPhone yoki Android-da ilovani bosh ekranga qo'shing, so'ng sozlamalardan bildirishnomalarni yoqing.",
+    pushSettingsActivateSubtitle: "Xabar bildirishnomalarini yoqing",
+    pushSettingsActivateButton: "Bildirishnomalarni yoqish",
     pushSettingsSheetTitle: "Xabar bildirishnomalari",
     pushSettingsSheetBody: "Kimdir sizga yangi xabar yuborganda bildirishnoma oling.",
     pushSettingsToggleOn: "Faol",
@@ -971,6 +1009,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "Thông báo",
     pushSettingsSubtitleOn: "Thông báo tin nhắn đang bật",
     pushSettingsSubtitleOff: "Thông báo tin nhắn đang tắt",
+    pushSettingsInstallRequiredSubtitle:
+      "Thông báo chỉ hoạt động khi ứng dụng được cài trên điện thoại",
+    pushSettingsInstallRequiredBody:
+      "Để nhận thông báo đẩy, hãy thêm ứng dụng vào màn hình chính trên iPhone hoặc Android, rồi bật thông báo trong cài đặt.",
+    pushSettingsActivateSubtitle: "Bật thông báo tin nhắn",
+    pushSettingsActivateButton: "Bật thông báo",
     pushSettingsSheetTitle: "Thông báo tin nhắn",
     pushSettingsSheetBody: "Nhận thông báo khi ai đó gửi cho bạn tin nhắn mới.",
     pushSettingsToggleOn: "Đang bật",
@@ -985,6 +1029,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "Bildirişlər",
     pushSettingsSubtitleOn: "Mesaj bildirişləri aktivdir",
     pushSettingsSubtitleOff: "Mesaj bildirişləri söndürülüb",
+    pushSettingsInstallRequiredSubtitle:
+      "Bildirişlər yalnız tətbiq telefona quraşdırılanda işləyir",
+    pushSettingsInstallRequiredBody:
+      "Push bildirişlər almaq üçün iPhone və ya Android-də tətbiqi əsas ekrana əlavə edin, sonra parametrlərdən bildirişləri aktiv edin.",
+    pushSettingsActivateSubtitle: "Mesaj bildirişlərini aktiv edin",
+    pushSettingsActivateButton: "Bildirişləri aktiv et",
     pushSettingsSheetTitle: "Mesaj bildirişləri",
     pushSettingsSheetBody: "Kimsə sizə yeni mesaj göndərəndə bildiriş alın.",
     pushSettingsToggleOn: "Aktiv",
@@ -999,6 +1049,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "Notifications",
     pushSettingsSubtitleOn: "Message notifications are active",
     pushSettingsSubtitleOff: "Message notifications are off",
+    pushSettingsInstallRequiredSubtitle:
+      "Notifications work only when the app is installed on your phone",
+    pushSettingsInstallRequiredBody:
+      "To get push notifications, add the app to your home screen on iPhone or Android, then enable notifications in settings.",
+    pushSettingsActivateSubtitle: "Enable message notifications",
+    pushSettingsActivateButton: "Enable notifications",
     pushSettingsSheetTitle: "Message notifications",
     pushSettingsSheetBody: "Get notified when someone sends you a new message.",
     pushSettingsToggleOn: "Active",
@@ -1013,6 +1069,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "الإشعارات",
     pushSettingsSubtitleOn: "إشعارات الرسائل مفعّلة",
     pushSettingsSubtitleOff: "إشعارات الرسائل متوقفة",
+    pushSettingsInstallRequiredSubtitle:
+      "الإشعارات تعمل فقط عند تثبيت التطبيق على الهاتف",
+    pushSettingsInstallRequiredBody:
+      "للحصول على إشعارات الدفع، أضف التطبيق إلى الشاشة الرئيسية على iPhone أو Android، ثم فعّل الإشعارات من الإعدادات.",
+    pushSettingsActivateSubtitle: "فعّل إشعارات الرسائل",
+    pushSettingsActivateButton: "تفعيل الإشعارات",
     pushSettingsSheetTitle: "إشعارات الرسائل",
     pushSettingsSheetBody: "احصل على إشعار عندما يرسل لك شخص رسالة جديدة.",
     pushSettingsToggleOn: "مفعّل",
@@ -1027,6 +1089,12 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "Уведомления",
     pushSettingsSubtitleOn: "Уведомления о сообщениях включены",
     pushSettingsSubtitleOff: "Уведомления о сообщениях выключены",
+    pushSettingsInstallRequiredSubtitle:
+      "Уведомления работают только когда приложение установлено на телефон",
+    pushSettingsInstallRequiredBody:
+      "Чтобы получать push-уведомления, добавьте приложение на главный экран iPhone или Android, затем включите уведомления в настройках.",
+    pushSettingsActivateSubtitle: "Включите уведомления о сообщениях",
+    pushSettingsActivateButton: "Включить уведомления",
     pushSettingsSheetTitle: "Уведомления о сообщениях",
     pushSettingsSheetBody: "Получайте уведомления, когда вам отправляют новое сообщение.",
     pushSettingsToggleOn: "Включено",
@@ -1041,6 +1109,11 @@ const pushNotificationStrings: Record<
     pushSettingsTitle: "通知",
     pushSettingsSubtitleOn: "消息通知已开启",
     pushSettingsSubtitleOff: "消息通知已关闭",
+    pushSettingsInstallRequiredSubtitle: "通知仅在应用安装到手机后可用",
+    pushSettingsInstallRequiredBody:
+      "要接收推送通知，请先将应用添加到 iPhone 或 Android 的主屏幕，然后在设置中开启通知。",
+    pushSettingsActivateSubtitle: "开启消息通知",
+    pushSettingsActivateButton: "开启通知",
     pushSettingsSheetTitle: "消息通知",
     pushSettingsSheetBody: "当有人给你发送新消息时接收通知。",
     pushSettingsToggleOn: "开启",

@@ -25,23 +25,43 @@ export default function WorkerChatPage() {
   const token = params?.token ?? "";
   const managerId = params?.managerId ?? "";
   const router = useRouter();
-  const { loading, worker, invite, authRequired } = useInviteBootstrap(token);
+  const { loading, worker, invite, authRequired, managers } = useInviteBootstrap(token);
   const manager = useManagerById(managerId);
   const setContactAlias = useSlangStore((s) => s.setContactAlias);
   const [showContactSheet, setShowContactSheet] = useState(false);
 
   useEffect(() => {
+    if (loading || !token) return;
+
     if (authRequired) {
       router.replace(getWorkerJoinPath(token));
       return;
     }
+
     if (worker && !worker.language) {
       router.replace(getWorkerJoinPath(token));
+      return;
     }
-    if (!loading && token && (!worker || !invite || !managerId || !manager)) {
+
+    if (!worker || !invite) {
+      router.replace(getWorkerJoinPath(token));
+      return;
+    }
+
+    if (managers.length > 0 && managerId && !manager) {
       router.replace(getWorkerJoinPath(token));
     }
-  }, [authRequired, worker, invite, managerId, manager, loading, token, router]);
+  }, [
+    authRequired,
+    worker,
+    invite,
+    managerId,
+    manager,
+    managers.length,
+    loading,
+    token,
+    router,
+  ]);
 
   const displayName = useContactDisplayName(
     "worker",

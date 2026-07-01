@@ -1,6 +1,8 @@
 "use client";
 
 import { CONTACT_PAGE_SIZE, MESSAGE_PAGE_SIZE } from "@/lib/constants/limits";
+import { ensureAuthReady } from "@/lib/auth/wait-for-auth-session";
+import { setStoredWorkerInviteToken } from "@/lib/worker-session";
 import {
   subscribeToConversationMessages,
   subscribeToManagerInbox,
@@ -375,8 +377,16 @@ export function useInviteBootstrap(token: string | undefined) {
     setFetchState("loading");
     fetchedTokenRef.current = token;
 
-    void fetchInvite(token)
-      .catch((error) => {
+    void (async () => {
+      await ensureAuthReady();
+      if (cancelled) return;
+
+      try {
+        const result = await fetchInvite(token);
+        if (!cancelled && result) {
+          setStoredWorkerInviteToken(token);
+        }
+      } catch (error) {
         if (
           error instanceof Error &&
           "code" in error &&
@@ -386,10 +396,10 @@ export function useInviteBootstrap(token: string | undefined) {
           return;
         }
         console.error("[Slang] Invite fetch failed", error);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setFetchState("done");
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;

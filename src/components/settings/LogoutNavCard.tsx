@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { signOutSupabaseAuth } from "@/lib/auth/manager-auth";
 import { unsubscribeCurrentPushDevice } from "@/lib/hooks/use-push-notifications";
+import { clearStoredWorkerInviteToken } from "@/lib/worker-session";
 import { useSlangStore } from "@/lib/store";
 import { ChevronLeft, LogOut, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ export function LogoutNavCard() {
       console.warn("[Slang] Failed to unsubscribe push on logout", error);
     });
     await signOutSupabaseAuth();
+    clearStoredWorkerInviteToken();
     setOpen(false);
     router.replace("/login");
     logoutManager();
@@ -44,6 +46,7 @@ export function LogoutNavCard() {
       });
       await deleteManagerAccount();
       await signOutSupabaseAuth();
+      clearStoredWorkerInviteToken();
       setDeleteOpen(false);
       router.replace("/login");
     } finally {

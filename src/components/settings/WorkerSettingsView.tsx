@@ -9,6 +9,7 @@ import { PushNotificationSettingsCard } from "@/components/settings/PushNotifica
 import { LanguageFlag } from "@/components/worker/LanguageFlag";
 import { signOutSupabaseAuth } from "@/lib/auth/manager-auth";
 import { unsubscribeCurrentPushDevice } from "@/lib/hooks/use-push-notifications";
+import { clearStoredWorkerInviteToken } from "@/lib/worker-session";
 import { getLanguage, getLanguagePickerLabel } from "@/lib/i18n/languages";
 import { getWorkerUi, type WorkerUiStrings } from "@/lib/i18n/worker-ui";
 import { useContactDisplayName, useSlangStore } from "@/lib/store";
@@ -94,6 +95,7 @@ export function WorkerSettingsView({
         console.warn("[Slang] Failed to unsubscribe push on logout", error);
       });
       await signOutSupabaseAuth();
+      clearStoredWorkerInviteToken();
       setShowLogoutSheet(false);
       router.replace(getWorkerJoinPath(token));
     } finally {
@@ -113,6 +115,7 @@ export function WorkerSettingsView({
       });
       await deleteWorkerAccount(workerId);
       await signOutSupabaseAuth();
+      clearStoredWorkerInviteToken();
       setShowDeleteSheet(false);
       router.replace("/login");
     } finally {
@@ -197,6 +200,10 @@ export function WorkerSettingsView({
               title: ui.pushSettingsTitle,
               subtitleOn: ui.pushSettingsSubtitleOn,
               subtitleOff: ui.pushSettingsSubtitleOff,
+              installRequiredSubtitle: ui.pushSettingsInstallRequiredSubtitle,
+              installRequiredBody: ui.pushSettingsInstallRequiredBody,
+              activateSubtitle: ui.pushSettingsActivateSubtitle,
+              activateButton: ui.pushSettingsActivateButton,
               sheetTitle: ui.pushSettingsSheetTitle,
               sheetBody: ui.pushSettingsSheetBody,
               toggleOn: ui.pushSettingsToggleOn,

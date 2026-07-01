@@ -216,6 +216,8 @@ export async function sendMessagePushNotification(
     title: senderName,
     body: getBody(input, recipientRole, worker?.language),
     url,
+    managerId: input.managerId,
+    workerId: input.workerId,
   });
 
   await Promise.allSettled(

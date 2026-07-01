@@ -9,6 +9,7 @@ import { verifyEmailOtp } from "@/lib/auth/manager-auth";
 import { EMAIL_OTP_LENGTH, isCompleteOtpCode } from "@/lib/auth/otp";
 import { sendManagerLoginOtp } from "@/lib/auth/send-manager-otp";
 import { resolveWorkerInviteTokenByEmail } from "@/lib/auth/worker-auth";
+import { setStoredWorkerInviteToken } from "@/lib/worker-session";
 import { getWorkerJoinPath } from "@/lib/utils";
 import { KeyRound, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -75,6 +76,7 @@ export function WorkerLoginView() {
       try {
         await verifyEmailOtp(email, token);
         const { inviteToken } = await resolveWorkerInviteTokenByEmail(email);
+        setStoredWorkerInviteToken(inviteToken);
         window.location.assign(getWorkerJoinPath(inviteToken));
       } catch (err) {
         lastOtpAttemptRef.current = token;

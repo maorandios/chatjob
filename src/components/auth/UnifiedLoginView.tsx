@@ -17,6 +17,7 @@ import { EMAIL_OTP_LENGTH, isCompleteOtpCode } from "@/lib/auth/otp";
 import { getPostAuthManagerPath } from "@/lib/auth/post-auth-redirect";
 import { sendManagerLoginOtp } from "@/lib/auth/send-manager-otp";
 import { resolveWorkerInviteTokenByEmail } from "@/lib/auth/worker-auth";
+import { setStoredWorkerInviteToken } from "@/lib/worker-session";
 import { useSlangStore } from "@/lib/store";
 import { getWorkerJoinPath } from "@/lib/utils";
 import { KeyRound, Loader2 } from "lucide-react";
@@ -93,6 +94,7 @@ export function UnifiedLoginView() {
   const routeByVerifiedEmail = useCallback(async () => {
     try {
       const { inviteToken } = await resolveWorkerInviteTokenByEmail(email);
+      setStoredWorkerInviteToken(inviteToken);
       logoutManager();
       setRedirecting(true);
       window.location.assign(getWorkerJoinPath(inviteToken));

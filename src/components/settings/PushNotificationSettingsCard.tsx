@@ -3,14 +3,19 @@
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { usePushNotifications } from "@/lib/hooks/use-push-notifications";
+import { isMobileBrowserWithoutInstall } from "@/lib/pwa/display-mode";
 import { cn } from "@/lib/utils";
 import { Bell, BellOff, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type PushNotificationSettingsLabels = {
   title: string;
   subtitleOn: string;
   subtitleOff: string;
+  installRequiredSubtitle: string;
+  installRequiredBody: string;
+  activateSubtitle: string;
+  activateButton: string;
   sheetTitle: string;
   sheetBody: string;
   toggleOn: string;
@@ -32,6 +37,11 @@ const DEFAULT_LABELS: PushNotificationSettingsLabels = {
   title: "התראות",
   subtitleOn: "התראות הודעות פעילות",
   subtitleOff: "התראות הודעות כבויות",
+  installRequiredSubtitle: "התראות זמינות רק כשהאפליקציה מותקנת בטלפון",
+  installRequiredBody:
+    "כדי לקבל התראות פוש, הוסיפו את האפליקציה למסך הבית ב-iPhone או ב-Android, ואז הפעילו התראות מההגדרות.",
+  activateSubtitle: "הפעילו התראות הודעות",
+  activateButton: "הפעל התראות",
   sheetTitle: "התראות הודעות",
   sheetBody: "קבלו התראה כשנשלחת אליכם הודעה חדשה.",
   toggleOn: "פעיל",
@@ -84,6 +94,7 @@ export function PushNotificationSettingsCard({
 }: PushNotificationSettingsCardProps) {
   const labels = { ...DEFAULT_LABELS, ...providedLabels };
   const [open, setOpen] = useState(false);
+  const [mobileBrowserBlocked, setMobileBrowserBlocked] = useState(false);
   const {
     state,
     isSupported,
@@ -96,18 +107,37 @@ export function PushNotificationSettingsCard({
     userId,
   });
 
+  useEffect(() => {
+    const update = () => setMobileBrowserBlocked(isMobileBrowserWithoutInstall());
+    update();
+
+    const media = window.matchMedia?.("(display-mode: standalone)");
+    media?.addEventListener?.("change", update);
+    return () => media?.removeEventListener?.("change", update);
+  }, []);
+
   const unavailable =
     !isSupported || state === "unsupported" || state === "missing-key";
   const denied = state === "denied";
   const busy = state === "subscribing";
-  const subtitle = isEnabled ? labels.subtitleOn : labels.subtitleOff;
-  const Icon = isEnabled ? Bell : BellOff;
+  const needsActivation =
+    !mobileBrowserBlocked && !unavailable && !denied && state === "default";
+
+  const subtitle = mobileBrowserBlocked
+    ? labels.installRequiredSubtitle
+    : unavailable
+      ? labels.unsupportedTitle
+      : needsActivation
+        ? labels.activateSubtitle
+        : isEnabled
+          ? labels.subtitleOn
+          : labels.subtitleOff;
+
+  const Icon = mobileBrowserBlocked || !isEnabled ? BellOff : Bell;
 
   const handleOpen = () => {
+    if (mobileBrowserBlocked) return;
     setOpen(true);
-    if (isEnabled && !busy && !unavailable && !denied && state !== "subscribed") {
-      void requestPermissionAndSubscribe();
-    }
   };
 
   const handleToggle = async () => {
@@ -119,32 +149,49 @@ export function PushNotificationSettingsCard({
     await requestPermissionAndSubscribe();
   };
 
+  const handleActivate = async () => {
+    if (busy || unavailable || denied || mobileBrowserBlocked) return;
+    await requestPermissionAndSubscribe();
+  };
+
+  const cardClassName = cn(
+    "flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors",
+    mobileBrowserBlocked
+      ? "cursor-default opacity-60"
+      : "active:bg-white/40"
+  );
+
   return (
     <>
       <section>
-        <button
-          type="button"
-          onClick={handleOpen}
-          className="flex w-full items-center gap-3 rounded-2xl border border-[var(--jobchat-border)] bg-white/25 px-4 py-4 text-start transition-colors active:bg-white/40"
-          dir={dir}
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
-            <Icon className="h-5 w-5 text-[var(--jobchat-accent)]" />
+        {mobileBrowserBlocked ? (
+          <div className={cardClassName} dir={dir} aria-disabled>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100">
+              <Icon className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-500">{labels.title}</p>
+              <p className="mt-0.5 text-xs leading-snug text-gray-400">{subtitle}</p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-gray-900">{labels.title}</p>
-            <p className="mt-0.5 text-xs leading-snug text-gray-500">
-              {unavailable ? labels.unsupportedTitle : subtitle}
-            </p>
-          </div>
-          <ChevronRight
-            className={cn(
-              "h-5 w-5 shrink-0 text-gray-400",
-              dir === "rtl" && "rotate-180"
-            )}
-            aria-hidden
-          />
-        </button>
+        ) : (
+          <button type="button" onClick={handleOpen} className={cardClassName} dir={dir}>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--jobchat-accent-light)]">
+              <Icon className="h-5 w-5 text-[var(--jobchat-accent)]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900">{labels.title}</p>
+              <p className="mt-0.5 text-xs leading-snug text-gray-500">{subtitle}</p>
+            </div>
+            <ChevronRight
+              className={cn(
+                "h-5 w-5 shrink-0 text-gray-400",
+                dir === "rtl" && "rotate-180"
+              )}
+              aria-hidden
+            />
+          </button>
+        )}
       </section>
 
       <Sheet
@@ -170,7 +217,18 @@ export function PushNotificationSettingsCard({
             </p>
           </div>
 
-          {!unavailable && !denied ? (
+          {needsActivation ? (
+            <Button
+              fullWidth
+              onClick={() => void handleActivate()}
+              disabled={busy}
+              className="!rounded-2xl"
+            >
+              {labels.activateButton}
+            </Button>
+          ) : null}
+
+          {!needsActivation && !unavailable && !denied ? (
             <button
               type="button"
               onClick={() => void handleToggle()}
@@ -197,4 +255,3 @@ export function PushNotificationSettingsCard({
     </>
   );
 }
-

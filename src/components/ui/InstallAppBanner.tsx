@@ -4,6 +4,7 @@ import {
   InstallAppSheet,
   type InstallAppSheetLabels,
 } from "@/components/ui/InstallAppSheet";
+import { isStandaloneDisplay } from "@/lib/pwa/display-mode";
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -14,16 +15,6 @@ type InstallAppBannerProps = {
   dir?: "ltr" | "rtl";
   onInstallClick?: () => void;
 };
-
-function isStandaloneDisplay(): boolean {
-  if (typeof window === "undefined") return true;
-  const standaloneMedia = window.matchMedia?.("(display-mode: standalone)").matches;
-  const iosStandalone =
-    "standalone" in window.navigator &&
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-  return Boolean(standaloneMedia || iosStandalone);
-}
 
 export function InstallAppBanner({
   text,

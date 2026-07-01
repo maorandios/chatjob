@@ -11,6 +11,7 @@ import {
 } from "@/lib/manager-session";
 import { jobChatPersistStorage } from "@/lib/mock/safe-storage";
 import type { TranslationContextMessage } from "@/lib/server/glossary";
+import { ensureAuthReady } from "@/lib/auth/wait-for-auth-session";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import { generateId, normalizePhone } from "@/lib/utils";
 import type {
@@ -219,6 +220,7 @@ function createPendingMessage(
 async function getAuthHeaders(
   headers: HeadersInit = {}
 ): Promise<HeadersInit> {
+  await ensureAuthReady();
   const supabase = getSupabaseBrowser();
   if (!supabase) return headers;
 

@@ -27,6 +27,7 @@ import { formatWorkerUi, getWorkerUi } from "@/lib/i18n/worker-ui";
 import { useClientSearchParam } from "@/lib/mock/use-client-search-param";
 import { useSlangStore } from "@/lib/store";
 import { getWorkerJoinPath, getWorkerSettingsPath } from "@/lib/utils";
+import { setStoredWorkerInviteToken } from "@/lib/worker-session";
 import type { LanguageCode } from "@/types";
 import { isWorkerJoined } from "@/lib/workers/invite-status";
 import { useParams, useRouter } from "next/navigation";
@@ -287,6 +288,7 @@ function InviteOnboarding({
       try {
         await verifyEmailOtp(email, tokenValue);
         await acceptWorkerInviteByToken(token);
+        setStoredWorkerInviteToken(token);
         await subscribeCurrentPushDevice({
           userRole: "worker",
           userId: worker.id,

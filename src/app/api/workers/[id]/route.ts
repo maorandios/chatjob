@@ -12,6 +12,46 @@ import { NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
+export async function GET(req: Request, context: RouteContext) {
+  try {
+    const { id } = await context.params;
+    const managerId = new URL(req.url).searchParams.get("managerId");
+
+    if (!managerId) {
+      return NextResponse.json({ error: "managerId required" }, { status: 400 });
+    }
+
+    const companyId = await assertSameCompanyParticipants(managerId, id);
+    if (!companyId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const [{ data: workerRow, error: workerError }, { data: membership, error: membershipError }] =
+      await Promise.all([
+        supabase.from("workers").select("*").eq("id", id).maybeSingle(),
+        supabase
+          .from("worker_company_memberships")
+          .select("*")
+          .eq("worker_id", id)
+          .eq("company_id", companyId)
+          .neq("status", "revoked")
+          .maybeSingle(),
+      ]);
+
+    if (workerError) throw workerError;
+    if (membershipError) throw membershipError;
+    if (!workerRow || !membership) {
+      return NextResponse.json({ error: "Worker not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ worker: rowToWorker(workerRow, membership) });
+  } catch (error) {
+    console.error("Get worker error:", error);
+    return NextResponse.json({ error: "Failed to load worker" }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: Request, context: RouteContext) {
   try {
     const { id } = await context.params;

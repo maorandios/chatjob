@@ -1,5 +1,6 @@
 "use client";
 
+import { ensureAuthReady } from "@/lib/auth/wait-for-auth-session";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -67,6 +68,7 @@ function isLocallyDisabled(key: string | null): boolean {
 }
 
 async function getAuthHeaders(): Promise<HeadersInit> {
+  await ensureAuthReady();
   const supabase = getSupabaseBrowser();
   if (!supabase) return { "Content-Type": "application/json" };
 

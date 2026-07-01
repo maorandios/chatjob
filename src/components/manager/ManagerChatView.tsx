@@ -26,8 +26,11 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
   const managerId = useSlangStore((s) => s.managerId);
   const ready = useSlangStore((s) => s.ready);
   const worker = useWorkerById(workerId);
+  const upsertWorker = useSlangStore((s) => s.upsertWorker);
   const updateWorkerProfile = useSlangStore((s) => s.updateWorkerProfile);
   const [showContactSheet, setShowContactSheet] = useState(false);
+  const [resolvingWorker, setResolvingWorker] = useState(false);
+  const [workerMissing, setWorkerMissing] = useState(false);
   const displayName = useContactDisplayName(
     "manager",
     workerId,
@@ -45,7 +48,44 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
     }
   }, [worker, router]);
 
-  if (!ready || !managerId) {
+  useEffect(() => {
+    if (!ready || !managerId || !workerId || worker) {
+      setWorkerMissing(false);
+      return;
+    }
+
+    let cancelled = false;
+    setResolvingWorker(true);
+    setWorkerMissing(false);
+
+    void fetch(
+      `/api/workers/${encodeURIComponent(workerId)}?managerId=${encodeURIComponent(managerId)}`
+    )
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return res.json() as Promise<{ worker?: Parameters<typeof upsertWorker>[0] }>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.worker) {
+          upsertWorker(data.worker);
+          return;
+        }
+        setWorkerMissing(true);
+      })
+      .catch(() => {
+        if (!cancelled) setWorkerMissing(true);
+      })
+      .finally(() => {
+        if (!cancelled) setResolvingWorker(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, managerId, workerId, worker, upsertWorker]);
+
+  if (!ready || !managerId || resolvingWorker) {
     return (
       <AppShell dir="rtl">
         <div className="flex min-h-0 flex-1 items-center bg-[var(--jobchat-surface)]">
@@ -55,7 +95,16 @@ export function ManagerChatView({ workerId }: ManagerChatViewProps) {
     );
   }
 
-  if (!workerId || !worker) notFound();
+  if (!workerId || !worker) {
+    if (workerMissing) notFound();
+    return (
+      <AppShell dir="rtl">
+        <div className="flex min-h-0 flex-1 items-center bg-[var(--jobchat-surface)]">
+          <ChatLoadingState />
+        </div>
+      </AppShell>
+    );
+  }
 
   if (isWorkerInvitePending(worker)) {
     return (

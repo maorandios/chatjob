@@ -1,3 +1,4 @@
+import { PushNavigationListener } from "@/components/PushNavigationListener";
 import { ToastProvider } from "@/components/ui/Toast";
 import { PageStackTransition } from "@/components/ui/PageStackTransition";
 import { LEGACY_POLYFILL_SCRIPT } from "@/lib/legacy-polyfills";
@@ -78,6 +79,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex h-full min-h-0 flex-col">
+        <PushNavigationListener />
         <ToastProvider>
           <div className="flex min-h-0 flex-1 flex-col">
             <Suspense fallback={children}>
